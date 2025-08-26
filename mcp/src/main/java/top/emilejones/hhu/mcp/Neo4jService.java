@@ -1,9 +1,11 @@
 package top.emilejones.hhu.mcp;
 
 
-import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import java.util.Map;
 @Service
 public class Neo4jService implements AutoCloseable {
 
+    private static Logger logger = LoggerFactory.getLogger(Neo4jService.class);
     private final Driver driver;
 
     public Neo4jService() {
@@ -58,8 +61,7 @@ public class Neo4jService implements AutoCloseable {
         try (Session session = driver.session()) {
             Map<String, Object> params = Map.of("elementId", elementId, "skip", pick);
 
-            System.out.println("Cypher: " + cypher);
-            System.out.println("Params: " + params);
+            logger.debug("Mcp exec cypher: [{}], param: [{}]", cypher, params);
 
             Result rs = session.run(cypher, params);
 

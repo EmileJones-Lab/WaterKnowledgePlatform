@@ -12,6 +12,8 @@ dependencies {
     implementation("io.milvus:milvus-sdk-java:2.6.3")
     implementation("org.springframework.ai:spring-ai-starter-mcp-server-webflux")
     implementation("org.neo4j.driver:neo4j-java-driver:5.20.0")
+    implementation("org.slf4j:slf4j-api:2.0.13")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation(project(":env"))
 }
 
