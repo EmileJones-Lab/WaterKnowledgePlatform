@@ -1,0 +1,16 @@
+spring:
+  main:
+    banner-mode: off
+  ai:
+    mcp:
+      server:
+        name: my-weather-server
+        version: 0.0.1
+logging:
+  file:
+    name: ./model-context-protocol/weather/starter-webflux-server/target/starter-webflux-server.log
+  # 如果你之前有意注释掉 console 日志格式设置，也可以保留如下这行（不输出 console 格式）：
+  # pattern:
+  #   console: ""
+
+

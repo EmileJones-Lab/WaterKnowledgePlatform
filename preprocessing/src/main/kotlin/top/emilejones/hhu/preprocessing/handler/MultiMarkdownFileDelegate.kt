@@ -1,0 +1,58 @@
+package top.emilejones.hhu.preprocessing.handler
+
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.relativeTo
+
+class MultiMarkdownFileDelegate(filePath: String, targetRootDirPath: String) {
+    private val originFile: File = File(filePath)
+    private val targetRootDirPath = Path.of(targetRootDirPath).toAbsolutePath().normalize()
+    private val originFilePath: Path = Path.of(filePath).toAbsolutePath().normalize()
+    private val handlerList: MutableList<MarkdownFileHandler> = ArrayList()
+
+    fun addHandler(handler: MarkdownFileHandler): MultiMarkdownFileDelegate {
+        handlerList.add(handler)
+        return this
+    }
+
+    fun run() {
+        originFile.walk().forEach { handleTo(it) }
+    }
+
+    private fun handleTo(file: File) {
+        if (file.isDirectory) {
+            return
+        }
+        val suffix = file.name.split('.').last()
+        if ("md".equals(suffix.lowercase()))
+            handleMD(file)
+        else
+            handleOtherFile(file)
+    }
+
+    private fun handleMD(mdFile: File) {
+        var markdownFileText = mdFile.readText(Charsets.UTF_8)
+
+        for (handler in handlerList) {
+            markdownFileText = handler.handle(markdownFileText)
+        }
+
+        saveFileTo(markdownFileText.toByteArray(Charsets.UTF_8), getRelativePathFromOriginPath(mdFile.path))
+    }
+
+    private fun handleOtherFile(otherFile: File) {
+        saveFileTo(otherFile.readBytes(), getRelativePathFromOriginPath(otherFile.path))
+    }
+
+    private fun saveFileTo(byteArray: ByteArray, relativePath: Path) {
+        val file = targetRootDirPath.resolve(relativePath).toFile()
+        Files.createDirectories(file.parentFile.toPath())
+        file.writeBytes(byteArray)
+    }
+
+    private fun getRelativePathFromOriginPath(filePath: String): Path {
+        val targetFilePath = Path.of(filePath).toAbsolutePath().normalize()
+        return targetFilePath.relativeTo(originFilePath)
+    }
+}
