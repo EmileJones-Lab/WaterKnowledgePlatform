@@ -6,6 +6,8 @@ import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler
  * 主要用来修复遵循`1.1.1`这样格式的markdown文档，这个class做了以下任务
  * 1. 将`# 1`变为`## 1`，将`# 1.1.1`变为`#### 1.1.1`，如此类推
  * 2. 将`# （1）`变为` （1）`
+ *
+ * @author EmileJones
  */
 class TitleLevelCorrector : MarkdownFileHandler {
     companion object {

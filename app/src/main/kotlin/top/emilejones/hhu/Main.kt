@@ -11,30 +11,38 @@ import top.emilejones.huu.env.Neo4jEnvironment
 import top.emilejones.huu.env.XinferenceEnvironment
 import java.io.File
 
+val milvusRepository = MilvusRepositoryImpl(
+    port = MilvusEnvironment.PORT,
+    host = MilvusEnvironment.HOST,
+    databaseName = MilvusEnvironment.DATABASE_NAME,
+    collectionName = MilvusEnvironment.COLLECTION_NAME
+)
+val neo4jRepository = Neo4jRepositoryImpl(
+    username = Neo4jEnvironment.USER,
+    password = Neo4jEnvironment.PASSWORD,
+    host = Neo4jEnvironment.HOST,
+    port = Neo4jEnvironment.PORT
+)
+val modelClient = XinferenceHttpClient(XinferenceEnvironment.HOST, XinferenceEnvironment.PORT)
+val fileToNeo4jService = FileToNeo4jService(neo4jRepository)
+val neo4jToMilvusService = Neo4jToMilvusService(milvusRepository, neo4jRepository, modelClient)
+
 fun main() = runBlocking {
-    val filePath = "/Users/sunhongfei/Downloads/测试文档/淮河水资源调度方案（非最终稿）/淮河水资源调度方案.md"
-    val fileName = "淮河水资源调度方案.md"
 
-    val milvusRepository = MilvusRepositoryImpl(
-        port = MilvusEnvironment.PORT,
-        host = MilvusEnvironment.HOST,
-        databaseName = MilvusEnvironment.DATABASE_NAME,
-        collectionName = MilvusEnvironment.COLLECTION_NAME
-    )
-    val neo4jRepository = Neo4jRepositoryImpl(
-        username = Neo4jEnvironment.USER,
-        password = Neo4jEnvironment.PASSWORD,
-        host = Neo4jEnvironment.HOST,
-        port = Neo4jEnvironment.PORT
-    )
-    val modelClient = XinferenceHttpClient(XinferenceEnvironment.HOST, XinferenceEnvironment.PORT)
+    File("/Users/sunhongfei/Downloads/知识问答示例相关文件").walk().forEach {
+        if (it.isDirectory)
+            return@forEach
+        if (it.name.split('.').last().lowercase() != "md")
+            return@forEach
 
-    val fileToNeo4jService = FileToNeo4jService(neo4jRepository)
-    val neo4jToMilvusService = Neo4jToMilvusService(milvusRepository, neo4jRepository, modelClient)
-
-    fileToNeo4jService.save(File(filePath))
-    neo4jToMilvusService.saveByFilenameFromNeo4j(fileName)
+        saveFileToDB(it)
+    }
 
     fileToNeo4jService.close()
     neo4jToMilvusService.close()
+}
+
+private suspend fun saveFileToDB(sourceFile: File) {
+    fileToNeo4jService.save(sourceFile)
+    neo4jToMilvusService.saveByFilenameFromNeo4j(sourceFile.name)
 }

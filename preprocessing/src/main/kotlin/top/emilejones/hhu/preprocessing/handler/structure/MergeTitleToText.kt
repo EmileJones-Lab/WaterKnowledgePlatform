@@ -3,6 +3,10 @@ package top.emilejones.hhu.preprocessing.handler.structure
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler
 import java.util.*
 
+/**
+ * 将连续的多个标题合并为正文
+ * @author EmileJones
+ */
 class MergeTitleToText : MarkdownFileHandler {
     companion object {
         private const val TEXT_LEVEL = -1

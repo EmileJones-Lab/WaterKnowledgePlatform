@@ -2,9 +2,11 @@ package top.emilejones.hhu.preprocessing.handler.structure
 
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler
 
+/**
+ * 将除了第一行外的所有`#`全部删除
+ * @author EmileJones
+ */
 class PreHandler : MarkdownFileHandler {
-    private val titleRegex = "^#*\\s*\\d{1,2}(\\.\\d{1,2})*\\.?\\s?[^、\\d\\s]+".toRegex()
-    private val catalogRegex = """^#*\s*目\s*录""".toRegex()
     override fun handle(markdownText: String): String {
         val lines = markdownText.lines()
             .map { it.trimIndent() }
@@ -12,7 +14,7 @@ class PreHandler : MarkdownFileHandler {
             .toMutableList()
         var index = 1
         while (index < lines.size) {
-            if (lines[index].startsWith("#") && !lines[index].contains(titleRegex) && !lines[index].contains(catalogRegex)) {
+            if (lines[index].startsWith("#") ) {
                 lines[index] = lines[index].replace('#', ' ').trimIndent()
             }
             index++

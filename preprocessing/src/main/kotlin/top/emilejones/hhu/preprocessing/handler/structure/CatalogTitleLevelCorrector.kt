@@ -5,8 +5,10 @@ import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler
 /**
  * 将以 `# 目录` 开头的 markdown 目录段落转换为正文：
  * 1. 把 `# 目录` 降级为 `## 目录`
- * 2. 将目录下所有以 `##` 或 `###` 或 `####` 开头的小节转换为正文（去除 # 号）
+ * 2. 将目录下所有以 `#`或`##` 或 `###` 或 `####` 开头的小节转换为正文（去除 # 号）
  * 3. 替换结束于下一个真正正文章节（如 `## 1 总则`）前
+ *
+ * @author EmileJones
  */
 class CatalogTitleLevelCorrector : MarkdownFileHandler {
     private val catalogRegex = """#*\s*目\s*录""".toRegex()

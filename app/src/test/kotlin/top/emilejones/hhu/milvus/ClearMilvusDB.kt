@@ -1,3 +1,5 @@
+package top.emilejones.hhu.milvus
+
 import io.milvus.v2.client.ConnectConfig
 import io.milvus.v2.client.MilvusClientV2
 import io.milvus.v2.service.collection.request.DropCollectionReq
@@ -13,6 +15,5 @@ fun main() {
         .collectionName(MilvusEnvironment.COLLECTION_NAME)
         .databaseName(MilvusEnvironment.DATABASE_NAME)
         .build()
-
     client.dropCollection(dropQuickSetupParam)
 }

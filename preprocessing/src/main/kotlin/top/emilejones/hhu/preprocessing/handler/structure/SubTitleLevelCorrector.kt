@@ -2,6 +2,14 @@ package top.emilejones.hhu.preprocessing.handler.structure
 
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler
 
+/**
+ * 将符合格式`（1）`和`2）`的文本前面加上标题符号，标题主题会根据上一级标题等级来记
+ * 例如： #### 1.1.2 父级标题
+ *       ##### (1) 当前标题
+ * 注意：本类只可以处理`（1）`包含`1）`格式的文档，如果`1）`包含`（1）`则本类不适用
+ *
+ * @author EmileJones
+ */
 class SubTitleLevelCorrector : MarkdownFileHandler {
     companion object {
         private val bracketPairRegex = """^#*\s?（\d+）""".toRegex()
