@@ -5,11 +5,11 @@ import top.emilejones.hhu.parser.MarkdownStructureParser
 import top.emilejones.hhu.repository.neo4j.INeo4jRepository
 import java.io.File
 
-class FileToNeo4jService(
+class Neo4jService(
     private val repository: INeo4jRepository
 ) : AutoCloseable {
 
-    private val logger = LoggerFactory.getLogger(FileToNeo4jService::class.java)
+    private val logger = LoggerFactory.getLogger(Neo4jService::class.java)
 
     fun save(file: File) {
         logger.trace("Start read file [{}] as a tree structure", file.name)

@@ -2,18 +2,26 @@ package top.emilejones.hhu.parser
 
 import top.emilejones.hhu.domain.FileNode
 import top.emilejones.hhu.domain.TextNode
+import top.emilejones.hhu.repository.neo4j.enums.TextType
 import java.io.File
 
 private fun String.markdownLevel(): Int {
     if (!this.startsWith("#"))
         return Int.MAX_VALUE
-
     return this.count { it == '#' }
 }
 
 private fun String.isText(): Boolean {
     return !this.startsWith("#")
 }
+
+private val String.textType : TextType
+    get() {
+        if (this.startsWith("<table>")) return TextType.TABLE
+        if (this.startsWith("#")) return TextType.TITLE
+        if (this.matches("![.*?](.*?)".toRegex())) return TextType.IMAGE
+        return TextType.COMMON_TEXT
+    }
 
 class MarkdownStructureParser(file: File) {
     private val lines: List<String> = file.readText(Charsets.UTF_8).lines()
@@ -52,7 +60,8 @@ class MarkdownStructureParser(file: File) {
             rootNode = TextNode(
                 text = lines[0],
                 seq = 1,
-                level = lines[0].markdownLevel()
+                level = lines[0].markdownLevel(),
+                type = lines[0].textType
             )
             rootNode!!
         } else {
@@ -60,7 +69,8 @@ class MarkdownStructureParser(file: File) {
             val node = TextNode(
                 text = lines[nowIndex],
                 seq = preSeqNode!!.seq + 1,
-                level = lines[nowIndex].markdownLevel()
+                level = lines[nowIndex].markdownLevel(),
+                type = lines[nowIndex].textType
             )
             // 插入父子关系、序列关系
             setParentRelationship(parentNode, node)

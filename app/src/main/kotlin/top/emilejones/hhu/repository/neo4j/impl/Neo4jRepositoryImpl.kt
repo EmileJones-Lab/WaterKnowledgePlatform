@@ -6,9 +6,10 @@ import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.FileNode
 import top.emilejones.hhu.domain.TextNode
 import top.emilejones.hhu.repository.neo4j.INeo4jRepository
+import top.emilejones.hhu.repository.neo4j.enums.Neo4jRelationshipType
+import top.emilejones.hhu.repository.neo4j.enums.TextType
 import top.emilejones.hhu.repository.neo4j.po.Neo4jFileNode
 import top.emilejones.hhu.repository.neo4j.po.Neo4jRelationship
-import top.emilejones.hhu.repository.neo4j.po.Neo4jRelationshipType
 import top.emilejones.hhu.repository.neo4j.po.Neo4jTextNode
 import java.util.*
 import kotlin.reflect.KProperty
@@ -194,7 +195,8 @@ class Neo4jRepositoryImpl(
                 seq: ${'$'}seq,
                 level: ${'$'}level,
                 name: ${'$'}name,
-                length: ${'$'}length
+                length: ${'$'}length,
+                type: ${'$'}type
             })
             RETURN n
         """,
@@ -203,7 +205,8 @@ class Neo4jRepositoryImpl(
                 "seq", neo4jTextNode.seq,
                 "level", neo4jTextNode.level,
                 "name", neo4jTextNode.seq,
-                "length", neo4jTextNode.length
+                "length", neo4jTextNode.length,
+                "type", neo4jTextNode.type.name
             )
         ).single()
         return insertTextNodeResult.asNeo4jTextNode()
@@ -253,7 +256,8 @@ class Neo4jRepositoryImpl(
         return Neo4jTextNode(
             text = this.text,
             seq = this.seq,
-            level = this.level
+            level = this.level,
+            type = this.type
         )
     }
 
@@ -269,7 +273,8 @@ class Neo4jRepositoryImpl(
             elementId = node.elementId(),
             text = node["text"].asString(),
             seq = node["seq"].asInt(),
-            level = node["level"].asInt()
+            level = node["level"].asInt(),
+            type = TextType.valueOf(node["type"].asString())
         )
     }
 

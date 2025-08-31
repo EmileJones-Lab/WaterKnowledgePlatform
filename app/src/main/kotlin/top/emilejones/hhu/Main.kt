@@ -4,8 +4,8 @@ import kotlinx.coroutines.runBlocking
 import top.emilejones.hhu.model.impl.XinferenceHttpClient
 import top.emilejones.hhu.repository.milvus.impl.MilvusRepositoryImpl
 import top.emilejones.hhu.repository.neo4j.impl.Neo4jRepositoryImpl
-import top.emilejones.hhu.service.FileToNeo4jService
-import top.emilejones.hhu.service.Neo4jToMilvusService
+import top.emilejones.hhu.service.Neo4jService
+import top.emilejones.hhu.service.MilvusService
 import top.emilejones.huu.env.MilvusEnvironment
 import top.emilejones.huu.env.Neo4jEnvironment
 import top.emilejones.huu.env.XinferenceEnvironment
@@ -24,8 +24,8 @@ val neo4jRepository = Neo4jRepositoryImpl(
     port = Neo4jEnvironment.PORT
 )
 val modelClient = XinferenceHttpClient(XinferenceEnvironment.HOST, XinferenceEnvironment.PORT)
-val fileToNeo4jService = FileToNeo4jService(neo4jRepository)
-val neo4jToMilvusService = Neo4jToMilvusService(milvusRepository, neo4jRepository, modelClient)
+val fileToNeo4jService = Neo4jService(neo4jRepository)
+val neo4jToMilvusService = MilvusService(milvusRepository, neo4jRepository, modelClient)
 
 fun main() = runBlocking {
 
