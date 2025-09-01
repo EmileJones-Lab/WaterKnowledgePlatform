@@ -8,6 +8,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.model.ModelClient
+import top.emilejones.hhu.model.pojo.RerankResult
 
 class XinferenceHttpClient(
     private val host: String,
@@ -22,7 +23,6 @@ class XinferenceHttpClient(
     private val logger = LoggerFactory.getLogger(XinferenceHttpClient::class.java)
 
     override fun embedding(text: String): List<Float> {
-        logger.trace("Embedding text size: [{}]", text.length)
         val url = "http://$host:$port/v1/embeddings"
         val payload = mapOf("model" to "bge-m3", "input" to text)
         val json = gson.toJson(payload)
@@ -44,5 +44,46 @@ class XinferenceHttpClient(
         val data = map["data"] as? List<Map<String, Any>>
         val embedding = data?.get(0)?.get("embedding") as? List<Double>
         return embedding?.map { it.toFloat() } ?: emptyList()
+    }
+
+    override fun rerank(query: String, textList: List<String>): List<RerankResult> {
+        val url = "http://$host:$port/v1/rerank"
+        val payload = mapOf(
+            "model" to "bge-reranker-v2-m3",
+            "query" to query,
+            "documents" to textList
+        )
+        val json = gson.toJson(payload)
+        val body = json.toRequestBody("application/json".toMediaType())
+        val request = Request.Builder()
+            .url(url)
+            .post(body)
+            .addHeader("accept", "application/json")
+            .addHeader("Content-Type", "application/json")
+            .build()
+
+        val responseBody = client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw Exception("Unexpected code $response")
+            response.body?.string() ?: ""
+        }
+
+        val type = object : TypeToken<Map<String, Any>>() {}.type
+        val map: Map<String, Any> = gson.fromJson(responseBody, type)
+
+        // 解析 results 并取出 index 列表
+        val results = map["results"] as? List<Map<String, Any>> ?: emptyList()
+
+        val selected = results.map {
+            println(it)
+            val idx = (it["index"] as? Number)!!.toInt()
+            val score = (it["relevance_score"] as? Number)!!.toFloat()
+            RerankResult(
+                index = idx,
+                text = textList[idx],
+                score = score
+            )
+        }
+
+        return selected
     }
 }
