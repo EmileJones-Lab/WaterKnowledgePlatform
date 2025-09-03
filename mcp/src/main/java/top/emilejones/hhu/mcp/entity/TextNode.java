@@ -1,5 +1,7 @@
-package top.emilejones.hhu.mcp;
+package top.emilejones.hhu.mcp.entity;
 
+
+import top.emilejones.hhu.mcp.enums.TextType;
 
 public class TextNode {
 
@@ -9,17 +11,19 @@ public class TextNode {
     private Integer seq;
     private Integer name;
     private String text;
+    private TextType type;
 
     // 构造函数
     public TextNode() {}
 
-    public TextNode(String elementId, Integer id, Integer level, Integer seq, Integer name, String text) {
+    public TextNode(String elementId, Integer id, Integer level, Integer seq, Integer name, String text, TextType textType) {
         this.elementId = elementId;
         this.id = id;
         this.level = level;
         this.seq = seq;
         this.name = name;
         this.text = text;
+        this.type = textType;
     }
 
     // getter & setter
@@ -69,5 +73,26 @@ public class TextNode {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public TextType getType() {
+        return type;
+    }
+
+    public void setType(TextType type) {
+        this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "TextNode{" +
+                "elementId='" + elementId + '\'' +
+                ", id=" + id +
+                ", level=" + level +
+                ", seq=" + seq +
+                ", name=" + name +
+                ", text='" + text + '\'' +
+                ", type=" + type +
+                '}';
     }
 }

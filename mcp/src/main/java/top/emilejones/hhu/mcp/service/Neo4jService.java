@@ -1,14 +1,16 @@
-package top.emilejones.hhu.mcp;
+package top.emilejones.hhu.mcp.service;
 
 
-import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.*;
 import org.neo4j.driver.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
+import top.emilejones.hhu.mcp.entity.TextNode;
+import top.emilejones.hhu.mcp.enums.TextType;
 import top.emilejones.huu.env.Neo4jEnvironment;
 
 import java.util.Map;
@@ -69,7 +71,13 @@ public class Neo4jService implements AutoCloseable {
                 Record r = rs.next();
                 Node node = r.get("target").asNode();
 
-                return new TextNode(node.elementId(), node.containsKey("id") ? node.get("id").asInt() : null, node.containsKey("level") ? node.get("level").asInt() : null, node.containsKey("seq") ? node.get("seq").asInt() : null, node.containsKey("name") ? node.get("name").asInt() : null, node.containsKey("text") ? node.get("text").asString() : null);
+                return new TextNode(node.elementId(),
+                        node.containsKey("id") ? node.get("id").asInt() : null,
+                        node.containsKey("level") ? node.get("level").asInt() : null,
+                        node.containsKey("seq") ? node.get("seq").asInt() : null,
+                        node.containsKey("name") ? node.get("name").asInt() : null,
+                        node.containsKey("text") ? node.get("text").asString() : null,
+                        node.containsKey("type") ? TextType.valueOf(node.get("text").asString()) : null);
             }
 
 
