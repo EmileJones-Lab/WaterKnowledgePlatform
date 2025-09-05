@@ -5,4 +5,5 @@ object Neo4jEnvironment {
     const val PORT: Int = 7687
     const val USER: String = "neo4j"
     const val PASSWORD: String = "12345678"
+    const val DATABASE= "neo4j"
 }

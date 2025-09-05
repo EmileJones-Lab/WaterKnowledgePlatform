@@ -26,7 +26,8 @@ class MilvusService(
                 EmbeddingDatum(
                     vector = modelClient.embedding(it.text),
                     text = it.text,
-                    neo4jElementId = it.elementId!!
+                    neo4jElementId = it.elementId!!,
+                    type = it.type
                 )
             }
         }.awaitAll()

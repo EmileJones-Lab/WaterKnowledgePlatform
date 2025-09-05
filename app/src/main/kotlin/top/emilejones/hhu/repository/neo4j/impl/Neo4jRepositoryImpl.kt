@@ -11,6 +11,7 @@ import top.emilejones.hhu.repository.neo4j.enums.TextType
 import top.emilejones.hhu.repository.neo4j.po.Neo4jFileNode
 import top.emilejones.hhu.repository.neo4j.po.Neo4jRelationship
 import top.emilejones.hhu.repository.neo4j.po.Neo4jTextNode
+import top.emilejones.huu.env.Neo4jEnvironment
 import java.util.*
 import kotlin.reflect.KProperty
 
@@ -46,19 +47,19 @@ class Neo4jRepositoryImpl(
     }
 
     override fun insertNeo4jTextNode(node: Neo4jTextNode): Neo4jTextNode {
-        return driver.session().use {
+        return driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE)).use {
             it.insertTextNode(node)
         }
     }
 
     override fun insertNeo4jFileNode(node: Neo4jFileNode): Neo4jFileNode {
-        return driver.session().use {
+        return driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE)).use {
             it.insertFileNode(node)
         }
     }
 
     override fun insertNeo4jRelationship(relationship: Neo4jRelationship): Neo4jRelationship {
-        return driver.session().use {
+        return driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE)).use {
             it.insertRelationship(relationship)
         }
     }
@@ -67,7 +68,7 @@ class Neo4jRepositoryImpl(
         if (rootNode.fileNode == null)
             throw IllegalArgumentException("The fileNode of rootNode must be not null!")
 
-        driver.session().use { session ->
+        driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE)).use { session ->
             session.beginTransaction().use { transaction ->
                 logger.debug("Start insert tree transaction")
                 val result = runCatching {
@@ -91,7 +92,7 @@ class Neo4jRepositoryImpl(
     }
 
     override fun searchNeo4jTextNodeByFilename(filename: String): MutableList<Neo4jTextNode> {
-        driver.session().use { session ->
+        driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE)).use { session ->
             return session.executeRead { tx ->
                 val query = """
                     MATCH (f:FileNode)-[:CONTAIN]->(t:TextNode)
