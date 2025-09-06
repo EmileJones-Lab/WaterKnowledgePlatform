@@ -18,6 +18,7 @@ import io.milvus.v2.service.vector.response.SearchResp
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.repository.milvus.IMilvusRepository
 import top.emilejones.hhu.repository.milvus.po.EmbeddingDatum
+import top.emilejones.hhu.repository.neo4j.enums.TextType
 
 
 class MilvusRepositoryImpl(
@@ -81,13 +82,15 @@ class MilvusRepositoryImpl(
             val neo4jId = r.entity["elementId"].toString()
             val text = r.entity["text"].toString()
             val vector = r.entity["vector"]
+            val type = r.entity["type"].toString()
             if (vector !is List<*>) {
                 throw RuntimeException("Illegal vector type")
             }
             EmbeddingDatum(
                 vector = vector as List<Float>,
                 neo4jElementId = neo4jId,
-                text = text
+                text = text,
+                type = TextType.valueOf(type)
             )
         }
     }
@@ -103,6 +106,7 @@ class MilvusRepositoryImpl(
             add("vector", gson.toJsonTree(vectorArray))
             addProperty("elementId", datum.neo4jElementId)
             addProperty("text", datum.text)
+            addProperty("type", datum.type.name)
         }
 
         // 3. 构建 InsertReq
@@ -129,6 +133,7 @@ class MilvusRepositoryImpl(
                 add("vector", gson.toJsonTree(vectorArray))
                 addProperty("elementId", datum.neo4jElementId)
                 addProperty("text", datum.text)
+                addProperty("type", datum.type.name)
             }
         }.toMutableList()
 
@@ -192,6 +197,14 @@ class MilvusRepositoryImpl(
                 .build()
         )
 
+        // 2.4 type (VarChar 存储原始文本)
+        schema.addField(
+            AddFieldReq.builder()
+                .fieldName("type")
+                .dataType(DataType.VarChar)
+                .maxLength(20)
+                .build()
+        )
         // 3. 索引
         val indexParams = listOf(
             IndexParam.builder()
