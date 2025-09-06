@@ -7,13 +7,13 @@ import top.emilejones.hhu.repository.milvus.IMilvusRepository
 import top.emilejones.hhu.repository.milvus.po.EmbeddingDatum
 import top.emilejones.hhu.repository.neo4j.INeo4jRepository
 
-class Neo4jToMilvusService(
+class MilvusService(
     private val milvusRepository: IMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient
 ) : AutoCloseable {
 
-    private val logger = LoggerFactory.getLogger(Neo4jToMilvusService::class.java)
+    private val logger = LoggerFactory.getLogger(MilvusService::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     suspend fun saveByFilenameFromNeo4j(filename: String) {
@@ -26,7 +26,8 @@ class Neo4jToMilvusService(
                 EmbeddingDatum(
                     vector = modelClient.embedding(it.text),
                     text = it.text,
-                    neo4jElementId = it.elementId!!
+                    neo4jElementId = it.elementId!!,
+                    type = it.type
                 )
             }
         }.awaitAll()
