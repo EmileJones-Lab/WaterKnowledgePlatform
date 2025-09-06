@@ -74,7 +74,6 @@ class XinferenceHttpClient(
         val results = map["results"] as? List<Map<String, Any>> ?: emptyList()
 
         val selected = results.map {
-            println(it)
             val idx = (it["index"] as? Number)!!.toInt()
             val score = (it["relevance_score"] as? Number)!!.toFloat()
             RerankResult(
