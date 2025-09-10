@@ -1,4 +1,4 @@
-package top.emilejones.hhu.mcp.service;
+package top.emilejones.hhu.mcp.mcp;
 
 
 import org.neo4j.driver.Record;
@@ -17,12 +17,12 @@ import java.util.Map;
 
 
 @Service
-public class Neo4jService implements AutoCloseable {
+public class Neo4jMcp implements AutoCloseable {
 
-    private static Logger logger = LoggerFactory.getLogger(Neo4jService.class);
+    private static Logger logger = LoggerFactory.getLogger(Neo4jMcp.class);
     private final Driver driver;
 
-    public Neo4jService() {
+    public Neo4jMcp() {
         // 修改为Neo4j 地址和密码
         String uri = "bolt://%s:%d".formatted(Neo4jEnvironment.HOST, Neo4jEnvironment.PORT);
         this.driver = GraphDatabase.driver(uri, AuthTokens.basic(Neo4jEnvironment.USER, Neo4jEnvironment.PASSWORD));
