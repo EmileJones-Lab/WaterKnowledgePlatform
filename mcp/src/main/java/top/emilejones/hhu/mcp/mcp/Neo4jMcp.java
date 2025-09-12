@@ -60,7 +60,7 @@ public class Neo4jMcp implements AutoCloseable {
         String cypher = String.format("MATCH (start:TextNode) " + "WHERE elementId(start) = $elementId " + "MATCH (start)-[:%s*%d]->(target:TextNode) " + "WITH target ORDER BY coalesce(target.seq,0) ASC " + "SKIP toInteger($skip) LIMIT 1 " + "RETURN target", relationship, hops);
 
 
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE))) {
             Map<String, Object> params = Map.of("elementId", elementId, "skip", pick);
 
             logger.debug("Mcp exec cypher: [{}], param: [{}]", cypher, params);

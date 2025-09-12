@@ -37,7 +37,7 @@ public class Neo4jRepository implements INeo4jRepository {
 
         Map<String, Object> params = Map.of("elementId", elementId);
 
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE))) {
             Record record = session.run(
                     cypher,
                     params
@@ -64,7 +64,7 @@ public class Neo4jRepository implements INeo4jRepository {
 
         Map<String, Object> params = Map.of("elementId", elementId);
 
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE))) {
             Record record = session.run(
                     cypher,
                     params
