@@ -1,4 +1,4 @@
-package top.emilejones.hhu.mcp.service;
+package top.emilejones.hhu.mcp.service.impl;
 
 import kotlin.Pair;
 import org.springframework.ai.tool.annotation.Tool;
@@ -8,6 +8,7 @@ import top.emilejones.hhu.mcp.entity.TextNode;
 import top.emilejones.hhu.mcp.enums.TextType;
 import top.emilejones.hhu.mcp.repository.IMilvusRepository;
 import top.emilejones.hhu.mcp.repository.INeo4jRepository;
+import top.emilejones.hhu.mcp.service.IRecallService;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.impl.XinferenceHttpClient;
 import top.emilejones.hhu.model.pojo.RerankResult;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
  * @author EmileJones
  */
 @Service
-public class RecallService {
+public class RecallService implements IRecallService {
     private IMilvusRepository milvusRepository;
     private INeo4jRepository neo4jRepository;
     private ModelClient client;
@@ -33,8 +34,9 @@ public class RecallService {
         client = new XinferenceHttpClient(XinferenceEnvironment.HOST, XinferenceEnvironment.PORT);
     }
 
+    @Override
     @Tool(description = "根据问题返回和问题最相关的资料片段")
-    public Map<String, Object> recallText(@ToolParam(description = "问题") String query) {
+    public List<String> recallText(@ToolParam(description = "问题") String query) {
         final int maxResultNumber = 5;
 
         // 从向量数据库中召回数据
@@ -92,6 +94,6 @@ public class RecallService {
             }
         }
 
-        return Map.of("result", resultSet.stream().map(TextNode::getText).toList());
+        return resultSet.stream().map(TextNode::getText).toList();
     }
 }
