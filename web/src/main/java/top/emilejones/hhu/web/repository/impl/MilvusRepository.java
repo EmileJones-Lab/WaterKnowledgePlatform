@@ -1,4 +1,4 @@
-package top.emilejones.hhu.mcp.repository.impl;
+package top.emilejones.hhu.web.repository.impl;
 
 import io.milvus.v2.client.ConnectConfig;
 import io.milvus.v2.client.MilvusClientV2;
@@ -6,9 +6,9 @@ import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.SearchResp;
 import org.springframework.stereotype.Repository;
-import top.emilejones.hhu.mcp.entity.TextNode;
-import top.emilejones.hhu.mcp.enums.TextType;
-import top.emilejones.hhu.mcp.repository.IMilvusRepository;
+import top.emilejones.hhu.web.entity.TextNode;
+import top.emilejones.hhu.web.enums.TextType;
+import top.emilejones.hhu.web.repository.IMilvusRepository;
 import top.emilejones.huu.env.MilvusEnvironment;
 
 import java.util.List;

@@ -25,4 +25,5 @@ include(":preprocessing")
 include(":qa")
 include(":mcp")
 include(":env")
+include(":web")
 rootProject.name = "mission2"

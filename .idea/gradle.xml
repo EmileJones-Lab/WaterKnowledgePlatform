@@ -27,6 +27,7 @@
             <option value="$PROJECT_DIR$/preprocessing" />
             <option value="$PROJECT_DIR$/qa" />
             <option value="$PROJECT_DIR$/utils" />
+            <option value="$PROJECT_DIR$/web" />
           </set>
         </option>
       </GradleProjectSettings>

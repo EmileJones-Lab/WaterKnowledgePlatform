@@ -1,12 +1,12 @@
-package top.emilejones.hhu.mcp.repository.impl;
+package top.emilejones.hhu.web.repository.impl;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
 import org.neo4j.driver.types.Node;
 import org.springframework.stereotype.Repository;
-import top.emilejones.hhu.mcp.entity.TextNode;
-import top.emilejones.hhu.mcp.enums.TextType;
-import top.emilejones.hhu.mcp.repository.INeo4jRepository;
+import top.emilejones.hhu.web.entity.TextNode;
+import top.emilejones.hhu.web.enums.TextType;
+import top.emilejones.hhu.web.repository.INeo4jRepository;
 import top.emilejones.huu.env.Neo4jEnvironment;
 
 import java.util.Map;
