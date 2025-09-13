@@ -22,4 +22,11 @@ public interface INeo4jRepository {
      * @return 前一个节点信息
      */
     TextNode preNode(String elementId);
+
+    /**
+     * 根据elementId获取节点的详细信息
+     * @param elementId 节点Id
+     * @return 节点的详细信息
+     */
+    TextNode selectByElementId(String elementId);
 }
