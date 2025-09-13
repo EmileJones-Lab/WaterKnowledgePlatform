@@ -1,6 +1,7 @@
-package top.emilejones.hhu.mcp.repository;
+package top.emilejones.hhu.web.repository;
 
-import top.emilejones.hhu.mcp.entity.TextNode;
+
+import top.emilejones.hhu.web.entity.TextNode;
 
 /**
  * 请求Neo4j数据库的借口规范

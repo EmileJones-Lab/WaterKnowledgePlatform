@@ -1,4 +1,4 @@
-package top.emilejones.hhu.mcp.service;
+package top.emilejones.hhu.web.service;
 
 import java.util.List;
 

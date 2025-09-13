@@ -2,13 +2,13 @@ package top.emilejones.hhu.mcp.mcp;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.stereotype.Controller;
-import top.emilejones.hhu.mcp.service.IRecallService;
+import org.springframework.stereotype.Service;
+import top.emilejones.hhu.web.service.IRecallService;
 
 import java.util.List;
 import java.util.Map;
 
-@Controller
+@Service
 public class RecallMcp {
     private IRecallService recallService;
 

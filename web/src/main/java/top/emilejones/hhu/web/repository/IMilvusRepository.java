@@ -1,6 +1,7 @@
-package top.emilejones.hhu.mcp.repository;
+package top.emilejones.hhu.web.repository;
 
-import top.emilejones.hhu.mcp.entity.TextNode;
+
+import top.emilejones.hhu.web.entity.TextNode;
 
 import java.util.List;
 
@@ -12,8 +13,9 @@ import java.util.List;
 public interface IMilvusRepository {
     /**
      * 根据向量去查找最相近的结果
+     *
      * @param queryVector 查询向量
-     * @param topK 需要查找的结果数量
+     * @param topK        需要查找的结果数量
      * @return 最相似结果，返回的对象中只有text属性和elementId属性
      */
     List<TextNode> search(List<Float> queryVector, int topK);

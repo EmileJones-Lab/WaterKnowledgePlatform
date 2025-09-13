@@ -1,17 +1,18 @@
-package top.emilejones.hhu.mcp.service.impl;
+package top.emilejones.hhu.web.service.impl;
 
 import kotlin.Pair;
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.annotation.ToolParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import top.emilejones.hhu.mcp.entity.TextNode;
-import top.emilejones.hhu.mcp.enums.TextType;
-import top.emilejones.hhu.mcp.repository.IMilvusRepository;
-import top.emilejones.hhu.mcp.repository.INeo4jRepository;
-import top.emilejones.hhu.mcp.service.IRecallService;
+import top.emilejones.hhu.web.entity.TextNode;
+import top.emilejones.hhu.web.enums.TextType;
+import top.emilejones.hhu.web.repository.IMilvusRepository;
+import top.emilejones.hhu.web.repository.INeo4jRepository;
+import top.emilejones.hhu.web.service.IRecallService;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.impl.XinferenceHttpClient;
 import top.emilejones.hhu.model.pojo.RerankResult;
+import top.emilejones.hhu.spliter.java.HtmlTableToCsvSplitterForJava;
 import top.emilejones.huu.env.XinferenceEnvironment;
 
 import java.util.*;
@@ -27,6 +28,7 @@ public class RecallService implements IRecallService {
     private IMilvusRepository milvusRepository;
     private INeo4jRepository neo4jRepository;
     private ModelClient client;
+    private static Logger logger = LoggerFactory.getLogger(RecallService.class);
 
     public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository) {
         this.milvusRepository = milvusRepository;
@@ -35,9 +37,8 @@ public class RecallService implements IRecallService {
     }
 
     @Override
-    @Tool(description = "根据问题返回和问题最相关的资料片段")
-    public List<String> recallText(@ToolParam(description = "问题") String query) {
-        final int maxResultNumber = 5;
+    public List<String> recallText(String query) {
+        final int maxResultNumber = 10;
 
         // 从向量数据库中召回数据
         List<Float> queryVector = client.embedding(query);
@@ -93,7 +94,21 @@ public class RecallService implements IRecallService {
                     break;
             }
         }
+        long tableCount = resultSet.stream().filter(result -> TextType.TABLE.equals(result.getType())).count();
+        // 如果表格资料片段大于3，则压缩为csv格式
+        if (tableCount > 3) {
+            resultSet = resultSet.stream()
+                    .map(result -> {
+                        if (!TextType.TABLE.equals(result.getType())) {
+                            return result;
+                        }
+                        List<String> split = HtmlTableToCsvSplitterForJava.INSTANCE.split(result.getText(), Integer.MAX_VALUE);
+                        result.setText(split.get(0));
+                        return result;
+                    }).collect(Collectors.toSet());
+        }
 
+        logger.info("The recall text list is [{}]", resultSet.stream().map(result -> "\"" + result.getText() + "\"").collect(Collectors.joining(", ")));
         return resultSet.stream().map(TextNode::getText).toList();
     }
 }
