@@ -14,8 +14,8 @@ public class McpConfiguration {
         return MethodToolCallbackProvider.builder().toolObjects(neo4jMcp).build();
     }
 
-//    @Bean
-//    public ToolCallbackProvider recallTools(RecallMcp recallMcp) {
-//        return MethodToolCallbackProvider.builder().toolObjects(recallMcp).build();
-//    }
+    @Bean
+    public ToolCallbackProvider recallTools(RecallMcp recallMcp) {
+        return MethodToolCallbackProvider.builder().toolObjects(recallMcp).build();
+    }
 }

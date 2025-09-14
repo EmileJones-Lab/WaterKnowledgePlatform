@@ -9,28 +9,28 @@ import top.emilejones.hhu.repository.milvus.impl.MilvusRepositoryImpl
 import top.emilejones.hhu.repository.neo4j.impl.Neo4jRepositoryImpl
 import top.emilejones.hhu.service.MilvusService
 import top.emilejones.hhu.service.Neo4jService
-import top.emilejones.huu.env.MilvusEnvironment
-import top.emilejones.huu.env.Neo4jEnvironment
-import top.emilejones.huu.env.XinferenceEnvironment
+import top.emilejones.huu.env.AutoFindConfigFile
+import top.emilejones.huu.env.pojo.ApplicationConfig
 import java.io.File
 
 class Application : SuspendingCliktCommand() {
+    private val config: ApplicationConfig = AutoFindConfigFile.find()
     private val dirPath: String by option().prompt("Directory path").help("The directory path of markdowns")
     override suspend fun run() {
         val milvusRepository = MilvusRepositoryImpl(
-            port = MilvusEnvironment.PORT,
-            host = MilvusEnvironment.HOST,
-            databaseName = MilvusEnvironment.DATABASE_NAME,
-            collectionName = MilvusEnvironment.COLLECTION_NAME
+            port = config.milvus.port,
+            host = config.milvus.host,
+            databaseName = config.milvus.database,
+            collectionName = config.milvus.collection
         )
         val neo4jRepository = Neo4jRepositoryImpl(
-            username = Neo4jEnvironment.USER,
-            password = Neo4jEnvironment.PASSWORD,
-            host = Neo4jEnvironment.HOST,
-            port = Neo4jEnvironment.PORT,
-            databaseName = Neo4jEnvironment.DATABASE
+            username = config.neo4j.user,
+            password = config.neo4j.password,
+            host = config.neo4j.host,
+            port = config.neo4j.port,
+            databaseName = config.neo4j.database
         )
-        val modelClient = XinferenceHttpClient(XinferenceEnvironment.HOST, XinferenceEnvironment.PORT)
+        val modelClient = XinferenceHttpClient(host = config.xinference.host, port =  config.xinference.port)
         val fileToNeo4jService = Neo4jService(neo4jRepository)
         val neo4jToMilvusService = MilvusService(milvusRepository, neo4jRepository, modelClient)
         File(dirPath).walk().forEach {

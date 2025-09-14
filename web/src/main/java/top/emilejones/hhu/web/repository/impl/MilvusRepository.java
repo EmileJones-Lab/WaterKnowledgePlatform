@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 import top.emilejones.hhu.web.entity.TextNode;
 import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
-import top.emilejones.huu.env.MilvusEnvironment;
+import top.emilejones.huu.env.AutoFindConfigFile;
+import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.List;
 
@@ -23,14 +24,16 @@ public class MilvusRepository implements IMilvusRepository {
     private final MilvusClientV2 client;
     private final String databaseName;
     private final String collectionName;
+    private final ApplicationConfig config;
 
-    public MilvusRepository() {
+    public MilvusRepository(ApplicationConfig config) {
+        this.config = config;
         ConnectConfig connectConfig = ConnectConfig.builder()
-                .uri("http://%s:%d".formatted(MilvusEnvironment.HOST, MilvusEnvironment.PORT))
+                .uri("http://%s:%d".formatted(config.getMilvus().getHost(), config.getMilvus().getPort()))
                 .build();
         client = new MilvusClientV2(connectConfig);
-        databaseName = MilvusEnvironment.DATABASE_NAME;
-        collectionName = MilvusEnvironment.COLLECTION_NAME;
+        databaseName = config.getMilvus().getDatabase();
+        collectionName = config.getMilvus().getCollection();
     }
 
     @Override

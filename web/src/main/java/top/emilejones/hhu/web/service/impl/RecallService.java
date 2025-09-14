@@ -4,16 +4,15 @@ import kotlin.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import top.emilejones.hhu.model.ModelClient;
+import top.emilejones.hhu.model.pojo.RerankResult;
+import top.emilejones.hhu.spliter.java.HtmlTableToCsvSplitterForJava;
 import top.emilejones.hhu.web.entity.TextNode;
 import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
 import top.emilejones.hhu.web.repository.INeo4jRepository;
 import top.emilejones.hhu.web.service.IRecallService;
-import top.emilejones.hhu.model.ModelClient;
-import top.emilejones.hhu.model.impl.XinferenceHttpClient;
-import top.emilejones.hhu.model.pojo.RerankResult;
-import top.emilejones.hhu.spliter.java.HtmlTableToCsvSplitterForJava;
-import top.emilejones.huu.env.XinferenceEnvironment;
+import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,11 +28,13 @@ public class RecallService implements IRecallService {
     private INeo4jRepository neo4jRepository;
     private ModelClient client;
     private static Logger logger = LoggerFactory.getLogger(RecallService.class);
+    private final ApplicationConfig config;
 
-    public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository) {
+    public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ApplicationConfig config, ModelClient client) {
         this.milvusRepository = milvusRepository;
         this.neo4jRepository = neo4jRepository;
-        client = new XinferenceHttpClient(XinferenceEnvironment.HOST, XinferenceEnvironment.PORT);
+        this.config = config;
+        this.client = client;
     }
 
     @Override
