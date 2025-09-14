@@ -14,7 +14,7 @@ fun main() {
 
     driver.session().use { session ->
         session.executeWriteWithoutResult{
-            it.run("MATCH (n) DETACH DELETE n")
+            it.run("MATCH (n: TextNode | FileNode) DETACH DELETE n")
         }
     }
 }
