@@ -81,4 +81,31 @@ public class Neo4jRepository implements INeo4jRepository {
             return textNode;
         }
     }
+
+    @Override
+    public TextNode selectByElementId(String elementId) {
+        String cypher = """
+                MATCH (n:TextNode)
+                WHERE elementId(n) = $elementId
+                RETURN n
+                """.formatted(elementId);
+
+        Map<String, Object> params = Map.of("elementId", elementId);
+
+        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
+            Record record = session.run(
+                    cypher,
+                    params
+            ).single();
+            Node m = record.get("n").asNode();
+            TextNode textNode = new TextNode();
+            textNode.setElementId(m.elementId());
+            textNode.setLevel(m.get("level").asInt());
+            textNode.setText(m.get("text").asString());
+            textNode.setName(m.get("name").asInt());
+            textNode.setType(TextType.valueOf(m.get("type").asString()));
+            textNode.setSeq(m.get("seq").asInt());
+            return textNode;
+        }
+    }
 }

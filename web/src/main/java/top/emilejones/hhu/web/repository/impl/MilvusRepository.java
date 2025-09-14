@@ -6,7 +6,7 @@ import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.SearchResp;
 import org.springframework.stereotype.Repository;
-import top.emilejones.hhu.web.entity.TextNode;
+import top.emilejones.hhu.web.entity.MilvusDatum;
 import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
 import top.emilejones.huu.env.AutoFindConfigFile;
@@ -37,7 +37,7 @@ public class MilvusRepository implements IMilvusRepository {
     }
 
     @Override
-    public List<TextNode> search(List<Float> queryVector, int topK) {
+    public List<MilvusDatum> search(List<Float> queryVector, int topK) {
         FloatVec floatVec = new FloatVec(queryVector);
         SearchResp searchR = client.search(SearchReq.builder()
                 .databaseName(databaseName)
@@ -48,11 +48,11 @@ public class MilvusRepository implements IMilvusRepository {
                 .build());
         List<List<SearchResp.SearchResult>> searchResults = searchR.getSearchResults();
         return searchResults.stream().flatMap(list -> list.stream().map(result -> {
-            TextNode textNode = new TextNode();
-            textNode.setElementId(result.getEntity().get("elementId").toString());
-            textNode.setText(result.getEntity().get("text").toString());
-            textNode.setType(TextType.valueOf(result.getEntity().get("type").toString()));
-            return textNode;
+            MilvusDatum datum = new MilvusDatum();
+            datum.setElementId(result.getEntity().get("elementId").toString());
+            datum.setText(result.getEntity().get("text").toString());
+            datum.setType(TextType.valueOf(result.getEntity().get("type").toString()));
+            return datum;
         })).toList();
     }
 }

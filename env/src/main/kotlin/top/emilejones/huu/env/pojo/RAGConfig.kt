@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RAGConfig(
     val maxSequenceLength: Int,
-    val maxTableLength: Int
+    val maxTableLength: Int,
+    val recallNumber: Int = 5
 )

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.pojo.RerankResult;
 import top.emilejones.hhu.spliter.java.HtmlTableToCsvSplitterForJava;
+import top.emilejones.hhu.web.entity.MilvusDatum;
 import top.emilejones.hhu.web.entity.TextNode;
 import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
@@ -39,15 +40,15 @@ public class RecallService implements IRecallService {
 
     @Override
     public List<String> recallText(String query) {
-        final int maxResultNumber = 10;
+        final int maxResultNumber = config.getRag().getRecallNumber();
 
         // 从向量数据库中召回数据
         List<Float> queryVector = client.embedding(query);
-        List<TextNode> searchResults = milvusRepository.search(queryVector, 100);
+        List<MilvusDatum> searchResults = milvusRepository.search(queryVector, 100);
         // 将召回的结果分批rerank（由于显存问题，需要分批rerank）
         final int step = 5;
         int index = 0;
-        List<Pair<RerankResult, TextNode>> rerankResults = new ArrayList<>();
+        List<Pair<RerankResult, MilvusDatum>> rerankResults = new ArrayList<>();
 
         while (index < searchResults.size()) {
             ArrayList<String> strings = new ArrayList<>();
@@ -55,7 +56,7 @@ public class RecallService implements IRecallService {
                 strings.add(searchResults.get(index + i).getText());
             }
             int startIndex = index;
-            List<Pair<RerankResult, TextNode>> pairList = client.rerank(query, strings).stream().map(result -> {
+            List<Pair<RerankResult, MilvusDatum>> pairList = client.rerank(query, strings).stream().map(result -> {
                 int index1 = result.getIndex();
                 return new Pair<>(result, searchResults.get(index1 + startIndex));
             }).toList();
@@ -63,20 +64,21 @@ public class RecallService implements IRecallService {
             index += step;
         }
         // 将分批rerank后的结果排序，获取得分最高的maxResultNumber个结果
-        Set<TextNode> sets = rerankResults.stream()
+        Set<MilvusDatum> sets = rerankResults.stream()
                 .sorted(Comparator.comparingDouble(value -> {
                     Pair<RerankResult, TextNode> value1 = (Pair<RerankResult, TextNode>) value;
                     return value1.getFirst().getScore();
                 }).reversed())
                 .limit(maxResultNumber)
                 .map(obj -> {
-                    Pair<RerankResult, TextNode> pair = (Pair<RerankResult, TextNode>) obj;
+                    Pair<RerankResult, MilvusDatum> pair = (Pair<RerankResult, MilvusDatum>) obj;
                     return pair.getSecond();
                 })
                 .collect(Collectors.toSet());
         // 将每一个节点向上向下查找，如果有表格上下文则加入
         Set<TextNode> resultSet = new HashSet<>();
-        for (TextNode node : sets) {
+        for (MilvusDatum milvusDatum : sets) {
+            TextNode node = neo4jRepository.selectByElementId(milvusDatum.getElementId());
             resultSet.add(node);
             // 向下找
             TextNode nowNode = node;
@@ -96,18 +98,16 @@ public class RecallService implements IRecallService {
             }
         }
         long tableCount = resultSet.stream().filter(result -> TextType.TABLE.equals(result.getType())).count();
-        // 如果表格资料片段大于3，则压缩为csv格式
-        if (tableCount > 3) {
-            resultSet = resultSet.stream()
-                    .map(result -> {
-                        if (!TextType.TABLE.equals(result.getType())) {
-                            return result;
-                        }
-                        List<String> split = HtmlTableToCsvSplitterForJava.INSTANCE.split(result.getText(), Integer.MAX_VALUE);
-                        result.setText(split.get(0));
+        // 将所有html表格压缩为csv格式
+        resultSet = resultSet.stream()
+                .map(result -> {
+                    if (!TextType.TABLE.equals(result.getType())) {
                         return result;
-                    }).collect(Collectors.toSet());
-        }
+                    }
+                    List<String> split = HtmlTableToCsvSplitterForJava.INSTANCE.split(result.getText(), Integer.MAX_VALUE);
+                    result.setText(split.get(0));
+                    return result;
+                }).collect(Collectors.toSet());
 
         logger.info("The recall text list is [{}]", resultSet.stream().map(result -> "\"" + result.getText() + "\"").collect(Collectors.joining(", ")));
         return resultSet.stream().map(TextNode::getText).toList();

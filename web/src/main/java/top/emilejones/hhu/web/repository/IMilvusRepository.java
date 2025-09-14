@@ -1,7 +1,7 @@
 package top.emilejones.hhu.web.repository;
 
 
-import top.emilejones.hhu.web.entity.TextNode;
+import top.emilejones.hhu.web.entity.MilvusDatum;
 
 import java.util.List;
 
@@ -18,5 +18,5 @@ public interface IMilvusRepository {
      * @param topK        需要查找的结果数量
      * @return 最相似结果，返回的对象中只有text属性和elementId属性
      */
-    List<TextNode> search(List<Float> queryVector, int topK);
+    List<MilvusDatum> search(List<Float> queryVector, int topK);
 }

@@ -11,7 +11,6 @@ import top.emilejones.hhu.web.enums.TextType;
 public class TextNode {
 
     private String elementId;
-    private Integer id;
     private Integer level;
     private Integer seq;
     private Integer name;
@@ -22,9 +21,8 @@ public class TextNode {
     public TextNode() {
     }
 
-    public TextNode(String elementId, Integer id, Integer level, Integer seq, Integer name, String text, TextType textType) {
+    public TextNode(String elementId, Integer level, Integer seq, Integer name, String text, TextType textType) {
         this.elementId = elementId;
-        this.id = id;
         this.level = level;
         this.seq = seq;
         this.name = name;
@@ -39,14 +37,6 @@ public class TextNode {
 
     public void setElementId(String elementId) {
         this.elementId = elementId;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Integer getLevel() {
@@ -93,7 +83,6 @@ public class TextNode {
     public String toString() {
         return "TextNode{" +
                 "elementId='" + elementId + '\'' +
-                ", id=" + id +
                 ", level=" + level +
                 ", seq=" + seq +
                 ", name=" + name +
