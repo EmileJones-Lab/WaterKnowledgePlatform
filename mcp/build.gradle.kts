@@ -22,5 +22,5 @@ dependencies {
 }
 
 application {
-    mainClass = "top.emilejones.hhu.qa.MainKt"
+    mainClass = "top.emilejones.hhu.mcp.MainApplication"
 }

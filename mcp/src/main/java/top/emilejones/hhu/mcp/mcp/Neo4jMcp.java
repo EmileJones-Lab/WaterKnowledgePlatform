@@ -23,8 +23,8 @@ public class Neo4jMcp implements AutoCloseable {
     private final Driver driver;
     private final ApplicationConfig config;
 
-    public Neo4jMcp() {
-        this.config = AutoFindConfigFile.INSTANCE.find();
+    public Neo4jMcp(ApplicationConfig config) {
+        this.config = config;
         // 修改为Neo4j 地址和密码
         String uri = "bolt://%s:%d".formatted(config.getNeo4j().getHost(), config.getNeo4j().getPort());
         this.driver = GraphDatabase.driver(uri, AuthTokens.basic(config.getNeo4j().getUser(), config.getNeo4j().getUser()));

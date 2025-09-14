@@ -15,5 +15,5 @@ dependencies {
 application {
     // Define the Fully Qualified Name for the application main class
     // (Note that Kotlin compiles `App.kt` to a class with FQN `com.example.app.AppKt`.)
-    mainClass = "top.emilejones.hhu.mineru.preprocessing.PreProcessingMainKt"
+    mainClass = ""
 }
