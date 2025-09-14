@@ -1,13 +1,13 @@
 package top.emilejones.hhu.web.repository.impl;
 
-import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Node;
 import org.springframework.stereotype.Repository;
 import top.emilejones.hhu.web.entity.TextNode;
 import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.INeo4jRepository;
-import top.emilejones.huu.env.Neo4jEnvironment;
+import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.Map;
 
@@ -19,11 +19,12 @@ import java.util.Map;
 @Repository
 public class Neo4jRepository implements INeo4jRepository {
     private final Driver driver;
+    private final ApplicationConfig config;
 
-    public Neo4jRepository() {
-        // 修改为Neo4j 地址和密码
-        String uri = "bolt://%s:%d".formatted(Neo4jEnvironment.HOST, Neo4jEnvironment.PORT);
-        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(Neo4jEnvironment.USER, Neo4jEnvironment.PASSWORD));
+    public Neo4jRepository(ApplicationConfig config) {
+        this.config = config;
+        String uri = "bolt://%s:%d".formatted(config.getNeo4j().getHost(), config.getNeo4j().getPort());
+        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(config.getNeo4j().getUser(), config.getNeo4j().getPassword()));
     }
 
     @Override
@@ -37,7 +38,7 @@ public class Neo4jRepository implements INeo4jRepository {
 
         Map<String, Object> params = Map.of("elementId", elementId);
 
-        try (Session session = driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE))) {
+        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
             Record record = session.run(
                     cypher,
                     params
@@ -64,7 +65,7 @@ public class Neo4jRepository implements INeo4jRepository {
 
         Map<String, Object> params = Map.of("elementId", elementId);
 
-        try (Session session = driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE))) {
+        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
             Record record = session.run(
                     cypher,
                     params

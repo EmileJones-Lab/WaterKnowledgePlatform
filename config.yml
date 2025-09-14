@@ -1,0 +1,20 @@
+milvus:
+  database: test
+  collection: ej
+  host: localhost
+  port: 19531
+
+neo4j:
+  host: localhost
+  port: 7687
+  user: neo4j
+  password: 12345678
+  database: neo4j
+
+xinference:
+  host: 10.196.83.122
+  port: 10007
+
+rag:
+  maxSequenceLength: 800
+  maxTableLength: 1000

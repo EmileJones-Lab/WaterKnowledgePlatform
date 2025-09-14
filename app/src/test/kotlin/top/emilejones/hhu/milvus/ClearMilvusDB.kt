@@ -3,17 +3,18 @@ package top.emilejones.hhu.milvus
 import io.milvus.v2.client.ConnectConfig
 import io.milvus.v2.client.MilvusClientV2
 import io.milvus.v2.service.collection.request.DropCollectionReq
-import top.emilejones.huu.env.MilvusEnvironment
+import top.emilejones.huu.env.AutoFindConfigFile
 
 fun main() {
+    val config = AutoFindConfigFile.find()
     val client = MilvusClientV2(
         ConnectConfig.builder()
-            .uri("http://${MilvusEnvironment.HOST}:${MilvusEnvironment.PORT}")
+            .uri("http://${config.milvus.host}:${config.milvus.port}")
             .build()
     )
     val dropQuickSetupParam = DropCollectionReq.builder()
-        .collectionName(MilvusEnvironment.COLLECTION_NAME)
-        .databaseName(MilvusEnvironment.DATABASE_NAME)
+        .collectionName(config.milvus.collection)
+        .databaseName(config.milvus.database)
         .build()
     client.dropCollection(dropQuickSetupParam)
 }

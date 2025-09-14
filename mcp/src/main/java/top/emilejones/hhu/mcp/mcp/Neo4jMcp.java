@@ -1,8 +1,7 @@
 package top.emilejones.hhu.mcp.mcp;
 
-
-import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,8 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.mcp.entity.TextNode;
 import top.emilejones.hhu.mcp.enums.TextType;
-import top.emilejones.huu.env.Neo4jEnvironment;
+import top.emilejones.huu.env.AutoFindConfigFile;
+import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.Map;
 
@@ -21,11 +21,13 @@ public class Neo4jMcp implements AutoCloseable {
 
     private static Logger logger = LoggerFactory.getLogger(Neo4jMcp.class);
     private final Driver driver;
+    private final ApplicationConfig config;
 
     public Neo4jMcp() {
+        this.config = AutoFindConfigFile.INSTANCE.find();
         // 修改为Neo4j 地址和密码
-        String uri = "bolt://%s:%d".formatted(Neo4jEnvironment.HOST, Neo4jEnvironment.PORT);
-        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(Neo4jEnvironment.USER, Neo4jEnvironment.PASSWORD));
+        String uri = "bolt://%s:%d".formatted(config.getNeo4j().getHost(), config.getNeo4j().getPort());
+        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(config.getNeo4j().getUser(), config.getNeo4j().getUser()));
     }
 
     /**
@@ -60,7 +62,7 @@ public class Neo4jMcp implements AutoCloseable {
         String cypher = String.format("MATCH (start:TextNode) " + "WHERE elementId(start) = $elementId " + "MATCH (start)-[:%s*%d]->(target:TextNode) " + "WITH target ORDER BY coalesce(target.seq,0) ASC " + "SKIP toInteger($skip) LIMIT 1 " + "RETURN target", relationship, hops);
 
 
-        try (Session session = driver.session(SessionConfig.forDatabase(Neo4jEnvironment.DATABASE))) {
+        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
             Map<String, Object> params = Map.of("elementId", elementId, "skip", pick);
 
             logger.debug("Mcp exec cypher: [{}], param: [{}]", cypher, params);
