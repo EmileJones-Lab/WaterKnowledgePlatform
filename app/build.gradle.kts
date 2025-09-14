@@ -18,6 +18,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("io.milvus:milvus-sdk-java:2.6.3")
+    implementation("com.github.ajalt.clikt:clikt:5.0.1")
 }
 
 application {
