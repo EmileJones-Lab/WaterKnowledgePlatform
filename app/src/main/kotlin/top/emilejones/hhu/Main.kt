@@ -21,7 +21,8 @@ val neo4jRepository = Neo4jRepositoryImpl(
     username = Neo4jEnvironment.USER,
     password = Neo4jEnvironment.PASSWORD,
     host = Neo4jEnvironment.HOST,
-    port = Neo4jEnvironment.PORT
+    port = Neo4jEnvironment.PORT,
+    databaseName = Neo4jEnvironment.DATABASE
 )
 val modelClient = XinferenceHttpClient(XinferenceEnvironment.HOST, XinferenceEnvironment.PORT)
 val fileToNeo4jService = Neo4jService(neo4jRepository)
