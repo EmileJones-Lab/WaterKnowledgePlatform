@@ -11,4 +11,5 @@ interface INeo4jRepository: AutoCloseable {
     fun insertNeo4jRelationship(relationship: Neo4jRelationship): Neo4jRelationship
     fun insertTree(rootNode: TextNode)
     fun searchNeo4jTextNodeByFilename(filename: String): MutableList<Neo4jTextNode>
+    fun searchFileNodeByFileName(filename: String): Neo4jFileNode?
 }

@@ -111,6 +111,29 @@ class Neo4jRepositoryImpl(
         }
     }
 
+    override fun searchFileNodeByFileName(filename: String): Neo4jFileNode? {
+        driver.session(SessionConfig.forDatabase(databaseName)).use { session ->
+            return session.executeRead { tx ->
+                val query = """
+                    MATCH (n:FileNode)
+                    WHERE n.fileName = ${'$'}filename
+                    RETURN n
+                """.trimIndent()
+
+                val result = tx.run(
+                    query, parameters(
+                        "filename", filename
+                    )
+                )
+
+                if (!result.hasNext())
+                    null
+                else
+                    result.single().asNeo4jFileNode()
+            }
+        }
+    }
+
     private fun deepVisitAndInsertNode(
         fileNode: Neo4jFileNode,
         nowNode: TextNode,

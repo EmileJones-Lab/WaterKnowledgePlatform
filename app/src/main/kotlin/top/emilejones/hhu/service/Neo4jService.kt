@@ -12,17 +12,23 @@ class Neo4jService(
     private val logger = LoggerFactory.getLogger(Neo4jService::class.java)
 
     fun save(file: File) {
-        logger.trace("Start read file [{}] as a tree structure", file.name)
+        val fileNode = repository.searchFileNodeByFileName(file.name)
+        if (fileNode != null){
+            logger.debug("The file [{}] is already exist!", file.name)
+            return
+        }
+        
+        logger.debug("Start read file [{}] as a tree structure", file.name)
         val parser = MarkdownStructureParser(file)
         val result = parser.run()
-        logger.trace("Success read file [{}] as a tree structure", file.name)
+        logger.debug("Success read file [{}] as a tree structure", file.name)
         repository.insertTree(result)
-        logger.trace("Success save tree structure of file [{}] in neo4j", file.name)
+        logger.debug("Success save tree structure of file [{}] in neo4j", file.name)
     }
 
     fun batchSaveInDir(dir: File) {
         dir.walk().forEach {
-            logger.debug("Visit file [{}]", it.name)
+            logger.info("Visit file [{}]", it.name)
             if (it.isDirectory) return
             save(it)
         }
