@@ -42,6 +42,7 @@ class MilvusRepositoryImpl(
         if (!listDatabases.databaseNames.contains(databaseName)) {
             createDatabase()
         }
+        client.useDatabase(databaseName)
         val listCollection = client.listCollections()
         // 如果不存在collection，则创建
         if (!listCollection.collectionNames.contains(collectionName)) {
@@ -76,7 +77,7 @@ class MilvusRepositoryImpl(
         val data = resp.searchResults ?: return emptyList()
 
 
-        val resultsForQuery: List<SearchResp.SearchResult> = resp.searchResults.firstOrNull() ?: return emptyList()
+        val resultsForQuery: List<SearchResp.SearchResult> = data.firstOrNull() ?: return emptyList()
         // 6. 映射成 EmbeddingDatum
         return resultsForQuery.map { r ->
             val neo4jId = r.entity["elementId"].toString()
