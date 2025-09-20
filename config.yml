@@ -17,4 +17,4 @@ xinference:
 
 rag:
   maxSequenceLength: 800
-  maxTableLength: 1000
+  maxTableLength: 1300

@@ -18,7 +18,6 @@ dependencies {
 
     implementation(project(":env"))
     implementation(project(":utils"))
-    implementation(project(":web"))
 }
 
 application {

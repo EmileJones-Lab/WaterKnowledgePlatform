@@ -8,8 +8,8 @@ import java.io.File
 
 val config = AutoFindConfigFile.find()
 fun main(): Unit = runBlocking {
-    val sourceDir = File("/Users/sunhongfei/Downloads/out")
-    val targetDir = File("/Users/sunhongfei/Downloads/测试文档")
+    val sourceDir = File("/Users/sunhongfei/Downloads/new")
+    val targetDir = File("/Users/sunhongfei/Downloads/new/out")
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     val job = sourceDir.walk().mapNotNull {

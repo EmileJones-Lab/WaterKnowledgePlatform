@@ -10,10 +10,10 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.mcp.entity.TextNode;
 import top.emilejones.hhu.mcp.enums.TextType;
-import top.emilejones.huu.env.AutoFindConfigFile;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.Map;
+import java.util.Set;
 
 
 @Service
@@ -27,7 +27,7 @@ public class Neo4jMcp implements AutoCloseable {
         this.config = config;
         // 修改为Neo4j 地址和密码
         String uri = "bolt://%s:%d".formatted(config.getNeo4j().getHost(), config.getNeo4j().getPort());
-        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(config.getNeo4j().getUser(), config.getNeo4j().getUser()));
+        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(config.getNeo4j().getUser(), config.getNeo4j().getPassword()));
     }
 
     /**
@@ -49,45 +49,67 @@ public class Neo4jMcp implements AutoCloseable {
             @ToolParam(description = "需要查找的关系，包括如下关系：父亲：PARENT，孩子：CHILD，上一个：PRE_SEQUENCE，下一个：NEXT_SEQUENCE") String relationship,
             @ToolParam(description = "跳数") int step,
             @ToolParam(description = "查询出的列表的第几个元素") int index) {
-        if (elementId == null || elementId.isBlank()) {
-            return null;
+        // 验证关系类型
+        Set<String> validRelationships = Set.of("CHILD", "PARENT", "NEXT_SEQUENCE", "PRE_SEQUENCE");
+        if (!validRelationships.contains(relationship)) {
+            throw new IllegalArgumentException("Invalid relationship type: " + relationship);
         }
-        if (relationship == null || relationship.isBlank()) {
-            relationship = "CHILD";
+
+        if (step < 0) {
+            throw new IllegalArgumentException("Step must be non-negative");
         }
-        int hops = Math.max(step, 1);
-        int pick = Math.max(index, 0);
 
-        // 构造 Cypher
-        String cypher = String.format("MATCH (start:TextNode) " + "WHERE elementId(start) = $elementId " + "MATCH (start)-[:%s*%d]->(target:TextNode) " + "WITH target ORDER BY coalesce(target.seq,0) ASC " + "SKIP toInteger($skip) LIMIT 1 " + "RETURN target", relationship, hops);
+        if (index < 0) {
+            throw new IllegalArgumentException("Index must be non-negative");
+        }
 
-
-        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
-            Map<String, Object> params = Map.of("elementId", elementId, "skip", pick);
-
-            logger.debug("Mcp exec cypher: [{}], param: [{}]", cypher, params);
-
-            Result rs = session.run(cypher, params);
-
-            if (rs.hasNext()) {
-                Record r = rs.next();
-                Node node = r.get("target").asNode();
-
-                return new TextNode(node.elementId(),
-                        node.containsKey("id") ? node.get("id").asInt() : null,
-                        node.containsKey("level") ? node.get("level").asInt() : null,
-                        node.containsKey("seq") ? node.get("seq").asInt() : null,
-                        node.containsKey("name") ? node.get("name").asInt() : null,
-                        node.containsKey("text") ? node.get("text").asString() : null,
-                        node.containsKey("type") ? TextType.valueOf(node.get("text").asString()) : null);
+        try (Session session = driver.session()) {
+            String cypherQuery;
+            if (step == 0) {
+                // 直接返回起始节点
+                cypherQuery = "MATCH (targetNode) WHERE elementId(targetNode) = $elementId RETURN targetNode";
+            } else {
+                // 构建关系查询
+                cypherQuery = String.format(
+                        "MATCH (startNode)-[:%s*%d]->(targetNode) " +
+                                "WHERE elementId(startNode) = $elementId " +
+                                "RETURN targetNode " +
+                                "SKIP $index LIMIT 1",
+                        relationship, step
+                );
             }
 
+            Map<String, Object> params = Map.of(
+                    "elementId", elementId,
+                    "index", index
+            );
 
+            return session.readTransaction(tx -> {
+                Result result = tx.run(cypherQuery, params);
+                if (!result.hasNext()) {
+                    logger.warn("No node found for elementId: {}, relationship: {}, step: {}, index: {}",
+                            elementId, relationship, step, index);
+                    return null;
+                }
+
+                Record record = result.single();
+                Node node = record.get("targetNode").asNode();
+
+                TextNode textNode = new TextNode();
+                textNode.setElementId(node.elementId());
+                textNode.setText(node.get("text").asString());
+                textNode.setLevel(node.get("level").asInt());
+                textNode.setSeq(node.get("seq").asInt());
+                textNode.setName(node.get("name").asInt());
+                textNode.setType(TextType.valueOf(node.get("type").asString()));
+
+
+                return textNode;
+            });
         } catch (Exception e) {
-            throw new RuntimeException("Neo4j 查询失败", e);
+            logger.error("Error executing Neo4j query", e);
+            throw new RuntimeException("Failed to execute query", e);
         }
-
-        return null; // 没有结果
     }
 
     @Override
