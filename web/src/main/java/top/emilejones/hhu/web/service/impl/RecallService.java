@@ -19,8 +19,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 用来负责处理召回任务
- *
  * @author EmileJones
  */
 @Service
@@ -40,6 +38,12 @@ public class RecallService implements IRecallService {
 
     @Override
     public List<String> recallText(String query) {
+        List<TextNode> textNodes = recallNode(query);
+        return textNodes.stream().map(TextNode::getText).toList();
+    }
+
+    @Override
+    public List<TextNode> recallNode(String query) {
         final int maxResultNumber = config.getRag().getRecallNumber();
 
         // 从向量数据库中召回数据
@@ -75,11 +79,14 @@ public class RecallService implements IRecallService {
                     return pair.getSecond();
                 })
                 .collect(Collectors.toSet());
-        // 将每一个节点向上向下查找，如果有表格上下文则加入
+        // 将每一个表格节点向上向下查找，如果有表格上下文则加入
         Set<TextNode> resultSet = new HashSet<>();
         for (MilvusDatum milvusDatum : sets) {
             TextNode node = neo4jRepository.selectByElementId(milvusDatum.getElementId());
             resultSet.add(node);
+            // 如果不是表格则跳过上下查找
+            if (!TextType.TABLE.equals(node.getType()))
+                continue;
             // 向下找
             TextNode nowNode = node;
             while (nowNode.getType() == TextType.TABLE) {
@@ -97,7 +104,6 @@ public class RecallService implements IRecallService {
                     break;
             }
         }
-        long tableCount = resultSet.stream().filter(result -> TextType.TABLE.equals(result.getType())).count();
         // 将所有html表格压缩为csv格式
         resultSet = resultSet.stream()
                 .map(result -> {
@@ -108,8 +114,7 @@ public class RecallService implements IRecallService {
                     result.setText(split.get(0));
                     return result;
                 }).collect(Collectors.toSet());
-
-        logger.info("The recall text list is [{}]", resultSet.stream().map(result -> "\"" + result.getText() + "\"").collect(Collectors.joining(", ")));
-        return resultSet.stream().map(TextNode::getText).toList();
+        logger.info("召回的节点数据为: {}", resultSet);
+        return resultSet.stream().toList();
     }
 }

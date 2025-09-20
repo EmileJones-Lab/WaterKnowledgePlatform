@@ -2,6 +2,11 @@ package top.emilejones.hhu.web.entity;
 
 import top.emilejones.hhu.web.enums.TextType;
 
+/**
+ * 向量数据库中的一条数据
+ *
+ * @author EmileJones
+ */
 public class MilvusDatum {
     private String elementId;
     private String text;
