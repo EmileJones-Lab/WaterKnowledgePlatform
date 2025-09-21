@@ -8,6 +8,7 @@ package top.emilejones.hhu.web.entity;
 public class TextNodeVO {
     private String elementId;
     private String text;
+    private Integer seq;
 
     public String getText() {
         return text;
@@ -25,11 +26,20 @@ public class TextNodeVO {
         this.elementId = elementId;
     }
 
+    public Integer getSeq() {
+        return seq;
+    }
+
+    public void setSeq(Integer seq) {
+        this.seq = seq;
+    }
+
     @Override
     public String toString() {
         return "TextNodeVO{" +
                 "elementId='" + elementId + '\'' +
                 ", text='" + text + '\'' +
+                ", seq=" + seq +
                 '}';
     }
 
@@ -37,6 +47,7 @@ public class TextNodeVO {
         TextNodeVO textNodeVO = new TextNodeVO();
         textNodeVO.setElementId(node.getElementId());
         textNodeVO.setText(node.getText());
+        textNodeVO.setSeq(node.getSeq());
         return textNodeVO;
     }
 }
