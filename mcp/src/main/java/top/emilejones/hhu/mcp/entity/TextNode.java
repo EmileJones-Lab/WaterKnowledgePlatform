@@ -4,7 +4,6 @@ package top.emilejones.hhu.mcp.entity;
 import top.emilejones.hhu.mcp.enums.TextType;
 
 public class TextNode {
-
     private String elementId;
     private Integer level;
     private Integer seq;
@@ -13,7 +12,8 @@ public class TextNode {
     private TextType type;
 
     // 构造函数
-    public TextNode() {}
+    public TextNode() {
+    }
 
     public TextNode(String elementId, Integer level, Integer seq, Integer name, String text, TextType textType) {
         this.elementId = elementId;
