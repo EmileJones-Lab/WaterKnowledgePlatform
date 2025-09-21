@@ -1,5 +1,7 @@
 package top.emilejones.hhu.web.service;
 
+import kotlin.Pair;
+import top.emilejones.hhu.web.entity.FileNode;
 import top.emilejones.hhu.web.entity.TextNode;
 
 import java.util.List;
@@ -24,5 +26,5 @@ public interface IRecallService {
      * @param query 问题
      * @return 和问题相关的节点
      */
-    List<TextNode> recallNode(String query);
+    List<Pair<FileNode, TextNode>> recallNode(String query);
 }

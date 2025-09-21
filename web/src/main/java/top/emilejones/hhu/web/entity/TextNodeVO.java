@@ -1,5 +1,7 @@
 package top.emilejones.hhu.web.entity;
 
+import kotlin.Pair;
+
 /**
  * 返回给客户端的数据格式
  *
@@ -9,6 +11,7 @@ public class TextNodeVO {
     private String elementId;
     private String text;
     private Integer seq;
+    private String filename;
 
     public String getText() {
         return text;
@@ -34,20 +37,30 @@ public class TextNodeVO {
         this.seq = seq;
     }
 
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
     @Override
     public String toString() {
         return "TextNodeVO{" +
                 "elementId='" + elementId + '\'' +
                 ", text='" + text + '\'' +
                 ", seq=" + seq +
+                ", filename='" + filename + '\'' +
                 '}';
     }
 
-    public static TextNodeVO from(TextNode node) {
+    public static TextNodeVO from(Pair<FileNode, TextNode> datum) {
         TextNodeVO textNodeVO = new TextNodeVO();
-        textNodeVO.setElementId(node.getElementId());
-        textNodeVO.setText(node.getText());
-        textNodeVO.setSeq(node.getSeq());
+        textNodeVO.setElementId(datum.getSecond().getElementId());
+        textNodeVO.setText(datum.getSecond().getText());
+        textNodeVO.setSeq(datum.getSecond().getSeq());
+        textNodeVO.setFilename(datum.getFirst().getFileName());
         return textNodeVO;
     }
 }
