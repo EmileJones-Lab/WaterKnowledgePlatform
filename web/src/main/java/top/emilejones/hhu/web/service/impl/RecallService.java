@@ -6,12 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.pojo.RerankResult;
-import top.emilejones.hhu.spliter.java.HtmlTableToCsvSplitterForJava;
 import top.emilejones.hhu.web.entity.FileNode;
 import top.emilejones.hhu.web.entity.MilvusDatum;
 import top.emilejones.hhu.web.entity.TextNode;
-import top.emilejones.hhu.web.entity.TextNodeVO;
-import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
 import top.emilejones.hhu.web.repository.INeo4jRepository;
 import top.emilejones.hhu.web.service.IRecallService;
@@ -19,7 +16,10 @@ import top.emilejones.hhu.web.service.strategy.HtmlTableToCsvStrategy;
 import top.emilejones.hhu.web.service.strategy.ObtainWholeTableStrategy;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +49,7 @@ public class RecallService implements IRecallService {
     }
 
     @Override
-    public List<Pair<FileNode,TextNode>> recallNode(String query) {
+    public List<Pair<FileNode, TextNode>> recallNode(String query) {
         final int maxResultNumber = config.getRag().getRecallNumber();
 
         // 从向量数据库中召回数据
@@ -62,7 +62,7 @@ public class RecallService implements IRecallService {
 
         while (index < searchResults.size()) {
             ArrayList<String> strings = new ArrayList<>();
-            for (int i = 0; i < step; i++) {
+            for (int i = 0; i < step && index + i < searchResults.size(); i++) {
                 strings.add(searchResults.get(index + i).getText());
             }
             int startIndex = index;
