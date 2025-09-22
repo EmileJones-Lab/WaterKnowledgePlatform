@@ -21,31 +21,34 @@ public class Neo4jMcp {
         this.repository = repository;
     }
 
-    @Tool(description = "获取当前节点的子节点，并按照先后顺序排序")
+    @Tool(description = "获取指定节点的所有子节点（下一级标题或属于这个标题的正文），并按文档顺序返回。如果没有数据，则返回null")
     public List<TextNode> getChildren(@ToolParam(description = "当前节点的elementId") String elementId) {
         logger.debug("Try to find children of node[{}]", elementId);
-        return repository.children(elementId);
+        List<TextNode> children = repository.children(elementId);
+        if (children.isEmpty())
+            return null;
+        return children;
     }
 
-    @Tool(description = "获取当前节点的兄弟节点，并按照先后顺序排序")
+    @Tool(description = "获取指定节点所属的标题下的所有兄弟节点，并按文档顺序返回。")
     public List<TextNode> getSiblings(@ToolParam(description = "当前节点的elementId") String elementId) {
         logger.debug("Try to find siblings of node[{}]", elementId);
         return repository.siblings(elementId);
     }
 
-    @Tool(description = "获取当前节点的父亲节点")
+    @Tool(description = "获取指定节点在文档层级结构中的父节点（所属标题节点），若不存在则返回 null。")
     public TextNode getParent(@ToolParam(description = "当前节点的elementId") String elementId) {
         logger.debug("Try to find parent of node[{}]", elementId);
         return repository.parent(elementId);
     }
 
-    @Tool(description = "获取当前节点的上一个节点")
+    @Tool(description = "根据当前节点elementId，获取文档中的上一段内容的节点数据，若不存在则返回 null。")
     public TextNode getPreNode(@ToolParam(description = "当前节点的elementId") String elementId) {
         logger.debug("Try to find previous node of node[{}]", elementId);
         return repository.parent(elementId);
     }
 
-    @Tool(description = "获取当前节点的下一个节点")
+    @Tool(description = "根据当前节点elementId，获取文档中的下一段内容的节点数据，若不存在则返回 null。")
     public TextNode getNextNode(@ToolParam(description = "当前节点的elementId") String elementId) {
         logger.debug("Try to find next node of node[{}]", elementId);
         return repository.parent(elementId);
