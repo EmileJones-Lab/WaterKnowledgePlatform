@@ -15,7 +15,7 @@ private fun String.isText(): Boolean {
     return !this.startsWith("#")
 }
 
-private val String.textType : TextType
+private val String.textType: TextType
     get() {
         if (this.startsWith("<table>")) return TextType.TABLE
         if (this.startsWith("#")) return TextType.TITLE
@@ -29,59 +29,59 @@ class MarkdownStructureParser(file: File) {
 
     constructor(filePath: String) : this(File(filePath))
 
-    private var index = 1
-    private var fileNode: FileNode? = null
-    private var preSeqNode: TextNode? = null
-    private var rootNode: TextNode? = null
+    private var index = 0
+    private var fileNode: FileNode
+    private var preSeqNode: TextNode
+    private var rootNode: TextNode
+    private var isOver: Boolean
 
-    fun run(): TextNode {
-        if (rootNode == null) {
-            init()
-            handleChild(null)
-        }
-        return rootNode!!
-    }
-
-    private fun init() {
+    init {
+        isOver = false
         index = 0
         fileNode = FileNode(
             fileName = fileName
         )
+        rootNode = TextNode(
+            type = TextType.TITLE,
+            text = "",
+            seq = -1,
+            level = 0
+        )
+        rootNode.fileNode = fileNode
+        preSeqNode = rootNode
     }
 
-    private fun handleChild(parentNode: TextNode?) {
+    fun run(): TextNode {
+        if (isOver)
+            return rootNode
+        // 构建树状结构和序列结构
+        while (index < lines.size)
+            handleChild(rootNode)
+        // 构建完成
+        isOver = true
+        return rootNode
+    }
+
+    private fun handleChild(parentNode: TextNode) {
         if (index >= lines.size)
             return
 
         val nowIndex = index
 
-        val nowNode: TextNode = if (parentNode == null) {
-            // 如果是最顶层的节点
-            rootNode = TextNode(
-                text = lines[0],
-                seq = 1,
-                level = lines[0].markdownLevel(),
-                type = lines[0].textType
-            )
-            rootNode!!
-        } else {
-            // 如果是非顶层节点
-            val node = TextNode(
-                text = lines[nowIndex],
-                seq = preSeqNode!!.seq + 1,
-                level = lines[nowIndex].markdownLevel(),
-                type = lines[nowIndex].textType
-            )
-            // 插入父子关系、序列关系
-            setParentRelationship(parentNode, node)
-            setPreSequenceRelationship(preSeqNode!!, node)
-            node
-        }
-        preSeqNode = nowNode
+        val nowNode: TextNode = TextNode(
+            text = lines[nowIndex],
+            seq = preSeqNode.seq + 1,
+            level = lines[nowIndex].markdownLevel(),
+            type = lines[nowIndex].textType
+        )
+        // 插入父子关系、序列关系
+        setParentRelationship(parentNode, nowNode)
+        setPreSequenceRelationship(preSeqNode, nowNode)
         // 插入和文件的关系
-        setFileRelationship(fileNode!!, nowNode)
+        setFileRelationship(fileNode, nowNode)
         // 此段文本处理完毕，准备处理下一个文本
         index++
+        preSeqNode = nowNode
         // 如果是正文内容，则回溯
         if (lines[nowIndex].isText()) {
             return

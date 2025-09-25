@@ -1,4 +1,4 @@
-package top.emilejones.hhu
+package top.emilejones.hhu.milvus
 
 import kotlinx.coroutines.*
 import top.emilejones.hhu.spliter.HtmlTableSplitter

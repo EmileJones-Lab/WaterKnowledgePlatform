@@ -68,12 +68,19 @@ class Neo4jRepositoryImpl(
         if (rootNode.fileNode == null)
             throw IllegalArgumentException("The fileNode of rootNode must be not null!")
 
+        rootNode.getChild(0).preNode = null
+        for (i in 0..<rootNode.childNum()){
+            rootNode.getChild(i).parentNode = null
+        }
+
         driver.session(SessionConfig.forDatabase(databaseName)).use { session ->
             session.beginTransaction().use { transaction ->
                 logger.debug("Start insert tree transaction")
                 val result = runCatching {
                     val neo4jFileNode = transaction.insertFileNode(rootNode.fileNode!!.toNeo4jFileNode())
-                    deepVisitAndInsertNode(neo4jFileNode, rootNode, transaction)
+                    for (i in 0..<rootNode.childNum()) {
+                        deepVisitAndInsertNode(neo4jFileNode, rootNode.getChild(i), transaction)
+                    }
                 }
                 result.fold(
                     onSuccess = {
