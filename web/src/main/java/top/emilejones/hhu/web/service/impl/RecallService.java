@@ -33,14 +33,16 @@ public class RecallService implements IRecallService {
     private static Logger logger = LoggerFactory.getLogger(RecallService.class);
     private final ApplicationConfig config;
 
-    private final ObtainWholeTableStrategy obtainWholeTableStrategy = new ObtainWholeTableStrategy(neo4jRepository);
-    private final HtmlTableToCsvStrategy htmlTableToCsvStrategy = new HtmlTableToCsvStrategy();
+    private final ObtainWholeTableStrategy obtainWholeTableStrategy;
+    private final HtmlTableToCsvStrategy htmlTableToCsvStrategy;
 
     public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ApplicationConfig config, ModelClient client) {
         this.milvusRepository = milvusRepository;
         this.neo4jRepository = neo4jRepository;
         this.config = config;
         this.client = client;
+        obtainWholeTableStrategy = new ObtainWholeTableStrategy(neo4jRepository);
+        htmlTableToCsvStrategy = new HtmlTableToCsvStrategy();
     }
 
     @Override
