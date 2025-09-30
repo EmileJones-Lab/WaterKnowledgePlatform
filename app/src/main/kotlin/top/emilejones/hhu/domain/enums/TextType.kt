@@ -1,4 +1,4 @@
-package top.emilejones.hhu.repository.neo4j.enums
+package top.emilejones.hhu.domain.enums
 
 enum class TextType(val comment: String) {
     COMMON_TEXT("普通文本"),

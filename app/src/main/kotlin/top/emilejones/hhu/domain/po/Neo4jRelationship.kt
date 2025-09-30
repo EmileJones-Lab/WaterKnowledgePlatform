@@ -1,6 +1,6 @@
-package top.emilejones.hhu.repository.neo4j.po
+package top.emilejones.hhu.domain.po
 
-import top.emilejones.hhu.repository.neo4j.enums.Neo4jRelationshipType
+import top.emilejones.hhu.domain.enums.Neo4jRelationshipType
 
 data class Neo4jRelationship(
     val elementId: String? = null,

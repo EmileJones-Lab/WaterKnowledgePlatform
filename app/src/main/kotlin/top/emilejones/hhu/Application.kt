@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory
 import top.emilejones.hhu.model.impl.XinferenceHttpClient
 import top.emilejones.hhu.repository.milvus.impl.MilvusRepositoryImpl
 import top.emilejones.hhu.repository.neo4j.impl.Neo4jRepositoryImpl
-import top.emilejones.hhu.service.MilvusService
-import top.emilejones.hhu.service.Neo4jService
+import top.emilejones.hhu.service.impl.RagService
 import top.emilejones.huu.env.AutoFindConfigFile
 import top.emilejones.huu.env.pojo.ApplicationConfig
 import java.io.File
@@ -18,7 +17,7 @@ import java.io.File
 class Application : SuspendingCliktCommand() {
     private val config: ApplicationConfig = AutoFindConfigFile.find()
     private val dirPath: String by option().prompt("Directory path").help("The directory path of markdowns")
-    private val logger : Logger = LoggerFactory.getLogger(Application::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(Application::class.java)
 
     override suspend fun run() {
         val milvusRepository = MilvusRepositoryImpl(
@@ -35,19 +34,19 @@ class Application : SuspendingCliktCommand() {
             databaseName = config.neo4j.database
         )
         val modelClient = XinferenceHttpClient(host = config.xinference.host, port = config.xinference.port)
-        val fileToNeo4jService = Neo4jService(neo4jRepository)
-        val neo4jToMilvusService = MilvusService(milvusRepository, neo4jRepository, modelClient)
+        val ragService = RagService(milvusRepository, neo4jRepository, modelClient)
         File(dirPath).walk().forEach {
-            logger.info("Visit directory [{}]", it.name)
-            if (it.isDirectory)
+            if (it.isDirectory) {
+                logger.info("Visit directory [{}]", it.name)
                 return@forEach
-            if (it.name.split('.').last().lowercase() != "md")
+            }
+            if (it.name.split('.').last().lowercase() != "md") {
+                logger.info("Visit markdown file [{}]", it.name)
                 return@forEach
-            fileToNeo4jService.save(it)
-            neo4jToMilvusService.saveByFilenameFromNeo4j(it.name)
+            }
+            ragService.saveFileToAllDatabase(it.toPath())
         }
 
-        fileToNeo4jService.close()
-        neo4jToMilvusService.close()
+        ragService.close()
     }
 }

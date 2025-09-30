@@ -1,6 +1,6 @@
-package top.emilejones.hhu.repository.neo4j.po
+package top.emilejones.hhu.domain.po
 
-import top.emilejones.hhu.repository.neo4j.enums.TextType
+import top.emilejones.hhu.domain.enums.TextType
 
 data class Neo4jTextNode(
     val elementId: String? = null,

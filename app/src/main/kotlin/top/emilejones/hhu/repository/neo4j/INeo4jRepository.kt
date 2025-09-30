@@ -1,9 +1,9 @@
 package top.emilejones.hhu.repository.neo4j
 
-import top.emilejones.hhu.domain.TextNode
-import top.emilejones.hhu.repository.neo4j.po.Neo4jFileNode
-import top.emilejones.hhu.repository.neo4j.po.Neo4jRelationship
-import top.emilejones.hhu.repository.neo4j.po.Neo4jTextNode
+import top.emilejones.hhu.domain.dto.TextNode
+import top.emilejones.hhu.domain.po.Neo4jFileNode
+import top.emilejones.hhu.domain.po.Neo4jRelationship
+import top.emilejones.hhu.domain.po.Neo4jTextNode
 
 interface INeo4jRepository : AutoCloseable {
     fun insertNeo4jTextNode(node: Neo4jTextNode): Neo4jTextNode
@@ -17,4 +17,5 @@ interface INeo4jRepository : AutoCloseable {
     fun insertTree(rootNode: TextNode)
     fun searchNeo4jTextNodeByFilename(filename: String): MutableList<Neo4jTextNode>
     fun searchFileNodeByFileName(filename: String): Neo4jFileNode?
+    fun updateNodeByElementId(elementId: String, needUpdatedAttr: Map<String, Any>)
 }

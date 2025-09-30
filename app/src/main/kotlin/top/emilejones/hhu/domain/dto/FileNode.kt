@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain
+package top.emilejones.hhu.domain.dto
 
 data class FileNode (
     val fileName: String

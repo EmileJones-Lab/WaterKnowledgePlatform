@@ -17,8 +17,8 @@ import io.milvus.v2.service.vector.request.data.FloatVec
 import io.milvus.v2.service.vector.response.SearchResp
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.repository.milvus.IMilvusRepository
-import top.emilejones.hhu.repository.milvus.po.EmbeddingDatum
-import top.emilejones.hhu.repository.neo4j.enums.TextType
+import top.emilejones.hhu.domain.po.EmbeddingDatum
+import top.emilejones.hhu.domain.enums.TextType
 
 
 class MilvusRepositoryImpl(

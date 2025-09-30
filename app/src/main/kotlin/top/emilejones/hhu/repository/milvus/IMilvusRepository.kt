@@ -1,6 +1,6 @@
 package top.emilejones.hhu.repository.milvus
 
-import top.emilejones.hhu.repository.milvus.po.EmbeddingDatum
+import top.emilejones.hhu.domain.po.EmbeddingDatum
 
 interface IMilvusRepository: AutoCloseable {
     fun insert(datum: EmbeddingDatum): Boolean

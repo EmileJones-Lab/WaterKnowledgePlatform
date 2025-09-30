@@ -1,8 +1,8 @@
 package top.emilejones.hhu.parser
 
-import top.emilejones.hhu.domain.FileNode
-import top.emilejones.hhu.domain.TextNode
-import top.emilejones.hhu.repository.neo4j.enums.TextType
+import top.emilejones.hhu.domain.dto.FileNode
+import top.emilejones.hhu.domain.dto.TextNode
+import top.emilejones.hhu.domain.enums.TextType
 import java.io.File
 
 private fun String.markdownLevel(): Int {

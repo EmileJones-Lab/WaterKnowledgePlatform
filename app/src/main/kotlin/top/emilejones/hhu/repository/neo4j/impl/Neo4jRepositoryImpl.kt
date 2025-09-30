@@ -3,17 +3,20 @@ package top.emilejones.hhu.repository.neo4j.impl
 import org.neo4j.driver.*
 import org.neo4j.driver.Values.parameters
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.domain.FileNode
-import top.emilejones.hhu.domain.TextNode
+import top.emilejones.hhu.domain.dto.FileNode
+import top.emilejones.hhu.domain.dto.TextNode
+import top.emilejones.hhu.domain.enums.Neo4jRelationshipType
+import top.emilejones.hhu.domain.enums.TextType
+import top.emilejones.hhu.domain.po.Neo4jFileNode
+import top.emilejones.hhu.domain.po.Neo4jRelationship
+import top.emilejones.hhu.domain.po.Neo4jTextNode
 import top.emilejones.hhu.repository.neo4j.INeo4jRepository
-import top.emilejones.hhu.repository.neo4j.enums.Neo4jRelationshipType
-import top.emilejones.hhu.repository.neo4j.enums.TextType
-import top.emilejones.hhu.repository.neo4j.po.Neo4jFileNode
-import top.emilejones.hhu.repository.neo4j.po.Neo4jRelationship
-import top.emilejones.hhu.repository.neo4j.po.Neo4jTextNode
 import java.util.*
 import kotlin.reflect.KProperty
 
+/**
+ * 用来绑定每一个TextNode和FileNode对应的elementId
+ */
 private class TextNodeDelegate {
     private val cache = WeakHashMap<TextNode, String?>()
 
@@ -69,7 +72,7 @@ class Neo4jRepositoryImpl(
             throw IllegalArgumentException("The fileNode of rootNode must be not null!")
 
         rootNode.getChild(0).preNode = null
-        for (i in 0..<rootNode.childNum()){
+        for (i in 0..<rootNode.childNum()) {
             rootNode.getChild(i).parentNode = null
         }
 
@@ -138,6 +141,20 @@ class Neo4jRepositoryImpl(
                 else
                     result.single().asNeo4jFileNode()
             }
+        }
+    }
+
+    override fun updateNodeByElementId(elementId: String, needUpdatedAttr: Map<String, Any>) {
+        val setCypher = needUpdatedAttr.keys.map { "n.${it} = ${'$'}${it}" }
+            .joinToString(separator = ", \n", postfix = "\n", prefix = "SET ")
+        val cypher = """
+            MATCH (n)
+            WHERE elementId(n) = ${'$'}elementId
+            ${setCypher}
+        """.trimIndent()
+        val params = mutableMapOf<String, Any>(Pair("elementId", elementId)) + needUpdatedAttr
+        driver.session(SessionConfig.forDatabase(databaseName)).use {
+            it.run(cypher, params)
         }
     }
 
@@ -243,17 +260,19 @@ class Neo4jRepositoryImpl(
         return insertTextNodeResult.asNeo4jTextNode()
     }
 
-    private fun QueryRunner.insertFileNode(neo4jTextNode: Neo4jFileNode): Neo4jFileNode {
-        logger.trace("Start insert FileNode, fileName: [{}]", neo4jTextNode.fileName)
+    private fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
+        logger.trace("Start insert FileNode, fileName: [{}]", neo4jFileNode.fileName)
         val insertFileNodeResult = this.run(
             """
             CREATE (n:FileNode {
-                fileName: ${'$'}fileName
+                fileName: ${'$'}fileName,
+                isEmbedded: ${'$'}isEmbedded
             })
             RETURN n
         """,
             parameters(
-                "fileName", neo4jTextNode.fileName
+                "fileName", neo4jFileNode.fileName,
+                "isEmbedded", neo4jFileNode.isEmbedded
             )
         ).single()
         return insertFileNodeResult.asNeo4jFileNode()
@@ -294,7 +313,8 @@ class Neo4jRepositoryImpl(
 
     private fun FileNode.toNeo4jFileNode(): Neo4jFileNode {
         return Neo4jFileNode(
-            fileName = this.fileName
+            fileName = this.fileName,
+            isEmbedded = false
         )
     }
 
@@ -313,7 +333,8 @@ class Neo4jRepositoryImpl(
         val node = this["n"].asNode()
         return Neo4jFileNode(
             elementId = node.elementId(),
-            fileName = node["fileName"].asString()
+            fileName = node["fileName"].asString(),
+            isEmbedded = node["isEmbedded"].asBoolean()
         )
     }
 
