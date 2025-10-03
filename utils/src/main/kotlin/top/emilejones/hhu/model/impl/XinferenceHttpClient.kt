@@ -47,6 +47,32 @@ class XinferenceHttpClient(
     }
 
     override fun rerank(query: String, textList: List<String>): List<RerankResult> {
+        // 将召回的结果分批rerank（由于显存问题，需要分批rerank）
+        val step = 5
+        var index = 0
+        val rerankResults: MutableList<RerankResult> = ArrayList<RerankResult>()
+
+        while (index < textList.size) {
+            val strings = ArrayList<String>()
+            var i = 0
+            while (i < step && index + i < textList.size) {
+                strings.add(textList[index + i])
+                i++
+            }
+            val rerankResult = getRerankResult(query, strings)
+            rerankResults.addAll(rerankResult)
+            index += step
+        }
+
+        // 将分批rerank后的结果排序，获取得分最高的maxResultNumber个结果
+        return rerankResults.stream()
+            .sorted(Comparator.comparingDouble { value: RerankResult ->
+                value.score.toDouble()
+            }.reversed())
+            .toList()
+    }
+
+    private fun getRerankResult(query: String, textList: List<String>): List<RerankResult> {
         val url = "http://$host:$port/v1/rerank"
         val payload = mapOf(
             "model" to "bge-reranker-v2-m3",

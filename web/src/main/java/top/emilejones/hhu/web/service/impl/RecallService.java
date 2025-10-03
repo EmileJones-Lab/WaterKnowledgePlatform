@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.model.ModelClient;
-import top.emilejones.hhu.model.pojo.RerankResult;
 import top.emilejones.hhu.web.entity.FileNode;
 import top.emilejones.hhu.web.entity.MilvusDatum;
 import top.emilejones.hhu.web.entity.TextNode;
@@ -16,11 +15,7 @@ import top.emilejones.hhu.web.service.strategy.HtmlTableToCsvStrategy;
 import top.emilejones.hhu.web.service.strategy.ObtainWholeTableStrategy;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author EmileJones
@@ -57,43 +52,20 @@ public class RecallService implements IRecallService {
         // 从向量数据库中召回数据
         List<Float> queryVector = client.embedding(query);
         List<MilvusDatum> searchResults = milvusRepository.search(queryVector, 100);
-        // 将召回的结果分批rerank（由于显存问题，需要分批rerank）
-        final int step = 5;
-        int index = 0;
-        List<Pair<RerankResult, MilvusDatum>> rerankResults = new ArrayList<>();
-
-        while (index < searchResults.size()) {
-            ArrayList<String> strings = new ArrayList<>();
-            for (int i = 0; i < step && index + i < searchResults.size(); i++) {
-                strings.add(searchResults.get(index + i).getText());
-            }
-            int startIndex = index;
-            List<Pair<RerankResult, MilvusDatum>> pairList = client.rerank(query, strings).stream().map(result -> {
-                int index1 = result.getIndex();
-                return new Pair<>(result, searchResults.get(index1 + startIndex));
-            }).toList();
-            rerankResults.addAll(pairList);
-            index += step;
-        }
-        // 将分批rerank后的结果排序，获取得分最高的maxResultNumber个结果
-        Set<MilvusDatum> sets = rerankResults.stream()
-                .sorted(Comparator.comparingDouble(value -> {
-                    Pair<RerankResult, TextNode> value1 = (Pair<RerankResult, TextNode>) value;
-                    return value1.getFirst().getScore();
-                }).reversed())
+        // 重排序结果，并取出得分最高的maxResultNumber个数据
+        List<MilvusDatum> rerankResult = client.rerank(query, searchResults.stream().map(MilvusDatum::getText).toList())
+                .stream()
                 .limit(maxResultNumber)
-                .map(obj -> {
-                    Pair<RerankResult, MilvusDatum> pair = (Pair<RerankResult, MilvusDatum>) obj;
-                    return pair.getSecond();
-                })
-                .collect(Collectors.toSet());
+                .map(rr -> {
+                    return searchResults.get(rr.getIndex());
+                }).toList();
         // 将milvus数据转换为neo4j数据
-        List<Pair<FileNode, TextNode>> rawData = sets.stream().map(milvusDatum -> neo4jRepository.selectByElementId(milvusDatum.getElementId())).toList();
+        List<Pair<FileNode, TextNode>> rawData = rerankResult.stream().map(milvusDatum -> neo4jRepository.selectByElementId(milvusDatum.getElementId())).toList();
         // 将每一个表格节点向上向下查找，如果有表格上下文则加入
         List<Pair<FileNode, TextNode>> wholeTableData = obtainWholeTableStrategy.exec(rawData);
         // 将所有html表格压缩为csv格式
         List<Pair<FileNode, TextNode>> csvTableData = htmlTableToCsvStrategy.exec(wholeTableData);
-        logger.info("召回的节点数据为: {}", csvTableData);
+        logger.info("用户问题为：[{}]，召回的节点数量为[{}]个", query, csvTableData.size());
         return csvTableData;
     }
 }
