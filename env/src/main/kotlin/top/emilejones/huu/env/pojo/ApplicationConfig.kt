@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class ApplicationConfig(
     val milvus: MilvusConfig,
     val neo4j: Neo4jConfig,
-    val xinference: XinferenceConfig,
+    val model: HttpModelClientConfig,
     val rag: RAGConfig
 )

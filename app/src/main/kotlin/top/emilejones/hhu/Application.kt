@@ -6,7 +6,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.model.impl.XinferenceHttpClient
+import top.emilejones.hhu.model.impl.ModelClientByHttp
 import top.emilejones.hhu.repository.milvus.impl.MilvusRepositoryImpl
 import top.emilejones.hhu.repository.neo4j.impl.Neo4jRepositoryImpl
 import top.emilejones.hhu.service.impl.RagService
@@ -33,7 +33,13 @@ class Application : SuspendingCliktCommand() {
             port = config.neo4j.port,
             databaseName = config.neo4j.database
         )
-        val modelClient = XinferenceHttpClient(host = config.xinference.host, port = config.xinference.port)
+        val modelClient = ModelClientByHttp(
+            host = config.model.host,
+            port = config.model.port,
+            token = config.model.token,
+            embeddingModel = config.model.embeddingModel,
+            rerankModel = config.model.rerankModel
+        )
         val ragService = RagService(milvusRepository, neo4jRepository, modelClient)
         File(dirPath).walk().forEach {
             if (it.isDirectory) {
