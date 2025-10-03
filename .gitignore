@@ -41,5 +41,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-./config.yml
-./qa/qa.csv
+config.yml
+qa/qa.csv
