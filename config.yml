@@ -12,8 +12,14 @@ neo4j:
   database: neo4j
 
 xinference:
-  host: 10.196.83.122
-  port: 10007
+#  host: 10.196.83.122
+#  embeddingModel: bge-m3
+#  rerankModel: bge-reranker-v2-m3
+  host: 192.168.10.102
+  port: 8666
+  token: sk-0mECaZXEmFCICxoT8d651d8c3aF44385A1CaC1Df22F23b4b
+  rerankModel: gte_rerank
+  embeddingModel: gte_embedding
 
 rag:
   maxSequenceLength: 800

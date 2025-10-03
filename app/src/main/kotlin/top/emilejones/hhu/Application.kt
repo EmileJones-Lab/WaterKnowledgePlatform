@@ -4,7 +4,7 @@ import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
-import top.emilejones.hhu.model.impl.XinferenceHttpClient
+import top.emilejones.hhu.model.impl.ModelClientByClient
 import top.emilejones.hhu.repository.milvus.impl.MilvusRepositoryImpl
 import top.emilejones.hhu.repository.neo4j.impl.Neo4jRepositoryImpl
 import top.emilejones.hhu.service.MilvusService
@@ -30,7 +30,7 @@ class Application : SuspendingCliktCommand() {
             port = config.neo4j.port,
             databaseName = config.neo4j.database
         )
-        val modelClient = XinferenceHttpClient(host = config.xinference.host, port =  config.xinference.port)
+        val modelClient = ModelClientByClient(host = config.xinference.host, port =  config.xinference.port)
         val fileToNeo4jService = Neo4jService(neo4jRepository)
         val neo4jToMilvusService = MilvusService(milvusRepository, neo4jRepository, modelClient)
         File(dirPath).walk().forEach {
