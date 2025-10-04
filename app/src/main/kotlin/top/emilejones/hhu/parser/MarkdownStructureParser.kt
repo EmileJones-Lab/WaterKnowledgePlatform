@@ -23,11 +23,14 @@ private val String.textType: TextType
         return TextType.COMMON_TEXT
     }
 
+/**
+ * 将文件解析为树状结构
+ * @author EmileJones
+ * @param file 需要解析的文件
+ */
 class MarkdownStructureParser(file: File) {
     private val lines: List<String> = file.readText(Charsets.UTF_8).lines()
     private val fileName: String = file.name
-
-    constructor(filePath: String) : this(File(filePath))
 
     private var index = 0
     private var fileNode: FileNode
@@ -42,7 +45,7 @@ class MarkdownStructureParser(file: File) {
             fileName = fileName
         )
         rootNode = TextNode(
-            type = TextType.TITLE,
+            type = TextType.NULL,
             text = "",
             seq = -1,
             level = 0
@@ -51,6 +54,10 @@ class MarkdownStructureParser(file: File) {
         preSeqNode = rootNode
     }
 
+    /**
+     * 将文件解析为树状结构，根节点为空节点，方便算法书写和后续处理，并无实际意义。
+     * @return 树状结构的根节点
+     */
     fun run(): TextNode {
         if (isOver)
             return rootNode

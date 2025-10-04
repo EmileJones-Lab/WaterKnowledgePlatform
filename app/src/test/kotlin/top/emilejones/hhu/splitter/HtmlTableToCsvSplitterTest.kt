@@ -1,17 +1,16 @@
-package top.emilejones.hhu.test.splitter
+package top.emilejones.hhu.splitter
 
 import org.junit.jupiter.api.Test
 import top.emilejones.hhu.spliter.HtmlTableToCsvSplitter
 
 class HtmlTableToCsvSplitterTest {
-    private val maxSequenceLength = 1500
 
     @Test
     fun case1() {
         val text = """
             在宿县闸断面月下泄量满足要求的前提下，当团结闸断面下泄水量不满足相应年份月下泄量要求时，根据宿县闸、灵西闸蓄情况，及时调度加大泄量；当永城闸、宿县闸、符离集闸在满宿县闸断面下泄量要求前提下尚有较多蓄水时，可根据来预测加泄量；可适时核减新汴河流域宿县闸以下的下月取用水计划，超计划用份额在之后相邻的一个月或几个月内调整扣除。
         """.trimIndent()
-        val result = HtmlTableToCsvSplitter.split(text, maxSequenceLength)
+        val result = HtmlTableToCsvSplitter.split(text, 1500)
         assert(result.isFailure)
     }
 
@@ -53,7 +52,7 @@ class HtmlTableToCsvSplitterTest {
                 </tr>
             </table>
         """.trimIndent()
-        val result = HtmlTableToCsvSplitter.split(text, maxSequenceLength)
+        val result = HtmlTableToCsvSplitter.split(text, 1500)
         assert(result.isSuccess) {
             result.exceptionOrNull()?.message!!
         }

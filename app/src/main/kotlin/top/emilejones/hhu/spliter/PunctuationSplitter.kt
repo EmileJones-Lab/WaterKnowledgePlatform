@@ -1,9 +1,21 @@
 package top.emilejones.hhu.spliter
 
+/**
+ * @author EmileJones
+ */
 object PunctuationSplitter : StringSplitter {
     private val punctuationRegex = Regex("[。；;]")
     private val lightPunctuationRegex = Regex("[，、]")
 
+    /**
+     * 拆分句子，如果一个文本长度大于maxSequenceLength，则拆分为每一个片段长度小于maxSequenceLength的多个片段。
+     * 首先根据“。；;”去切割，如果切割后的长度符合大小，则返回拆分后的结果。
+     * 如果根据“。；;”切割后的片段长度依然大于maxSequenceLength，则根据“，、”去拆分句子，如果切割后的长度符合大小，则返回拆分后的结果。
+     * 如果上述两种方式切割后依然无法满足要求的长度，直接返回Result.failure()。
+     * @param text 需要拆分的句子（最好不要有换行）
+     * @param maxSequenceLength 每个片段的最大长度
+     * @return 切分好的片段列表，如果切分失败则返回Result.failure()
+     */
     override fun split(text: String, maxSequenceLength: Int): Result<List<String>> {
         return try {
             val parts = splitAndKeepPunctuation(text)

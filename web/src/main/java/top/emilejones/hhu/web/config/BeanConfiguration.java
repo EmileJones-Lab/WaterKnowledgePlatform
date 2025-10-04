@@ -17,11 +17,11 @@ public class BeanConfiguration {
     @Bean
     public ModelClient getModelClient(ApplicationConfig config) {
         return new ModelClientByHttp(
-                config.getXinference().getHost(),
-                config.getXinference().getPort(),
-                config.getXinference().getToken(),
-                config.getXinference().getEmbeddingModel(),
-                config.getXinference().getRerankModel()
+                config.getModel().getHost(),
+                config.getModel().getPort(),
+                config.getModel().getToken(),
+                config.getModel().getEmbeddingModel(),
+                config.getModel().getRerankModel()
         );
     }
 }

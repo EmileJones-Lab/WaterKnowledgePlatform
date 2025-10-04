@@ -24,6 +24,7 @@ class ModelClientByHttp(
     private val gson = Gson()
 
     override fun embedding(text: String): List<Float> {
+        println(text)
         val url = "http://$host:$port/v1/embeddings"
         val payload = mapOf(
             "model" to embeddingModel,
@@ -41,7 +42,7 @@ class ModelClientByHttp(
         val request = requestBuilder.build()
 
         val responseBody = client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw Exception("Unexpected code $response")
+            if (!response.isSuccessful) throw Exception("Unexpected response code, response: [$response]")
             response.body?.string() ?: ""
         }
 

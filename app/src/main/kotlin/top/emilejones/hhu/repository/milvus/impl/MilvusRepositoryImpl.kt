@@ -194,7 +194,7 @@ class MilvusRepositoryImpl(
             AddFieldReq.builder()
                 .fieldName("vector")
                 .dataType(DataType.FloatVector)
-                .dimension(1024) // 修改成你 embedding 的维度
+                .dimension(768) // 修改成你 embedding 的维度
                 .build()
         )
 

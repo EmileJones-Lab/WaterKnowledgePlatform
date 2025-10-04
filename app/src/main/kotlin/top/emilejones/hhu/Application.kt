@@ -14,6 +14,10 @@ import top.emilejones.huu.env.AutoFindConfigFile
 import top.emilejones.huu.env.pojo.ApplicationConfig
 import java.io.File
 
+/**
+ * 命令行工具运行方式
+ * @author EmileJones
+ */
 class Application : SuspendingCliktCommand() {
     private val config: ApplicationConfig = AutoFindConfigFile.find()
     private val dirPath: String by option().prompt("Directory path").help("The directory path of markdowns")
@@ -43,14 +47,13 @@ class Application : SuspendingCliktCommand() {
         val ragService = RagService(milvusRepository, neo4jRepository, modelClient)
         File(dirPath).walk().forEach {
             if (it.isDirectory) {
-                logger.info("Visit directory [{}]", it.name)
                 return@forEach
             }
             if (it.name.split('.').last().lowercase() != "md") {
-                logger.info("Visit markdown file [{}]", it.name)
                 return@forEach
             }
-            ragService.saveFileToAllDatabase(it.toPath())
+            logger.info("Visit markdown file [{}]", it.name)
+            ragService.saveMarkdownFileToAllDatabase(it.toPath())
         }
 
         ragService.close()

@@ -2,6 +2,7 @@ package top.emilejones.hhu.spliter
 
 import top.emilejones.hhu.spliter.exception.SplitException
 
+@Deprecated("由于无法支持复杂表格，CSV的切割方式已被舍弃")
 object HtmlTableToCsvSplitter : StringSplitter {
     private val tableRegex =
         Regex("<table.*?>(.*?)</table>", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))

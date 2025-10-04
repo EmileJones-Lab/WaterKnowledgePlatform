@@ -5,6 +5,9 @@ import top.emilejones.hhu.domain.po.Neo4jFileNode
 import top.emilejones.hhu.domain.po.Neo4jRelationship
 import top.emilejones.hhu.domain.po.Neo4jTextNode
 
+/**
+ * @author EmileJones
+ */
 interface INeo4jRepository : AutoCloseable {
     fun insertNeo4jTextNode(node: Neo4jTextNode): Neo4jTextNode
     fun insertNeo4jFileNode(node: Neo4jFileNode): Neo4jFileNode
@@ -16,6 +19,12 @@ interface INeo4jRepository : AutoCloseable {
      */
     fun insertTree(rootNode: TextNode)
     fun searchNeo4jTextNodeByFilename(filename: String): MutableList<Neo4jTextNode>
-    fun searchFileNodeByFileName(filename: String): Neo4jFileNode?
+    fun searchNeo4jFileNodeByFileName(filename: String): Neo4jFileNode?
+
+    /**
+     * 根据elementId去修改节点的属性，如果属性不存在，则添加。
+     * @param elementId 节点唯一标识
+     * @param needUpdatedAttr 需要更新的节点属性
+     */
     fun updateNodeByElementId(elementId: String, needUpdatedAttr: Map<String, Any>)
 }

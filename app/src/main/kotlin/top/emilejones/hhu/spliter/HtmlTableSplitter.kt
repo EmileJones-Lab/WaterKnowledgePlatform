@@ -2,16 +2,24 @@ package top.emilejones.hhu.spliter
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import java.lang.IllegalArgumentException
 
+/**
+ * @author EmileJones
+ */
 object HtmlTableSplitter : StringSplitter {
 
-
+    /**
+     * 切分Html的Table文本，如果文本超出了maxSequenceLength，则将表格切分成多个部分，每一个部分都拥有表头行。
+     * 如果一行的长度超出了maxSequenceLength，则此方法会切下这一行，尽管长度超出了maxSequenceLength。
+     * 所以此方法只会尽可能的将表格切分到maxSequenceLength以下，并不保证长度绝对小于maxSequenceLength。
+     * @see main 查看Html table拆分后的结果
+     * @param text 需要切分的文本内容
+     * @param maxSequenceLength 期望每个片段的最大长度
+     * @return 切分后的结果，不保证每一个片段长度绝对小于maxSequenceLength
+     */
     override fun split(text: String, maxSequenceLength: Int): Result<List<String>> {
-        if (!text.startsWith("<table>"))
-            return Result.failure(IllegalArgumentException("The text must be the HTML table format"))
-        if (text.length <= maxSequenceLength)
-            return Result.success(listOf(text))
+        if (!text.startsWith("<table>")) return Result.failure(IllegalArgumentException("The text must be the HTML table format"))
+        if (text.length <= maxSequenceLength) return Result.success(listOf(text))
 
         return runCatching {
             val doc = Jsoup.parse(text)
@@ -61,10 +69,7 @@ object HtmlTableSplitter : StringSplitter {
         }
 
         return result.map { chunk ->
-            chunk.lines()
-                .map { it.trimIndent() }
-                .filter { it.isNotBlank() }
-                .joinToString(separator = "")
+            chunk.lines().map { it.trimIndent() }.filter { it.isNotBlank() }.joinToString(separator = "")
         }
     }
 
@@ -77,4 +82,20 @@ object HtmlTableSplitter : StringSplitter {
         sb.append("</table>")
         return sb.toString()
     }
+}
+
+fun main() {
+
+    val html = """
+        <table>
+            <tr><th>Name</th><th>Age</th></tr>
+            <tr><td>Alice</td><td>20</td></tr>
+            <tr><td>Bob</td><td>25</td></tr>
+            <tr><td>Charlie</td><td>30</td></tr>
+        </table>
+    """.trimIndent()
+
+    val splitter = HtmlTableSplitter
+    val blocks = splitter.split(html, maxSequenceLength = 100)
+    println(blocks.getOrThrow())
 }

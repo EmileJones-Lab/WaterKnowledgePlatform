@@ -8,8 +8,8 @@ import java.io.File
 
 val config = AutoFindConfigFile.find()
 fun main(): Unit = runBlocking {
-    val sourceDir = File("/Users/sunhongfei/Downloads/out")
-    val targetDir = File("/Users/sunhongfei/Downloads/测试文档")
+    val sourceDir = File("/Users/sunhongfei/Downloads/test")
+    val targetDir = File("/Users/sunhongfei/Downloads/test-result")
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     val job = sourceDir.walk().mapNotNull {
@@ -31,11 +31,13 @@ fun main(): Unit = runBlocking {
 
 private fun saveFile(sourceFile: File, outputFile: File) {
     val processedText = sourceFile.readText().lines()
+        .asSequence()
         .map { it.trimIndent() }
         .filter { it.isNotBlank() }
         .map {
-            if (it.startsWith("<table>")) {
+            if (it.startsWith("<table>") && it.length > config.rag.maxTableLength) {
                 val splitResult = HtmlTableSplitter.split(it, config.rag.maxTableLength).getOrNull()
+                splitResult!!.forEach { r -> if (r.length>1000) System.err.println(it) }
                 return@map splitResult ?: emptyList<String>()
             }
             if (it.length > config.rag.maxSequenceLength) {
@@ -45,6 +47,7 @@ private fun saveFile(sourceFile: File, outputFile: File) {
             listOf(it)
         }.flatten()
         .joinToString(separator = "\n")
+//    processedText.split("\n").forEach { if (it.length > 600) println("${sourceFile.name}[${it.length}]: $it") }
 
     outputFile.createNewFile()
     outputFile.writeText(processedText)

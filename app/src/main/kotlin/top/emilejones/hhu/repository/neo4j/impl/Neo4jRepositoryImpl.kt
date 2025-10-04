@@ -121,7 +121,7 @@ class Neo4jRepositoryImpl(
         }
     }
 
-    override fun searchFileNodeByFileName(filename: String): Neo4jFileNode? {
+    override fun searchNeo4jFileNodeByFileName(filename: String): Neo4jFileNode? {
         driver.session(SessionConfig.forDatabase(databaseName)).use { session ->
             return session.executeRead { tx ->
                 val query = """

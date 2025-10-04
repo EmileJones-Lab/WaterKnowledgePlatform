@@ -1,4 +1,4 @@
-package top.emilejones.hhu.test.splitter
+package top.emilejones.hhu.splitter
 
 import org.junit.jupiter.api.Test
 import top.emilejones.hhu.spliter.PunctuationSplitter
