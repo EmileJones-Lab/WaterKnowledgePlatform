@@ -1,6 +1,9 @@
-package top.emilejones.hhu.spliter
+package top.emilejones.hhu.spliter.impl
+
+import top.emilejones.hhu.spliter.StringSplitter
 
 /**
+ * 将句子按照标点符号切割的实现类
  * @author EmileJones
  */
 object PunctuationSplitter : StringSplitter {
@@ -8,13 +11,18 @@ object PunctuationSplitter : StringSplitter {
     private val lightPunctuationRegex = Regex("[，、]")
 
     /**
-     * 拆分句子，如果一个文本长度大于maxSequenceLength，则拆分为每一个片段长度小于maxSequenceLength的多个片段。
-     * 首先根据“。；;”去切割，如果切割后的长度符合大小，则返回拆分后的结果。
-     * 如果根据“。；;”切割后的片段长度依然大于maxSequenceLength，则根据“，、”去拆分句子，如果切割后的长度符合大小，则返回拆分后的结果。
-     * 如果上述两种方式切割后依然无法满足要求的长度，直接返回Result.failure()。
+     * 按照标点符号切割的方法
+     *
+     * ## 拆分逻辑
+     * 1. 拆分句子，如果一个文本长度大于maxSequenceLength，则拆分为每一个片段长度小于maxSequenceLength的多个片段。
+     * 2. 首先根据“。；;”去切割，如果切割后的长度符合大小，则返回拆分后的结果。
+     * 3. 如果根据“。；;”切割后的片段长度依然大于maxSequenceLength，则根据“，、”去拆分句子，如果切割后的长度符合大小，则返回拆分后的结果。
+     * 4. 如果上述两种方式切割后依然无法满足要求的长度，直接返回Result.failure()。
+     *
      * @param text 需要拆分的句子（最好不要有换行）
      * @param maxSequenceLength 每个片段的最大长度
      * @return 切分好的片段列表，如果切分失败则返回Result.failure()
+     * @throws RuntimeException 当句子无法被拆分为指定的长度之内的片段的话报错
      */
     override fun split(text: String, maxSequenceLength: Int): Result<List<String>> {
         return try {

@@ -1,50 +1,86 @@
-package top.emilejones.hhu.spliter
+package top.emilejones.hhu.spliter.impl
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import top.emilejones.hhu.spliter.StringSplitter
 import top.emilejones.hhu.spliter.exception.SplitException
 
 /**
+ * 将Html table转换成Csv的实现类
  * @author EmileJones
  */
 object HtmlTableToCsvSplitter : StringSplitter {
     /**
      * 将 HTML 表格解析并切分为多个 CSV 文本片段。
      *
-     * 功能说明：
-     * 1. 支持解析一个或多个 {@code <table>} 标签。
-     * 2. 每个表格会被展开为二维矩阵（自动处理 {@code rowspan}/{@code colspan}）。
-     * 3. 转换为符合 CSV 规范的文本（每个单元格使用双引号包裹，并转义内部双引号）。
-     * 4. 根据 {@code maxSequenceLength} 将 CSV 按行切分为若干片段，每个片段长度不超过上限。
-     * 5. 若表格包含表头（由 {@code <th>} 或 {@code <thead>} 决定），表头将在每个片段中重复，以保证独立性。
+     * ## 功能说明
+     * 1. 支持解析一个或多个 `<table>` 标签。
+     * 2. 自动展开跨行、跨列单元格（`rowspan`、`colspan`）。
+     * 3. 转换为符合 CSV 规范的文本：
+     *    - 每个单元格使用双引号包裹；
+     *    - 内部双引号会被转义。
+     * 4. 按 `maxSequenceLength` 限制分段输出：
+     *    - 若整表长度未超限，生成单个片段；
+     *    - 若超限，则按行拆分为多个片段；
+     *    - 每个片段会重复表头行，以保持独立性。
      *
-     * 运行步骤：
+     * ## 处理逻辑
      * 1. 解析 HTML，提取所有 `<table>` 元素。
      * 2. 对每个表格调用 `parseTableWithHeaderInfo()`：
-     *    - 展开跨行跨列单元格；
-     *    - 得到完整二维表格矩阵；
-     *    - 返回表格内容及表头行数。
-     * 3. 将表格矩阵转换为 CSV 行（对单元格内容加引号、转义）。
-     * 4. 若整表长度 ≤ `maxSequenceLength`，直接作为单个 chunk。
-     * 5. 若超长，则按行拆分：
-     *    - 表头行在每个片段前重复；
-     *    - 保证每个 chunk 长度不超限；
-     *    - 每行都完整，不拆分中途。
-     * 6. 检查所有生成的 chunk，若有任何超过限制则报错。
+     *    - 展开 `rowspan`/`colspan`；
+     *    - 构造完整二维矩阵；
+     *    - 返回内容与表头行数。
+     * 3. 将矩阵转为 CSV 行（自动转义内容）。
+     * 4. 执行分段逻辑，确保每行完整、不被拆分。
+     * 5. 检查所有生成的片段长度，若任何一项超限则报错。
      *
-     * @see main 可以运行main函数去查看生成的效果
+     * ## 示例
+     * 输入：
+     * ```html
+     * <table>
+     *   <tr>
+     *     <td></td>
+     *     <td rowspan="2" colspan="1">序号</td>
+     *     <td rowspan="2" colspan="2">水库名称</td>
+     *     <td rowspan="1" colspan="4">水库防洪能力</td>
+     *     <td rowspan="1" colspan="4">大坝情况</td>
+     *     <td rowspan="1" colspan="4">溢洪道</td>
+     *   </tr>
+     *   <tr>
+     *     <td></td>
+     *     <td rowspan="1" colspan="1">集水面积(km²)</td>
+     *     <td rowspan="1" colspan="1">总库容（万方）</td>
+     *     <td rowspan="1" colspan="1">正常水位（米）</td>
+     *     <td rowspan="1" colspan="1">汛期控制水位（米）</td>
+     *     <td rowspan="1" colspan="1">坝型</td>
+     *     <td rowspan="1" colspan="1">坝顶高程（米）</td>
+     *     <td rowspan="1" colspan="1">最大坝高（米）</td>
+     *     <td rowspan="1" colspan="1">坝顶宽度（米）</td>
+     *     <td rowspan="1" colspan="1">形式</td>
+     *     <td rowspan="1" colspan="1">底高程（米）</td>
+     *     <td rowspan="1" colspan="1">底宽（米）</td>
+     *     <td rowspan="1" colspan="1">最大泄洪量(m³/s)</td>
+     *   </tr>
+     * </table>
+     * ```
+     * 输出：
+     * ```csv
+     * "","序号","水库名称","","水库防洪能力","","","","大坝情况","","","","溢洪道","","",""
+     * "","","","","集水面积(km²)","总库容（万方）","正常水位（米）","汛期控制水位（米）","坝型","坝顶高程（米）","最大坝高（米）","坝顶宽度（米）","形式","底高程（米）","底宽（米）","最大泄洪量(m³/s)"
+     * ```
+     * @param text HTML 字符串，必须包含至少一个 `<table>` 标签。
+     * @param maxSequenceLength 每个输出 CSV 片段允许的最大字符数。
      *
-     * @param text HTML 字符串，必须包含至少一个 {@code <table>} 标签。
-     * @param maxSequenceLength 限制每个输出 CSV 片段的最大字符数。
+     * @return
+     * - 若成功，返回 `Result.success(List<String>)`，其中每个元素是一个独立 CSV 文本片段；
+     * - 若失败，返回 `Result.failure(SplitException)`。
      *
-     * @return 以下两种结果：
-     *         1. {@code Result.success(List<String>)}：每个元素是一个自包含的 CSV 字符串片段。
-     *         2. {@code Result.failure(SplitException)}：当 HTML 无表格、表格行过长或解析失败时返回错误信息。
+     * @throws SplitException
+     * 当以下情况之一发生时抛出：
+     * - HTML 中未包含任何 `<table>`；
+     * - 某一行（或表头整体）长度超出 `maxSequenceLength`；
+     * - 内部运行时异常（已包装为 `SplitException`）。
      *
-     * @throws SplitException 当以下情况发生时：
-     *         1. HTML 中没有 {@code <table>}。
-     *         2. 某一行（或表头整体）长度超出 {@code maxSequenceLength}。
-     *         3. 捕获到运行时异常并包装为 {@code SplitException}。
      */
     override fun split(text: String, maxSequenceLength: Int): Result<List<String>> {
         try {
@@ -286,20 +322,5 @@ object HtmlTableToCsvSplitter : StringSplitter {
             .replace("\n", " ")
             .replace(Regex("\\s+"), " ")
             .trim()
-    }
-}
-
-fun main() {
-    val text = """
-           <table><tr><td></td><td rowspan="2" colspan="1">序号</td><td rowspan="2" colspan="2">水库名称</td><td rowspan="1" colspan="4">水库防洪能力</td><td rowspan="1" colspan="4">大坝情 况</td><td rowspan="1" colspan="4">溢 洪 道</td></tr><tr><td></td><td rowspan="1" colspan="1">集水面积(km{)</td><td rowspan="1" colspan="1">总库容（万方）</td><td rowspan="1" colspan="1">正常水位（米)</td><td rowspan="1" colspan="1">汛期控制水位（米)</td><td rowspan="1" colspan="1">坝型</td><td rowspan="1" colspan="1">坝顶高程(米)</td><td rowspan="1" colspan="1">最大坝高(米)</td><td rowspan="1" colspan="1">坝顶宽度（米)</td><td rowspan="1" colspan="1">形式</td><td rowspan="1" colspan="1">底高程（米）</td><td rowspan="1" colspan="1">底宽（米）</td><td rowspan="1" colspan="1">最大泄洪量(m^{/s)${'$'}</td></tr></table>
-    """.trimIndent()
-    val result = HtmlTableToCsvSplitter.split(text, 500)
-    assert(result.isSuccess) {
-        result.exceptionOrNull()?.message!!
-    }
-    val data = result.getOrThrow()
-    for (i in 0..<data.size) {
-        println("第${i}个片段：")
-        println(data[i])
     }
 }

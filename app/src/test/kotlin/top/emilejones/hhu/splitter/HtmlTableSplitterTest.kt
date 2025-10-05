@@ -1,6 +1,6 @@
 package top.emilejones.hhu.splitter
 
-import top.emilejones.hhu.spliter.HtmlTableSplitter
+import top.emilejones.hhu.spliter.impl.HtmlTableSplitter
 import kotlin.test.Test
 
 class HtmlTableSplitterTest {

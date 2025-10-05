@@ -3,8 +3,8 @@ package top.emilejones.hhu.preprocessor
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.TextNode
 import top.emilejones.hhu.domain.enums.TextType
-import top.emilejones.hhu.spliter.HtmlTableToCsvSplitter
-import top.emilejones.hhu.spliter.PunctuationSplitter
+import top.emilejones.hhu.spliter.impl.HtmlTableToCsvSplitter
+import top.emilejones.hhu.spliter.impl.PunctuationSplitter
 
 class SplitTextNodeTool(
     private val rootNode: TextNode,

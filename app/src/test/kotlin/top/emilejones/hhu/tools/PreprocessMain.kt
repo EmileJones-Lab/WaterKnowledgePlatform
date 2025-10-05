@@ -1,8 +1,8 @@
 package top.emilejones.hhu.tools
 
 import kotlinx.coroutines.*
-import top.emilejones.hhu.spliter.HtmlTableSplitter
-import top.emilejones.hhu.spliter.PunctuationSplitter
+import top.emilejones.hhu.spliter.impl.HtmlTableSplitter
+import top.emilejones.hhu.spliter.impl.PunctuationSplitter
 import top.emilejones.huu.env.AutoFindConfigFile
 import java.io.File
 
