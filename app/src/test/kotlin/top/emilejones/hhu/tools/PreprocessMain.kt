@@ -1,4 +1,4 @@
-package top.emilejones.hhu.milvus
+package top.emilejones.hhu.tools
 
 import kotlinx.coroutines.*
 import top.emilejones.hhu.spliter.HtmlTableSplitter
@@ -40,8 +40,8 @@ private fun saveFile(sourceFile: File, outputFile: File) {
                 splitResult!!.forEach { r -> if (r.length>1000) System.err.println(it) }
                 return@map splitResult ?: emptyList<String>()
             }
-            if (it.length > config.rag.maxSequenceLength) {
-                val splitResult = PunctuationSplitter.split(it, config.rag.maxSequenceLength).getOrNull()
+            if (it.length > config.rag.maxSentenceLength) {
+                val splitResult = PunctuationSplitter.split(it, config.rag.maxSentenceLength).getOrNull()
                 return@map splitResult ?: emptyList<String>()
             }
             listOf(it)

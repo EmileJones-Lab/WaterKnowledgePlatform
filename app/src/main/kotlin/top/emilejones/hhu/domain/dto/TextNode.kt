@@ -4,7 +4,7 @@ import top.emilejones.hhu.domain.enums.TextType
 
 data class TextNode(
     val text: String,
-    val seq: Int,
+    var seq: Int,
     val level: Int,
     val type: TextType
 ) {
@@ -16,6 +16,14 @@ data class TextNode(
 
     fun addChild(childNode: TextNode) {
         childList.add(childNode)
+    }
+
+    fun setChild(childNode: TextNode, index: Int) {
+        childList.add(index, childNode)
+    }
+
+    fun deleteChild(index: Int) {
+        childList.removeAt(index)
     }
 
     fun getChild(index: Int): TextNode {

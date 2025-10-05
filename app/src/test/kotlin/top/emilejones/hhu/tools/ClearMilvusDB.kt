@@ -1,4 +1,4 @@
-package top.emilejones.hhu.milvus
+package top.emilejones.hhu.tools
 
 import io.milvus.v2.client.ConnectConfig
 import io.milvus.v2.client.MilvusClientV2

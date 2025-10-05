@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class HttpModelClientConfig(
     val host: String,
     val port: Int,
-    val token: String,
+    val token: String? = null,
     val rerankModel: String,
     val embeddingModel: String
 )

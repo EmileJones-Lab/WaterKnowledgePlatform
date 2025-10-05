@@ -1,12 +1,11 @@
 package top.emilejones.hhu.service.impl
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.po.EmbeddingDatum
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.parser.MarkdownStructureParser
+import top.emilejones.hhu.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.repository.milvus.IMilvusRepository
 import top.emilejones.hhu.repository.neo4j.INeo4jRepository
 import top.emilejones.hhu.service.IRagService
@@ -20,11 +19,12 @@ import kotlin.io.path.name
 class RagService(
     private val milvusRepository: IMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
-    private val modelClient: ModelClient
+    private val modelClient: ModelClient,
+    private val maxSentenceLength: Int,
+    private val maxTableLength: Int
 ) : IRagService, AutoCloseable {
     private val logger = LoggerFactory.getLogger(RagService::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val semaphore = Semaphore(1)
 
     override suspend fun saveMarkdownFileToAllDatabase(filePath: Path) {
         saveFileInNeo4j(filePath.toFile())
@@ -37,7 +37,6 @@ class RagService(
      * @param filename 需要存入的文件名
      */
     private suspend fun saveInMilvusFromNeo4jByFilename(filename: String) {
-        logger.debug("Search all nodes about file [{}]", filename)
         val fileNode = neo4jRepository.searchNeo4jFileNodeByFileName(filename)
             ?: throw RuntimeException("The file [${filename}] is not exist")
         if (fileNode.isEmbedded) {
@@ -45,22 +44,20 @@ class RagService(
             return
         }
         val textNodeList = neo4jRepository.searchNeo4jTextNodeByFilename(filename)
-        logger.debug("Search nodes about file [{}] success! The nodes number is [{}]", filename, textNodeList.size)
+        logger.debug("Embedding file [{}]", filename)
         val embeddingData = textNodeList.map {
             scope.async {
-                semaphore.withPermit {
-                    delay(1000)
-                    EmbeddingDatum(
-                        vector = modelClient.embedding(it.text),
-                        text = it.text,
-                        neo4jElementId = it.elementId!!,
-                        type = it.type
-                    )
-                }
+                EmbeddingDatum(
+                    vector = modelClient.embedding(it.text),
+                    text = it.text,
+                    neo4jElementId = it.elementId!!,
+                    type = it.type
+                )
             }
         }.awaitAll()
-        logger.debug("Saving file [{}] in Milvus", filename)
+        logger.debug("Performing Batch Insertion of file [{}] in Milvus", filename)
         milvusRepository.batchInsert(embeddingData)
+        logger.debug("Changing FileNode [{}] field isEmbedding from false to true in Neo4j", filename);
         neo4jRepository.updateNodeByElementId(fileNode.elementId!!, mapOf(Pair("isEmbedded", true)))
         logger.info("Success save all nodes about file [{}] in milvus", filename)
     }
@@ -76,10 +73,11 @@ class RagService(
             return
         }
 
-        logger.debug("Start read file [{}] as a tree structure", file.name)
-        val parser = MarkdownStructureParser(file)
-        val result = parser.run()
-        logger.debug("Success read file [{}] as a tree structure", file.name)
+        logger.debug("Reading file [{}] as a tree structure", file.name)
+        val result = MarkdownStructureParser(file).get()
+        logger.debug("Preprocessing file [{}] structure", file.name);
+        SplitTextNodeTool(result, maxTableLength, maxSentenceLength).run()
+
         neo4jRepository.insertTree(result)
         logger.info("Success save tree structure of the file [{}] in neo4j", file.name)
     }

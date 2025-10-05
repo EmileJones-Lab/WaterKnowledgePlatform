@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":env"))
     testImplementation(kotlin("test"))
     implementation("org.jsoup:jsoup:1.16.1")
+    implementation("org.yaml:snakeyaml:2.0")
     implementation("org.neo4j.driver:neo4j-java-driver:5.28.9")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("ch.qos.logback:logback-classic:1.5.18")

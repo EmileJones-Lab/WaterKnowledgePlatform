@@ -24,7 +24,6 @@ class ModelClientByHttp(
     private val gson = Gson()
 
     override fun embedding(text: String): List<Float> {
-        println(text)
         val url = "http://$host:$port/v1/embeddings"
         val payload = mapOf(
             "model" to embeddingModel,

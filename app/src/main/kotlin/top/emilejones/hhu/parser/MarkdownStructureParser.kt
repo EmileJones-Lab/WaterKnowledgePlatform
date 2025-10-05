@@ -1,5 +1,7 @@
 package top.emilejones.hhu.parser
 
+import com.google.common.base.Supplier
+import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.FileNode
 import top.emilejones.hhu.domain.dto.TextNode
 import top.emilejones.hhu.domain.enums.TextType
@@ -19,7 +21,7 @@ private val String.textType: TextType
     get() {
         if (this.startsWith("<table>")) return TextType.TABLE
         if (this.startsWith("#")) return TextType.TITLE
-        if (this.matches("![.*?](.*?)".toRegex())) return TextType.IMAGE
+        if (this.matches("!\\[([^\\]]*)\\]\\(([^)\\s]+)(?:\\s+\"([^\"]*)\")?\\)".toRegex())) return TextType.IMAGE
         return TextType.COMMON_TEXT
     }
 
@@ -28,7 +30,7 @@ private val String.textType: TextType
  * @author EmileJones
  * @param file 需要解析的文件
  */
-class MarkdownStructureParser(file: File) {
+class MarkdownStructureParser(file: File) : Supplier<TextNode> {
     private val lines: List<String> = file.readText(Charsets.UTF_8).lines()
     private val fileName: String = file.name
 
@@ -37,6 +39,8 @@ class MarkdownStructureParser(file: File) {
     private var preSeqNode: TextNode
     private var rootNode: TextNode
     private var isOver: Boolean
+
+    private val logger = LoggerFactory.getLogger(MarkdownStructureParser::class.java)
 
     init {
         isOver = false
@@ -58,7 +62,7 @@ class MarkdownStructureParser(file: File) {
      * 将文件解析为树状结构，根节点为空节点，方便算法书写和后续处理，并无实际意义。
      * @return 树状结构的根节点
      */
-    fun run(): TextNode {
+    override fun get(): TextNode {
         if (isOver)
             return rootNode
         // 构建树状结构和序列结构
@@ -73,7 +77,12 @@ class MarkdownStructureParser(file: File) {
         if (index >= lines.size)
             return
 
+        if (lines[index].isEmpty()) {
+            index++
+            return
+        }
         val nowIndex = index
+        logger.debug("Parsing row [{}] of file [{}], line text: [{}]", nowIndex, fileName, lines[nowIndex])
 
         val nowNode: TextNode = TextNode(
             text = lines[nowIndex],

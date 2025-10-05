@@ -1,4 +1,4 @@
-package top.emilejones.hhu.milvus
+package top.emilejones.hhu.tools
 
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.Driver

@@ -44,7 +44,13 @@ class Application : SuspendingCliktCommand() {
             embeddingModel = config.model.embeddingModel,
             rerankModel = config.model.rerankModel
         )
-        val ragService = RagService(milvusRepository, neo4jRepository, modelClient)
+        val ragService = RagService(
+            milvusRepository = milvusRepository,
+            neo4jRepository = neo4jRepository,
+            modelClient = modelClient,
+            maxSentenceLength = config.rag.maxSentenceLength,
+            maxTableLength = config.rag.maxTableLength
+        )
         File(dirPath).walk().forEach {
             if (it.isDirectory) {
                 return@forEach
@@ -55,7 +61,6 @@ class Application : SuspendingCliktCommand() {
             logger.info("Visit markdown file [{}]", it.name)
             ragService.saveMarkdownFileToAllDatabase(it.toPath())
         }
-
         ragService.close()
     }
 }
