@@ -7,7 +7,7 @@ import top.emilejones.hhu.spliter.StringSplitter
  * @author EmileJones
  */
 object PunctuationSplitter : StringSplitter {
-    private val punctuationRegex = Regex("[。；;]")
+    private val punctuationRegex = Regex("[。；;\\s+]")
     private val lightPunctuationRegex = Regex("[，、]")
 
     /**

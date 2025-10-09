@@ -138,7 +138,6 @@ class SplitTextNodeTool(
         if (oldNode.childNum() != 0)
             throw IllegalArgumentException("不能切分非叶子节点")
 
-
         // 记录其他节点
         val preNode = oldNode.preNode
         val nextNode = oldNode.nextNode

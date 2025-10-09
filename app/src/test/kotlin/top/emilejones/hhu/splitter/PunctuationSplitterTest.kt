@@ -7,7 +7,7 @@ class PunctuationSplitterTest {
 
 
     @Test
-    fun case1(){
+    fun case1() {
         val maxSequenceLength = 200
         val text = """
             春天的校园里，花开遍地，柳条轻摇，微风拂面，让人心情格外舒畅；同学们三三两两地走在小路上，讨论着即将到来的运动会，空气中弥漫着青草与花朵的清香。操场上正在进行一场激烈的足球赛，场边的观众兴奋地呐喊助威，仿佛要将整个操场的气氛推向高潮。
@@ -24,7 +24,7 @@ class PunctuationSplitterTest {
     }
 
     @Test
-    fun case2(){
+    fun case2() {
         val maxSequenceLength = 20
         val text = """
             春天的校园里，花开遍地，柳条轻摇，微风拂面，让人心情格外舒畅；同学们三三两两地走在小路上，讨论着即将到来的运动会，空气中弥漫着青草与花朵的清香。操场上正在进行一场激烈的足球赛，场边的观众兴奋地呐喊助威，仿佛要将整个操场的气氛推向高潮。
@@ -33,5 +33,17 @@ class PunctuationSplitterTest {
         """.trimIndent()
         val result = PunctuationSplitter.split(text, maxSequenceLength)
         assert(result.isFailure)
+    }
+
+    @Test
+    fun case3() {
+        val maxSequence = 600
+        val text = """
+            一、基本情况……  1.1 水库概况…   1.1.1 流域水文气象……    1.1.2 水库基本情况……    1.2 水库控制运用情况……  1.2.1 调度运行简况……    1.2.2 水雨情监测及洪水预报调度… 1.2.3 交通、通讯、电力……        1.2.4 工程安全监测、监视系统……  1.3 上年度调度运用总结……        1.3.1 雨情…     1.3.2 水情      1.3.3 兴利…     1.3.4 调度运用情况…        二、防汛调度计划…… 8    2.1 基本资料……  2.1.1 水库特征线…       2.1.2 龙头水库水位～面积～库容表……      2.1.3 泄洪建筑物形式……  2.1.4 下游情况… …8      2.2 大坝安全评估…… 10   2.3 汛期划分…… 10       2.4 防洪特征水位…… 10   2.5 防洪调度方案……      2.6 防洪调度及运用……    2.6.1 调度权…       2.6.2 防洪调度原则和技术方案……  三、兴利调度计划…… …16  3.1 入库径流…… 16       3.2 兴利调度方案……      3.3 兴利特征水位…… 16   3.4 放水操作管理规定及流程… 16  3.4.1 一般规定…… … 16   3.4.2 工作要求… 3.4.3 … 18      3.5 责任人… 18  3.6 兴利调度注意事项… 18        四、安全度汛措施……      4.1 防汛组织9       4.2 泄洪预警…   4.3 应急预案…… 9        附件 1：水库工程特性表  附件2：水库位置示意图   附件3：主要控制断面流域特征值成果表     附件4：各分区设计暴雨成果表（年最大）   附件 5：云源港干流设计洪水成果表（洪水叠加后）
+        """.trimIndent()
+        val split = PunctuationSplitter.split(text, maxSequence)
+        assert(split.isSuccess)
+        assert(split.getOrThrow().isNotEmpty())
+        split.getOrThrow().forEach { assert(it.length < maxSequence){"Found text length more than [$maxSequence], text: [${it}]"} }
     }
 }
