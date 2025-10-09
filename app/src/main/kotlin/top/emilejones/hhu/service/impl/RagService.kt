@@ -22,7 +22,7 @@ class RagService(
     private val modelClient: ModelClient,
     private val maxSentenceLength: Int,
     private val maxTableLength: Int
-) : IRagService, AutoCloseable {
+) : IRagService {
     private val logger = LoggerFactory.getLogger(RagService::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -80,10 +80,5 @@ class RagService(
 
         neo4jRepository.insertTree(result)
         logger.info("Success save tree structure of the file [{}] in neo4j", file.name)
-    }
-
-    override fun close() {
-        milvusRepository.close()
-        neo4jRepository.close()
     }
 }

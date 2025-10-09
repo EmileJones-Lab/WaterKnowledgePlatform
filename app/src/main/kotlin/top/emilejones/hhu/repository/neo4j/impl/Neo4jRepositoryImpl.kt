@@ -22,7 +22,6 @@ private class TextNodeDelegate {
 
     operator fun getValue(thisRef: TextNode, property: KProperty<*>): String? {
         return cache.getOrPut(thisRef) { null }
-
     }
 
     operator fun setValue(thisRef: TextNode, property: KProperty<*>, value: String?) {
