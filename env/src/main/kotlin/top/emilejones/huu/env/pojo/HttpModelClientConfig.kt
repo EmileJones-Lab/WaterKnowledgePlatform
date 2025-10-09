@@ -8,5 +8,6 @@ data class HttpModelClientConfig(
     val port: Int,
     val token: String? = null,
     val rerankModel: String,
-    val embeddingModel: String
+    val embeddingModel: String,
+    val dimension: Int
 )

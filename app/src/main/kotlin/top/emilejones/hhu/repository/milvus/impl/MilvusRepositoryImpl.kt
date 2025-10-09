@@ -25,7 +25,8 @@ class MilvusRepositoryImpl(
     private val host: String,
     private val port: Int,
     private val databaseName: String,
-    private val collectionName: String
+    private val collectionName: String,
+    private val dimension: Int
 ) : IMilvusRepository {
     private val logger = LoggerFactory.getLogger(MilvusRepositoryImpl::class.java)
 
@@ -194,7 +195,7 @@ class MilvusRepositoryImpl(
             AddFieldReq.builder()
                 .fieldName("vector")
                 .dataType(DataType.FloatVector)
-                .dimension(1024) // 修改成你 embedding 的维度
+                .dimension(dimension)
                 .build()
         )
 

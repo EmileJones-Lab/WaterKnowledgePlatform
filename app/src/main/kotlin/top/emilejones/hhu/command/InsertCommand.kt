@@ -32,7 +32,8 @@ class InsertCommand : SuspendingCliktCommand(name = "insert"), AutoCloseable {
         port = config.milvus.port,
         host = config.milvus.host,
         databaseName = config.milvus.database,
-        collectionName = config.milvus.collection
+        collectionName = config.milvus.collection,
+        dimension = config.model.dimension
     )
     private val neo4jRepository: INeo4jRepository = Neo4jRepositoryImpl(
         username = config.neo4j.user,
