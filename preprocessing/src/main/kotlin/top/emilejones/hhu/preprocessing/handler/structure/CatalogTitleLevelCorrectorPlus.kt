@@ -3,16 +3,15 @@ package top.emilejones.hhu.preprocessing.handler.structure
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler
 
 /**
- * 将以 `# 目录` 开头的 markdown 目录段落转换为正文：
- * 1. 把 `# 目录` 降级为 `## 目录`
- * 2. 将目录下所有以 `#`或`##` 或 `###` 或 `####` 开头的小节转换为正文（去除 # 号）
- * 3. 替换结束于下一个真正正文章节（如 `## 1 总则`）前
+ * 将以 `# 目录` 开头的 markdown 目录段落转换为正文： 相比于CatalogTitleLevelCorrector做了如下改进
+ * 1. 可是识别出目录中如 “1 前 言.. 1 - ”的正文，也就是带有 `-`的内容
+ *  注： looksLikePseudoToc()函数是专门识别出目录里面的正文末尾，如有其他格式的末尾可自行添加
  *
- * @author EmileJones
+ * @author yeyezhi
  */
-class CatalogTitleLevelCorrector : MarkdownFileHandler {
+class CatalogTitleLevelCorrectorPlus : MarkdownFileHandler {
     private val catalogRegex = """#*\s*目\s*录""".toRegex()
-    private val firstTitleRegex = """^#+\s*((\d+\.?)|([一二三四五六七八九十])、)\s*\D+""".toRegex()
+    private val firstTitleRegex = """^#*\s*((\d+\.?)|([一二三四五六七八九十])、)\s*\D+""".toRegex()
 
     override fun handle(markdownText: String): String {
         if (!markdownText.contains(catalogRegex))
@@ -49,16 +48,30 @@ class CatalogTitleLevelCorrector : MarkdownFileHandler {
         var nowIndex = catalogIndex + 1
         var isFirst = true
         while (nowIndex < lines.size) {
-            if (lines[nowIndex].matches(firstTitleRegex)) {
-                if (isFirst)
-                    isFirst = false
-                else
+            val curr = lines[nowIndex]
+            if (firstTitleRegex.matches(curr) && !looksLikePseudoToc(curr)) {
+                if (isFirst){
+                    // 如果不是伪标题，直接当成正文
                     return nowIndex
+                }
+                else {
+                    return nowIndex
+                }
             }
             nowIndex++
         }
         throw RuntimeException("没找见目录结束位置")
     }
 
+    private fun looksLikePseudoToc(line: String): Boolean {
+        val s = line.trim()
+        // 目录里的常见伪标题尾巴：省略号、点号
+        if (s.contains("..") || s.contains("……")) return true
+        // 目录里的页码数字（结尾是数字或数字+横线）
+        if (s.matches(Regex(""".*?\d+\s*[-－—]?\s*$"""))) return true
+        // 目录里常见“.”、"…"结尾
+        if (s.endsWith(".") || s.endsWith("…")) return true
+        return false
+    }
 
 }

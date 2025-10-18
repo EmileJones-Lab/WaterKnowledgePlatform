@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class McpResponseConverter {
 
+public class McpResponseConverter {
     public static Map<String, Object> fromTextNode(TextNode node) {
         Map<String, Object> textContent = new HashMap<>();
         textContent.put("type", "text");          // 必须字段
