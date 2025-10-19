@@ -14,11 +14,12 @@ import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
 /**
- * 此类可以批量处理markdown文件
- * 如果传入的是文件夹，则处理该文件夹下所有以`.md`为结尾的文件
+ * 此类可以批量处理markdown文件，根据markdown文件的后缀名去使用不同的策略
+ *
+ * ## Attention
  * 此类被设计出来时，不可以传入单个文件，传入单个文件路径可能会发生错误
  *
- * @author
+ * @author yeyezhi
  */
 class MultiMarkdownFileSelectDelegate(filePath: String, targetRootDirPath: String) {
     private val originFile: File = File(filePath)
