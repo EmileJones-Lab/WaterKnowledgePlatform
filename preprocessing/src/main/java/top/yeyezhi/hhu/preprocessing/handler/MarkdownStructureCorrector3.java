@@ -1,5 +1,6 @@
 package top.yeyezhi.hhu.preprocessing.handler;
 
+import org.jetbrains.annotations.NotNull;
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
 import top.emilejones.hhu.preprocessing.handler.structure.*;
 import top.yeyezhi.hhu.preprocessing.handler.structure.SubTitleLevelCorrectorReverse;
@@ -24,8 +25,9 @@ public class MarkdownStructureCorrector3 implements MarkdownFileHandler {
         chain.add(new MergeTitleToTextPlus());
     }
 
+    @NotNull
     @Override
-    public String handle(String markdownText) {
+    public String handle(@NotNull String markdownText) {
         String text = markdownText;
         for (MarkdownFileHandler handler : chain) {
             text = handler.handle(text);

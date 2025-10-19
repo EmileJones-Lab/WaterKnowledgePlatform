@@ -1,5 +1,6 @@
 package top.yeyezhi.hhu.preprocessing.handler.structure;
 
+import org.jetbrains.annotations.NotNull;
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
 
 import java.util.ArrayList;
@@ -26,8 +27,9 @@ public class SubTitleLevelCorrectorReverse implements MarkdownFileHandler {
     private int index;
     private static final int MAX_LEVEL = 6; // Markdown 最大六级标题
 
+    @NotNull
     @Override
-    public String handle(String markdownText) {
+    public String handle(@NotNull String markdownText) {
         init(markdownText);
         while (index < markdownLines.size()) {
             handleLine();

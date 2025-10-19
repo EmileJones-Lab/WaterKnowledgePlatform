@@ -10,7 +10,7 @@ import kotlin.io.path.relativeTo
  * 如果传入的是文件夹，则处理该文件夹下所有以`.md`为结尾的文件
  * 此类被设计出来时，不可以传入单个文件，传入单个文件路径可能会发生错误
  *
- * @author
+ * @author EmileJones
  */
 class MultiMarkdownFileDelegate(filePath: String, targetRootDirPath: String) {
     private val originFile: File = File(filePath)
@@ -32,7 +32,7 @@ class MultiMarkdownFileDelegate(filePath: String, targetRootDirPath: String) {
             return
         }
         val suffix = file.name.split('.').last()
-        if ("md".equals(suffix.lowercase()))
+        if ("md" == suffix.lowercase())
             handleMD(file)
         else
             handleOtherFile(file)

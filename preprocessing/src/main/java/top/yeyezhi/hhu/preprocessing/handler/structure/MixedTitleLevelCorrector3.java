@@ -1,5 +1,6 @@
 package top.yeyezhi.hhu.preprocessing.handler.structure;
 
+import org.jetbrains.annotations.NotNull;
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class MixedTitleLevelCorrector3 implements MarkdownFileHandler {
     private static final Pattern ARABIC_BRACKET_PATTERN = Pattern.compile("^（\\d+）");
     private static final Pattern ARABIC_SINGLE_BRACKET_PATTERN = Pattern.compile("^\\d+）");
 
+    @NotNull
     @Override
     public String handle(String markdownText) {
         List<String> lines = Arrays.stream(markdownText.split("\n"))

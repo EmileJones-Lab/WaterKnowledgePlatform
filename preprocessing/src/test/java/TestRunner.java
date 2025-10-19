@@ -1,7 +1,4 @@
-import top.emilejones.hhu.preprocessing.handler.MarkdownStructureCorrector;
-import top.yeyezhi.hhu.preprocessing.handler.*;
-import top.yeyezhi.hhu.preprocessing.handler.structure.MixedTitleLevelCorrector;
-import top.yeyezhi.hhu.preprocessing.handler.structure.MixedTitleLevelCorrector2;
+import top.yeyezhi.hhu.preprocessing.handler.MixedStructureCorrector4;
 
 import java.io.IOException;
 import java.nio.file.Files;

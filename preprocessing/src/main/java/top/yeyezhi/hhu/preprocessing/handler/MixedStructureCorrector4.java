@@ -1,10 +1,9 @@
 package top.yeyezhi.hhu.preprocessing.handler;
 
+import org.jetbrains.annotations.NotNull;
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
-import top.emilejones.hhu.preprocessing.handler.structure.*;
-import top.yeyezhi.hhu.preprocessing.handler.structure.MixedTitleLevelCorrector;
-import top.yeyezhi.hhu.preprocessing.handler.structure.MixedTitleLevelCorrector2;
-import top.yeyezhi.hhu.preprocessing.handler.structure.MixedTitleLevelCorrector3;
+import top.emilejones.hhu.preprocessing.handler.structure.CatalogTitleLevelCorrectorPlus;
+import top.emilejones.hhu.preprocessing.handler.structure.PreHandler;
 import top.yeyezhi.hhu.preprocessing.handler.structure.MixedTitleLevelCorrector4;
 
 import java.util.ArrayList;
@@ -27,8 +26,9 @@ public class MixedStructureCorrector4 implements MarkdownFileHandler {
         //chain.add(new MergeTitleToTextPlus());
     }
 
+    @NotNull
     @Override
-    public String handle(String markdownText) {
+    public String handle(@NotNull String markdownText) {
         String text = markdownText;
         for (MarkdownFileHandler handler : chain) {
             text = handler.handle(text);

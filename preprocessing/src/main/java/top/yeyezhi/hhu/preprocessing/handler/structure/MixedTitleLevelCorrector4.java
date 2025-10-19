@@ -2,8 +2,8 @@ package top.yeyezhi.hhu.preprocessing.handler.structure;
 
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 处理混合格式标题：
@@ -14,17 +14,17 @@ import java.util.regex.*;
  */
 public class MixedTitleLevelCorrector4 implements MarkdownFileHandler {
 
-        // 匹配 "一、二、三、" 这样的中文数字开头
-        private static final Pattern CHINESE_TOP = Pattern.compile("^#*\\s*[一二三四五六七八九十]+、.*");
+    // 匹配 "一、二、三、" 这样的中文数字开头
+    private static final Pattern CHINESE_TOP = Pattern.compile("^#*\\s*[一二三四五六七八九十]+、.*");
 
-        // 匹配 1.1、1.1.1 等
-        private static final Pattern DOT_PATTERN = Pattern.compile("^#*\\s*\\d+(\\.\\d+)+.*");
+    // 匹配 1.1、1.1.1 等
+    private static final Pattern DOT_PATTERN = Pattern.compile("^#*\\s*\\d+(\\.\\d+)+.*");
 
-        // 匹配 1、 这样的次顶层
-        private static final Pattern COMMA_PATTERN = Pattern.compile("^#*\\s*\\d+、.*");
+    // 匹配 1、 这样的次顶层
+    private static final Pattern COMMA_PATTERN = Pattern.compile("^#*\\s*\\d+、.*");
 
-        private int lastLevel = 0;
-        private boolean inCommaBlock = false; // 标记是否在 "1、2、3、" 同级块中
+    private int lastLevel = 0;
+    private boolean inCommaBlock = false; // 标记是否在 "1、2、3、" 同级块中
 
     @Override
     public String handle(String markdownText) {
@@ -78,8 +78,10 @@ public class MixedTitleLevelCorrector4 implements MarkdownFileHandler {
         return sb.toString().trim();
     }
 
-        /** 清理 1 .1 → 1.1 / 1. 1 → 1.1 等情况 */
-        private String normalizeNumbering(String text) {
-            return text.replaceAll("(\\d+)\\s*\\.\\s*(\\d+)", "$1.$2");
-        }
+    /**
+     * 清理 1 .1 → 1.1 / 1. 1 → 1.1 等情况
+     */
+    private String normalizeNumbering(String text) {
+        return text.replaceAll("(\\d+)\\s*\\.\\s*(\\d+)", "$1.$2");
+    }
 }
