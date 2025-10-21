@@ -1,98 +1,57 @@
 package top.emilejones.hhu.mcp.mcp;
 
-import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.mcp.entity.TextNode;
-import top.emilejones.hhu.mcp.enums.TextType;
-import top.emilejones.huu.env.AutoFindConfigFile;
-import top.emilejones.huu.env.pojo.ApplicationConfig;
+import top.emilejones.hhu.mcp.repository.INeo4jRepository;
 
-import java.util.Map;
+import java.util.List;
 
 
 @Service
-public class Neo4jMcp implements AutoCloseable {
+public class Neo4jMcp {
 
-    private static Logger logger = LoggerFactory.getLogger(Neo4jMcp.class);
-    private final Driver driver;
-    private final ApplicationConfig config;
+    private static final Logger logger = LoggerFactory.getLogger(Neo4jMcp.class);
+    private final INeo4jRepository repository;
 
-    public Neo4jMcp(ApplicationConfig config) {
-        this.config = config;
-        // 修改为Neo4j 地址和密码
-        String uri = "bolt://%s:%d".formatted(config.getNeo4j().getHost(), config.getNeo4j().getPort());
-        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(config.getNeo4j().getUser(), config.getNeo4j().getUser()));
+    public Neo4jMcp(INeo4jRepository repository) {
+        this.repository = repository;
     }
 
-    /**
-     * 根据 elementId 和关系，返回指定的一个节点
-     *
-     * @param elementId    起始节点 ID
-     * @param relationship 关系类型（CHILD / PARENT / NEXT_SEQUENCE / PRE_SEQUENCE）
-     * @param step         跳数
-     * @param index        返回第几个匹配的节点（从 0 开始）
-     * @return 单个节点 JSON
-     */
-    @Tool(description = """
-            根据起始节点 ID 查找相关节点。
-            每个节点都有 elementId 和 text 属性，其中 elementId 用于支持多次递归调用，text 是文本内容，用于 AI 查询资料时获取上下文。
-            如果某个片段信息不足，可以调用此工具根据该片段查找上下文，并结合上下文生成答案。
-            """)
-    public TextNode searchNodeByRelation(
-            @ToolParam(description = "起始节点ID") String elementId,
-            @ToolParam(description = "需要查找的关系，包括如下关系：父亲：PARENT，孩子：CHILD，上一个：PRE_SEQUENCE，下一个：NEXT_SEQUENCE") String relationship,
-            @ToolParam(description = "跳数") int step,
-            @ToolParam(description = "查询出的列表的第几个元素") int index) {
-        if (elementId == null || elementId.isBlank()) {
+    @Tool(description = "获取指定节点的所有子节点（下一级标题或属于这个标题的正文），并按文档顺序返回。如果没有数据，则返回null")
+    public List<TextNode> getChildren(@ToolParam(description = "当前节点的elementId") String elementId) {
+        logger.debug("Try to find children of node[{}]", elementId);
+        List<TextNode> children = repository.children(elementId);
+        if (children.isEmpty())
             return null;
-        }
-        if (relationship == null || relationship.isBlank()) {
-            relationship = "CHILD";
-        }
-        int hops = Math.max(step, 1);
-        int pick = Math.max(index, 0);
-
-        // 构造 Cypher
-        String cypher = String.format("MATCH (start:TextNode) " + "WHERE elementId(start) = $elementId " + "MATCH (start)-[:%s*%d]->(target:TextNode) " + "WITH target ORDER BY coalesce(target.seq,0) ASC " + "SKIP toInteger($skip) LIMIT 1 " + "RETURN target", relationship, hops);
-
-
-        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
-            Map<String, Object> params = Map.of("elementId", elementId, "skip", pick);
-
-            logger.debug("Mcp exec cypher: [{}], param: [{}]", cypher, params);
-
-            Result rs = session.run(cypher, params);
-
-            if (rs.hasNext()) {
-                Record r = rs.next();
-                Node node = r.get("target").asNode();
-
-                return new TextNode(node.elementId(),
-                        node.containsKey("id") ? node.get("id").asInt() : null,
-                        node.containsKey("level") ? node.get("level").asInt() : null,
-                        node.containsKey("seq") ? node.get("seq").asInt() : null,
-                        node.containsKey("name") ? node.get("name").asInt() : null,
-                        node.containsKey("text") ? node.get("text").asString() : null,
-                        node.containsKey("type") ? TextType.valueOf(node.get("text").asString()) : null);
-            }
-
-
-        } catch (Exception e) {
-            throw new RuntimeException("Neo4j 查询失败", e);
-        }
-
-        return null; // 没有结果
+        return children;
     }
 
-    @Override
-    public void close() throws Exception {
-        driver.close();
+    @Tool(description = "获取指定节点所属的标题下的所有兄弟节点，并按文档顺序返回。")
+    public List<TextNode> getSiblings(@ToolParam(description = "当前节点的elementId") String elementId) {
+        logger.debug("Try to find siblings of node[{}]", elementId);
+        return repository.siblings(elementId);
+    }
+
+    @Tool(description = "获取指定节点在文档层级结构中的父节点（所属标题节点），若不存在则返回 null。")
+    public TextNode getParent(@ToolParam(description = "当前节点的elementId") String elementId) {
+        logger.debug("Try to find parent of node[{}]", elementId);
+        return repository.parent(elementId);
+    }
+
+    @Tool(description = "根据当前节点elementId，获取文档中的上一段内容的节点数据，若不存在则返回 null。")
+    public TextNode getPreNode(@ToolParam(description = "当前节点的elementId") String elementId) {
+        logger.debug("Try to find previous node of node[{}]", elementId);
+        return repository.parent(elementId);
+    }
+
+    @Tool(description = "根据当前节点elementId，获取文档中的下一段内容的节点数据，若不存在则返回 null。")
+    public TextNode getNextNode(@ToolParam(description = "当前节点的elementId") String elementId) {
+        logger.debug("Try to find next node of node[{}]", elementId);
+        return repository.parent(elementId);
     }
 }
 
