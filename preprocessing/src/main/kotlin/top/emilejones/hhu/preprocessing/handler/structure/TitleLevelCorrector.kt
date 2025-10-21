@@ -11,21 +11,21 @@ import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler
  */
 class TitleLevelCorrector : MarkdownFileHandler {
     companion object {
-        private val regex = "^#*\\s*\\d{1,2}(\\.\\d{1,2})*\\.?\\s*[^、\\d\\s]+".toRegex()
+        private val regex = "^#*\\s*(?!.*-.*)\\d{1,2}(\\.\\d{1,2})*\\.?\\s*[^、\\d\\s]+".toRegex()
         private val numberRegex = "\\d{1,2}(\\.\\d{1,2})*".toRegex()
     }
 
     override fun handle(markdownText: String): String {
         return markdownText.lines()
             .map { it.trimIndent() }
-            .filter { it.isNotBlank() }
-            .map {
+            .filter { it.isNotBlank() }.joinToString(separator = "\n") {
                 var result: String = it
                 if (it.contains(regex)) {
                     val level = numberRegex.find(it)!!.value.split(".").size + 1
                     result = "#".repeat(level) + " " + it.replace('#', ' ').trimIndent()
                 }
                 result
-            }.joinToString(separator = "\n")
+            }
     }
+
 }

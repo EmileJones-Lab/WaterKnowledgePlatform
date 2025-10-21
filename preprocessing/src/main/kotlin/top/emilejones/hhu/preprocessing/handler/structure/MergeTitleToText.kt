@@ -49,6 +49,7 @@ class MergeTitleToText : MarkdownFileHandler {
             return
         }
         val startMergeIndex = (index - num)
+
         for (i in startMergeIndex..<index) {
             lines[i] = lines[i].replace('#', ' ').trimIndent()
         }
