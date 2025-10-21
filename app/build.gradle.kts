@@ -2,7 +2,6 @@ plugins {
     // Apply the shared build logic from a convention plugin.
     // The shared code is located in `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
     id("buildsrc.convention.kotlin-jvm")
-
     // Apply the Application plugin to add support for building an executable JVM application.
     application
 }
@@ -11,6 +10,9 @@ dependencies {
     // Project "app" depends on project "utils". (Project paths are separated with ":", so ":utils" refers to the top-level "utils" project.)
     implementation(project(":utils"))
     implementation(project(":env"))
+    testImplementation(kotlin("test"))
+    implementation("org.jsoup:jsoup:1.16.1")
+    implementation("org.yaml:snakeyaml:2.0")
     implementation("org.neo4j.driver:neo4j-java-driver:5.28.9")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("ch.qos.logback:logback-classic:1.5.18")

@@ -17,15 +17,16 @@ import io.milvus.v2.service.vector.request.data.FloatVec
 import io.milvus.v2.service.vector.response.SearchResp
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.repository.milvus.IMilvusRepository
-import top.emilejones.hhu.repository.milvus.po.EmbeddingDatum
-import top.emilejones.hhu.repository.neo4j.enums.TextType
+import top.emilejones.hhu.domain.po.EmbeddingDatum
+import top.emilejones.hhu.domain.enums.TextType
 
 
 class MilvusRepositoryImpl(
     private val host: String,
     private val port: Int,
     private val databaseName: String,
-    private val collectionName: String
+    private val collectionName: String,
+    private val dimension: Int
 ) : IMilvusRepository {
     private val logger = LoggerFactory.getLogger(MilvusRepositoryImpl::class.java)
 
@@ -42,6 +43,7 @@ class MilvusRepositoryImpl(
         if (!listDatabases.databaseNames.contains(databaseName)) {
             createDatabase()
         }
+        client.useDatabase(databaseName)
         val listCollection = client.listCollections()
         // 如果不存在collection，则创建
         if (!listCollection.collectionNames.contains(collectionName)) {
@@ -76,7 +78,7 @@ class MilvusRepositoryImpl(
         val data = resp.searchResults ?: return emptyList()
 
 
-        val resultsForQuery: List<SearchResp.SearchResult> = resp.searchResults.firstOrNull() ?: return emptyList()
+        val resultsForQuery: List<SearchResp.SearchResult> = data.firstOrNull() ?: return emptyList()
         // 6. 映射成 EmbeddingDatum
         return resultsForQuery.map { r ->
             val neo4jId = r.entity["elementId"].toString()
@@ -193,7 +195,7 @@ class MilvusRepositoryImpl(
             AddFieldReq.builder()
                 .fieldName("vector")
                 .dataType(DataType.FloatVector)
-                .dimension(1024) // 修改成你 embedding 的维度
+                .dimension(dimension)
                 .build()
         )
 

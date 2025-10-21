@@ -1,8 +1,10 @@
 package top.emilejones.hhu.parser
 
-import top.emilejones.hhu.domain.FileNode
-import top.emilejones.hhu.domain.TextNode
-import top.emilejones.hhu.repository.neo4j.enums.TextType
+import com.google.common.base.Supplier
+import org.slf4j.LoggerFactory
+import top.emilejones.hhu.domain.dto.FileNode
+import top.emilejones.hhu.domain.dto.TextNode
+import top.emilejones.hhu.domain.enums.TextType
 import java.io.File
 
 private fun String.markdownLevel(): Int {
@@ -15,73 +17,87 @@ private fun String.isText(): Boolean {
     return !this.startsWith("#")
 }
 
-private val String.textType : TextType
+private val String.textType: TextType
     get() {
         if (this.startsWith("<table>")) return TextType.TABLE
         if (this.startsWith("#")) return TextType.TITLE
-        if (this.matches("![.*?](.*?)".toRegex())) return TextType.IMAGE
+        if (this.matches("!\\[([^\\]]*)\\]\\(([^)\\s]+)(?:\\s+\"([^\"]*)\")?\\)".toRegex())) return TextType.IMAGE
         return TextType.COMMON_TEXT
     }
 
-class MarkdownStructureParser(file: File) {
+/**
+ * 将文件解析为树状结构
+ * @author EmileJones
+ * @param file 需要解析的文件
+ */
+class MarkdownStructureParser(file: File) : Supplier<TextNode> {
     private val lines: List<String> = file.readText(Charsets.UTF_8).lines()
     private val fileName: String = file.name
 
-    constructor(filePath: String) : this(File(filePath))
+    private var index = 0
+    private var fileNode: FileNode
+    private var preSeqNode: TextNode
+    private var rootNode: TextNode
+    private var isOver: Boolean
 
-    private var index = 1
-    private var fileNode: FileNode? = null
-    private var preSeqNode: TextNode? = null
-    private var rootNode: TextNode? = null
+    private val logger = LoggerFactory.getLogger(MarkdownStructureParser::class.java)
 
-    fun run(): TextNode {
-        if (rootNode == null) {
-            init()
-            handleChild(null)
-        }
-        return rootNode!!
-    }
-
-    private fun init() {
+    init {
+        isOver = false
         index = 0
         fileNode = FileNode(
             fileName = fileName
         )
+        rootNode = TextNode(
+            type = TextType.NULL,
+            text = "",
+            seq = -1,
+            level = 0
+        )
+        rootNode.fileNode = fileNode
+        preSeqNode = rootNode
     }
 
-    private fun handleChild(parentNode: TextNode?) {
+    /**
+     * 将文件解析为树状结构，根节点为空节点，方便算法书写和后续处理，并无实际意义。
+     * @return 树状结构的根节点
+     */
+    override fun get(): TextNode {
+        if (isOver)
+            return rootNode
+        // 构建树状结构和序列结构
+        while (index < lines.size)
+            handleChild(rootNode)
+        // 构建完成
+        isOver = true
+        return rootNode
+    }
+
+    private fun handleChild(parentNode: TextNode) {
         if (index >= lines.size)
             return
 
-        val nowIndex = index
-
-        val nowNode: TextNode = if (parentNode == null) {
-            // 如果是最顶层的节点
-            rootNode = TextNode(
-                text = lines[0],
-                seq = 1,
-                level = lines[0].markdownLevel(),
-                type = lines[0].textType
-            )
-            rootNode!!
-        } else {
-            // 如果是非顶层节点
-            val node = TextNode(
-                text = lines[nowIndex],
-                seq = preSeqNode!!.seq + 1,
-                level = lines[nowIndex].markdownLevel(),
-                type = lines[nowIndex].textType
-            )
-            // 插入父子关系、序列关系
-            setParentRelationship(parentNode, node)
-            setPreSequenceRelationship(preSeqNode!!, node)
-            node
+        if (lines[index].isEmpty()) {
+            index++
+            return
         }
-        preSeqNode = nowNode
+        val nowIndex = index
+        logger.debug("Parsing row [{}] of file [{}], line text: [{}]", nowIndex, fileName, lines[nowIndex])
+
+        val nowNode: TextNode = TextNode(
+            text = lines[nowIndex],
+            seq = preSeqNode.seq + 1,
+            level = lines[nowIndex].markdownLevel(),
+            type = lines[nowIndex].textType
+        )
+        // 插入父子关系、序列关系
+        setParentRelationship(parentNode, nowNode)
+        setPreSequenceRelationship(preSeqNode, nowNode)
         // 插入和文件的关系
-        setFileRelationship(fileNode!!, nowNode)
+        setFileRelationship(fileNode, nowNode)
         // 此段文本处理完毕，准备处理下一个文本
         index++
+        preSeqNode = nowNode
         // 如果是正文内容，则回溯
         if (lines[nowIndex].isText()) {
             return
