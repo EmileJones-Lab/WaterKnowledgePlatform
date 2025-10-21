@@ -21,5 +21,5 @@ dependencies {
 }
 
 application {
-    mainClass = "top.emilejones.hhu.web.WebApplicationKt"
+    mainClass = "top.emilejones.hhu.web.WebApplication"
 }
