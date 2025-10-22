@@ -3,7 +3,7 @@ package top.emilejones.hhu.mcp.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import top.emilejones.hhu.model.ModelClient;
-import top.emilejones.hhu.model.impl.XinferenceHttpClient;
+import top.emilejones.hhu.model.impl.ModelClientByHttp;
 import top.emilejones.huu.env.AutoFindConfigFile;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
 
@@ -16,6 +16,10 @@ public class BeanConfiguration {
 
     @Bean
     public ModelClient getClient(ApplicationConfig applicationConfig) {
-        return new XinferenceHttpClient(applicationConfig.getXinference().getHost(), applicationConfig.getXinference().getPort());
+        return new ModelClientByHttp(applicationConfig.getModel().getHost(),
+                applicationConfig.getModel().getPort(),
+                applicationConfig.getModel().getToken(),
+                applicationConfig.getModel().getEmbeddingModel(),
+                applicationConfig.getModel().getRerankModel());
     }
 }

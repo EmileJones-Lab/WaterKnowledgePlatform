@@ -10,7 +10,7 @@ import top.emilejones.hhu.web.service.IRecallService;
 import java.util.List;
 
 @RestController
-@RequestMapping("recall")
+@RequestMapping("/recall")
 public class RecallController {
 
     private final IRecallService recallService;

@@ -11,7 +11,6 @@ import top.emilejones.hhu.web.entity.TextNode;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
 import top.emilejones.hhu.web.repository.INeo4jRepository;
 import top.emilejones.hhu.web.service.IRecallService;
-import top.emilejones.hhu.web.service.strategy.HtmlTableToCsvStrategy;
 import top.emilejones.hhu.web.service.strategy.ObtainWholeTableStrategy;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
 
@@ -29,7 +28,6 @@ public class RecallService implements IRecallService {
     private final ApplicationConfig config;
 
     private final ObtainWholeTableStrategy obtainWholeTableStrategy;
-    private final HtmlTableToCsvStrategy htmlTableToCsvStrategy;
 
     public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ApplicationConfig config, ModelClient client) {
         this.milvusRepository = milvusRepository;
@@ -37,7 +35,6 @@ public class RecallService implements IRecallService {
         this.config = config;
         this.client = client;
         obtainWholeTableStrategy = new ObtainWholeTableStrategy(neo4jRepository);
-        htmlTableToCsvStrategy = new HtmlTableToCsvStrategy();
     }
 
     @Override
@@ -63,9 +60,7 @@ public class RecallService implements IRecallService {
         List<Pair<FileNode, TextNode>> rawData = rerankResult.stream().map(milvusDatum -> neo4jRepository.selectByElementId(milvusDatum.getElementId())).toList();
         // 将每一个表格节点向上向下查找，如果有表格上下文则加入
         List<Pair<FileNode, TextNode>> wholeTableData = obtainWholeTableStrategy.exec(rawData);
-        // 将所有html表格压缩为csv格式
-        List<Pair<FileNode, TextNode>> csvTableData = htmlTableToCsvStrategy.exec(wholeTableData);
-        logger.info("用户问题为：[{}]，召回的节点数量为[{}]个", query, csvTableData.size());
-        return csvTableData;
+        logger.info("用户问题为：[{}]，召回的节点数量为[{}]个", query, wholeTableData.size());
+        return wholeTableData;
     }
 }

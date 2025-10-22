@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import top.emilejones.hhu.web.entity.MilvusDatum;
 import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
-import top.emilejones.huu.env.AutoFindConfigFile;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.List;
