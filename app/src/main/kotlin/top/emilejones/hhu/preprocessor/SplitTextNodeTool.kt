@@ -76,7 +76,6 @@ class SplitTextNodeTool(
             tableNode.fileNode!!.fileName,
             tableNode.seq
         )
-
         // 将HTML table转换为Csv
         val splitResults = HtmlTableToCsvSplitter.split(tableNode.text, maxTableLength).getOrThrow()
         val newNodeList = splitResults.map {
@@ -131,18 +130,14 @@ class SplitTextNodeTool(
      * @param newNodeList 被拆分后的节点片段
      */
     private fun rebindRelationship(oldNode: TextNode, newNodeList: List<TextNode>) {
-        // 如果节点没有被拆分，则不做操作
-        if (newNodeList.size == 1)
-            return
-
-        if (oldNode.childNum() != 0)
-            throw IllegalArgumentException("不能切分非叶子节点")
-
         // 记录其他节点
         val preNode = oldNode.preNode
         val nextNode = oldNode.nextNode
         val parentNode = oldNode.parentNode
             ?: throw IllegalArgumentException("此文件没有标题，请检查此文件: [${oldNode.fileNode?.fileName}]")
+
+        if (oldNode.childNum() != 0)
+            throw IllegalArgumentException("不能切分非叶子节点")
 
         // 找到当前节点是父亲的第几个孩子
         var index = -1
@@ -152,6 +147,22 @@ class SplitTextNodeTool(
             index = i
             break
         }
+
+        // 如果节点没有被拆分，则不只做简单的替换
+        if (newNodeList.size == 1) {
+            val newNode = newNodeList.first()
+            newNode.parentNode = parentNode
+            newNode.preNode = preNode
+            newNode.nextNode = nextNode
+            newNode.fileNode = oldNode.fileNode
+
+            nextNode?.preNode = newNode
+            preNode?.nextNode = newNode
+            parentNode.deleteChild(index)
+            parentNode.setChild(newNode, index)
+            return
+        }
+
 
         // 重新绑定所有节点的关系
         for (i in 1..<newNodeList.size - 1) {
@@ -170,10 +181,8 @@ class SplitTextNodeTool(
         newNodeList.last().fileNode = parentNode.fileNode
         newNodeList.last().nextNode = nextNode
 
-        if (preNode != null)
-            preNode.nextNode = newNodeList[0]
-        if (nextNode != null)
-            nextNode.preNode = newNodeList.last()
+        preNode?.nextNode = newNodeList[0]
+        nextNode?.preNode = newNodeList.last()
 
 
         // 将旧的节点删除，将新的节点插入
