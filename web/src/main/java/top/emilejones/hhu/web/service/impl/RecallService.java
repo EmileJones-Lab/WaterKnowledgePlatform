@@ -20,10 +20,10 @@ import java.util.List;
  */
 @Service
 public class RecallService implements IRecallService {
-    private IMilvusRepository milvusRepository;
-    private INeo4jRepository neo4jRepository;
-    private ModelClient client;
-    private static Logger logger = LoggerFactory.getLogger(RecallService.class);
+    private final IMilvusRepository milvusRepository;
+    private final INeo4jRepository neo4jRepository;
+    private final ModelClient client;
+    private static final Logger logger = LoggerFactory.getLogger(RecallService.class);
     private final ApplicationConfig config;
 
     public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ApplicationConfig config, ModelClient client) {
@@ -49,9 +49,7 @@ public class RecallService implements IRecallService {
         List<MilvusDatum> rerankResult = client.rerank(query, searchResults.stream().map(MilvusDatum::getText).toList())
                 .stream()
                 .limit(maxResultNumber)
-                .map(rr -> {
-                    return searchResults.get(rr.getIndex());
-                }).toList();
+                .map(rr -> searchResults.get(rr.getIndex())).toList();
         // 将milvus数据转换为neo4j数据
         List<Pair<FileNode, TextNode>> rawData = rerankResult.stream().map(milvusDatum -> neo4jRepository.selectByElementId(milvusDatum.getElementId())).toList();
         logger.info("用户问题为：[{}]，召回的节点数量为[{}]个", query, rawData.size());
