@@ -6,7 +6,7 @@ import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.SearchResp;
 import org.springframework.stereotype.Repository;
-import top.emilejones.hhu.web.entity.MilvusDatum;
+import top.emilejones.hhu.web.entity.DenseRecallResult;
 import top.emilejones.hhu.web.enums.TextType;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
@@ -36,7 +36,7 @@ public class MilvusRepository implements IMilvusRepository {
     }
 
     @Override
-    public List<MilvusDatum> search(List<Float> queryVector, int topK) {
+    public List<DenseRecallResult> search(List<Float> queryVector, int topK) {
         FloatVec floatVec = new FloatVec(queryVector);
         SearchResp searchR = client.search(SearchReq.builder()
                 .databaseName(databaseName)
@@ -47,10 +47,11 @@ public class MilvusRepository implements IMilvusRepository {
                 .build());
         List<List<SearchResp.SearchResult>> searchResults = searchR.getSearchResults();
         return searchResults.stream().flatMap(list -> list.stream().map(result -> {
-            MilvusDatum datum = new MilvusDatum();
+            DenseRecallResult datum = new DenseRecallResult();
             datum.setElementId(result.getEntity().get("elementId").toString());
             datum.setText(result.getEntity().get("text").toString());
             datum.setType(TextType.valueOf(result.getEntity().get("type").toString()));
+            datum.setScore(result.getScore());
             return datum;
         })).toList();
     }

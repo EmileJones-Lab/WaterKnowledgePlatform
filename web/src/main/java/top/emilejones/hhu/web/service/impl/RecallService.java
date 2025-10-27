@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.web.entity.FileNode;
-import top.emilejones.hhu.web.entity.MilvusDatum;
+import top.emilejones.hhu.web.entity.DenseRecallResult;
 import top.emilejones.hhu.web.entity.TextNode;
 import top.emilejones.hhu.web.repository.IMilvusRepository;
 import top.emilejones.hhu.web.repository.INeo4jRepository;
@@ -44,14 +44,14 @@ public class RecallService implements IRecallService {
 
         // 从向量数据库中召回数据
         List<Float> queryVector = client.embedding(query);
-        List<MilvusDatum> searchResults = milvusRepository.search(queryVector, 100);
+        List<DenseRecallResult> searchResults = milvusRepository.search(queryVector, 100);
         // 重排序结果，并取出得分最高的maxResultNumber个数据
-        List<MilvusDatum> rerankResult = client.rerank(query, searchResults.stream().map(MilvusDatum::getText).toList())
+        List<DenseRecallResult> rerankResult = client.rerank(query, searchResults.stream().map(DenseRecallResult::getText).toList())
                 .stream()
                 .limit(maxResultNumber)
                 .map(rr -> searchResults.get(rr.getIndex())).toList();
         // 将milvus数据转换为neo4j数据
-        List<Pair<FileNode, TextNode>> rawData = rerankResult.stream().map(milvusDatum -> neo4jRepository.selectByElementId(milvusDatum.getElementId())).toList();
+        List<Pair<FileNode, TextNode>> rawData = rerankResult.stream().map(denseRecallResult -> neo4jRepository.selectByElementId(denseRecallResult.getElementId())).toList();
         logger.info("用户问题为：[{}]，召回的节点数量为[{}]个", query, rawData.size());
         return rawData;
     }
