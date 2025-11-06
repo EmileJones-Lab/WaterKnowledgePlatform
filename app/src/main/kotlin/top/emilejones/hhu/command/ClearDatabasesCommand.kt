@@ -29,6 +29,8 @@ class ClearDatabasesCommand() : SuspendingCliktCommand(name = "clear") {
             clearNeo4jDB()
             clearMilvusDB()
             echo("Done!")
+        } else {
+            echo("Cancel!")
         }
     }
 

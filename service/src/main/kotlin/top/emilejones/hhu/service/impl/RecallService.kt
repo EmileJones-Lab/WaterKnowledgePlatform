@@ -55,7 +55,7 @@ class RecallService(
             .map(Neo4jTextNode::elementId)
             .map { "\"" + it + "\"" }
             .collect(Collectors.joining(", ", "[", "]"))
-        return "MATCH (n: Neo4jTextNode) WHERE elementId(n) IN %s MATCH (f:Neo4jFileNode)-[:CONTAIN]->(n) RETURN n,f".formatted(
+        return "MATCH (n: Neo4jTextNode) WHERE elementId(n) IN %s MATCH (f:Neo4jFileNode)-[:CONTAIN]->(n) RETURN n,f".format(
             list
         )
     }

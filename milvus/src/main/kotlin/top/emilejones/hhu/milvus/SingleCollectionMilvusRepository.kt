@@ -35,7 +35,7 @@ class SingleCollectionMilvusRepository(
     private val gson = Gson()
 
     init {
-        val connectConfig = ConnectConfig.builder().uri("http://%s:%d".formatted(host, port)).build()
+        val connectConfig = ConnectConfig.builder().uri("http://%s:%d".format(host, port)).build()
         this.client = MilvusClientV2(connectConfig)
         this.databaseName = database
         this.collectionName = collection

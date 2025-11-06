@@ -33,21 +33,45 @@ interface INeo4jRepository : AutoCloseable {
      * @param elementId 当前节点唯一标识
      * @return 下一个节点信息
      */
-    fun nextNode(elementId: String?): Pair<Neo4jFileNode, Neo4jTextNode>?
+    fun nextNode(elementId: String): Pair<Neo4jFileNode, Neo4jTextNode>?
 
     /**
      * 获取当前节点的前一个节点
      * @param elementId 当前节点唯一标识
      * @return 前一个节点信息
      */
-    fun preNode(elementId: String?): Pair<Neo4jFileNode, Neo4jTextNode>?
+    fun preNode(elementId: String): Pair<Neo4jFileNode, Neo4jTextNode>?
 
     /**
      * 根据elementId获取节点的详细信息
      * @param elementId 节点Id
      * @return 节点的详细信息
      */
-    fun selectByElementId(elementId: String?): Pair<Neo4jFileNode, Neo4jTextNode>?
+    fun selectByElementId(elementId: String): Pair<Neo4jFileNode, Neo4jTextNode>?
+
+    /**
+     * 获取当前节点的父亲节点的信息
+     *
+     * @param elementId 当前节点唯一标识
+     * @return 父亲节点信息
+     */
+    fun parent(elementId: String): Neo4jTextNode?
+
+    /**
+     * 获取当前节点的兄弟节点，并且按照顺序排序
+     *
+     * @param elementId 当前节点唯一标识
+     * @return 兄弟节点信息
+     */
+    fun siblings(elementId: String): List<Neo4jTextNode>
+
+    /**
+     * 获取当前节点的孩子节点
+     *
+     * @param elementId 当前节点唯一标识
+     * @return 孩子节点信息
+     */
+    fun children(elementId: String): List<Neo4jTextNode>
 
     /**
      * 清除所有数据

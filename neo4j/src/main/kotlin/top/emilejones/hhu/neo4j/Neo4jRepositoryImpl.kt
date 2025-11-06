@@ -1,6 +1,7 @@
 package top.emilejones.hhu.neo4j
 
 import org.neo4j.driver.*
+import org.neo4j.driver.types.Node
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.TextNode
 import top.emilejones.hhu.domain.enums.Neo4jRelationshipType
@@ -137,7 +138,7 @@ class Neo4jRepositoryImpl(
         }
     }
 
-    override fun nextNode(elementId: String?): Pair<Neo4jFileNode, Neo4jTextNode>? {
+    override fun nextNode(elementId: String): Pair<Neo4jFileNode, Neo4jTextNode>? {
         val cypher = """
                 MATCH (n:TextNode)-[r:`NEXT_SEQUENCE`]->(m:TextNode)
                 MATCH (f)-[:CONTAIN]->(m)
@@ -149,17 +150,20 @@ class Neo4jRepositoryImpl(
         val params = java.util.Map.of<String, Any>("elementId", elementId)
 
         driver.session(SessionConfig.forDatabase(databaseName)).use {
-            val record: Record = it.run(
-                cypher,
-                params
-            ).single()
+            val record: Record? = kotlin.runCatching {
+                it.run(
+                    cypher,
+                    params
+                ).single()
+            }.getOrNull()
+            if (record == null) return null
             val textNode = record["m"].asNode()
             val fileNode = record["f"].asNode()
             return Pair(fileNode.asNeo4jFileNode(), textNode.asNeo4jTextNode())
         }
     }
 
-    override fun preNode(elementId: String?): Pair<Neo4jFileNode, Neo4jTextNode>? {
+    override fun preNode(elementId: String): Pair<Neo4jFileNode, Neo4jTextNode>? {
         val cypher = """
                 MATCH (n:TextNode)-[r:`PRE_SEQUENCE`]->(m:TextNode)
                 MATCH (f)-[:CONTAIN]->(m)
@@ -171,17 +175,20 @@ class Neo4jRepositoryImpl(
         val params = java.util.Map.of<String, Any>("elementId", elementId)
 
         driver.session(SessionConfig.forDatabase(databaseName)).use { session ->
-            val record = session.run(
-                cypher,
-                params
-            ).single()
+            val record = runCatching {
+                session.run(
+                    cypher,
+                    params
+                ).single()
+            }.getOrNull()
+            if (record == null) return null
             val textNode = record["m"].asNode()
             val fileNode = record["f"].asNode()
             return Pair(fileNode.asNeo4jFileNode(), textNode.asNeo4jTextNode())
         }
     }
 
-    override fun selectByElementId(elementId: String?): Pair<Neo4jFileNode, Neo4jTextNode>? {
+    override fun selectByElementId(elementId: String): Pair<Neo4jFileNode, Neo4jTextNode> {
         val cypher = """
                 MATCH (n:TextNode)<-[r:CONTAIN]-(f:FileNode)
                 WHERE elementId(n) = ${'$'}elementId
@@ -199,6 +206,94 @@ class Neo4jRepositoryImpl(
             val textNode = record["n"].asNode()
             val fileNode = record["f"].asNode()
             return Pair(fileNode.asNeo4jFileNode(), textNode.asNeo4jTextNode())
+        }
+    }
+
+    override fun parent(elementId: String): Neo4jTextNode? {
+        val cypher = """
+                MATCH (n:TextNode)-[r:`PARENT`]->(m:TextNode)
+                WHERE elementId(n) = ${'$'}elementId
+                RETURN m
+                """.trimIndent()
+
+        val params = java.util.Map.of<String, Any>("elementId", elementId)
+
+        driver.session(SessionConfig.forDatabase(databaseName)).use { session ->
+            val result = session.run(
+                cypher,
+                params
+            )
+            if (!result.hasNext()) return null
+            val record = result.single()
+            val m = record["m"].asNode()
+            return m.asNeo4jTextNode()
+        }
+    }
+
+    override fun siblings(elementId: String): List<Neo4jTextNode> {
+        val findParentCypher = """
+                MATCH (n:TextNode)-[r:`PARENT`]->(m:TextNode)
+                WHERE elementId(n) = ${'$'}elementId
+                RETURN m
+                
+                """.trimIndent()
+        val findChildCypher = """
+                MATCH (n:TextNode)-[r:`CHILD`]->(m:TextNode)
+                WHERE elementId(n) = ${'$'}elementId
+                RETURN m
+                ORDER BY m.seq ASC;
+                
+                """.trimIndent()
+
+
+        driver.session(SessionConfig.forDatabase(databaseName)).use { session ->
+            val findParentParams = java.util.Map.of<String, Any>("elementId", elementId)
+            val parentResult = session.run(
+                findParentCypher,
+                findParentParams
+            )
+            // 如果不存在父亲节点，则返回空
+            if (!parentResult.hasNext()) {
+                return ArrayList()
+            }
+            // 如果存在父亲节点则查找父亲节点的孩子，就是此节点的兄弟
+            val record = parentResult.single()
+            val m = record["m"].asNode()
+            val parentNode = m.asNeo4jTextNode()
+
+            val findChildrenParams = java.util.Map.of<String, Any>("elementId", parentNode.elementId)
+            val childrenResult = session.run(
+                findChildCypher,
+                findChildrenParams
+            )
+            return childrenResult.list().stream()
+                .map { r: Record -> r["m"].asNode() }
+                .map { node: Node -> node.asNeo4jTextNode() }
+                .toList()
+        }
+    }
+
+    override fun children(elementId: String): List<Neo4jTextNode> {
+        val cypher = """
+                MATCH (n:TextNode)-[r:`CHILD`]->(m:TextNode)
+                WHERE elementId(n) = ${'$'}elementId
+                RETURN m
+                ORDER BY m.seq ASC;
+                """.trimIndent()
+
+        val params = java.util.Map.of<String, Any>("elementId", elementId)
+
+        driver.session(SessionConfig.forDatabase(databaseName)).use { session ->
+            val result = session.run(
+                cypher,
+                params
+            )
+            val textNodes = java.util.ArrayList<Neo4jTextNode>()
+            for (record in result.list()) {
+                val m = record["m"].asNode()
+                textNodes.add(m.asNeo4jTextNode())
+            }
+            return textNodes
         }
     }
 
