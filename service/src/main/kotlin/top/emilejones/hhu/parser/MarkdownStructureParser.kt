@@ -1,11 +1,11 @@
 package top.emilejones.hhu.parser
 
-import com.google.common.base.Supplier
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.FileNode
 import top.emilejones.hhu.domain.dto.TextNode
 import top.emilejones.hhu.domain.enums.TextType
 import java.io.File
+import java.util.function.Supplier
 
 private fun String.markdownLevel(): Int {
     if (!this.startsWith("#"))

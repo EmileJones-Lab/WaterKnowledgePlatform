@@ -9,14 +9,12 @@ plugins {
 dependencies {
     // Project "app" depends on project "utils". (Project paths are separated with ":", so ":utils" refers to the top-level "utils" project.)
     testImplementation(kotlin("test"))
-    implementation("org.slf4j:slf4j-api:2.0.13")
-    implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
     implementation(project(":service"))
     implementation(project(":milvus"))
     implementation(project(":neo4j"))
-    implementation(project(":utils"))
+    implementation(project(":model"))
     implementation(project(":env"))
 }
 

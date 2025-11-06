@@ -18,7 +18,7 @@ dependencies {
     implementation(project(":milvus"))
     implementation(project(":neo4j"))
     implementation(project(":env"))
-    implementation(project(":utils"))
+    implementation(project(":model"))
 }
 
 application {
