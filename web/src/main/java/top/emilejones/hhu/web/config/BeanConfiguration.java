@@ -2,10 +2,10 @@ package top.emilejones.hhu.web.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import top.emilejones.hhu.milvus.MilvusRepository;
+import top.emilejones.hhu.milvus.SingleCollectionMilvusRepository;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.impl.ModelClientByHttp;
-import top.emilejones.hhu.neo4j.Neo4jRepository;
+import top.emilejones.hhu.neo4j.Neo4jRepositoryImpl;
 import top.emilejones.hhu.repository.IMilvusRepository;
 import top.emilejones.hhu.repository.INeo4jRepository;
 import top.emilejones.hhu.service.impl.RecallService;
@@ -40,12 +40,16 @@ public class BeanConfiguration {
     @Bean
     public IMilvusRepository getMilvusRepository(ApplicationConfig config) {
         MilvusConfig milvusConfig = config.getMilvus();
-        return new MilvusRepository(milvusConfig.getHost(), milvusConfig.getPort(), milvusConfig.getDatabase(), milvusConfig.getCollection());
+        return new SingleCollectionMilvusRepository(milvusConfig.getHost(),
+                milvusConfig.getPort(),
+                milvusConfig.getDatabase(),
+                milvusConfig.getCollection(),
+                config.getModel().getDimension());
     }
 
     @Bean
     public INeo4jRepository getNeo4jRepository(ApplicationConfig config) {
         Neo4jConfig neo4jConfig = config.getNeo4j();
-        return new Neo4jRepository(neo4jConfig.getHost(), neo4jConfig.getPort(), neo4jConfig.getUser(), neo4jConfig.getPassword(), neo4jConfig.getDatabase());
+        return new Neo4jRepositoryImpl(neo4jConfig.getHost(), neo4jConfig.getPort(), neo4jConfig.getUser(), neo4jConfig.getPassword(), neo4jConfig.getDatabase());
     }
 }

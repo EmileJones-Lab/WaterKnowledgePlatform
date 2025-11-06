@@ -5,19 +5,17 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.types.choice
-import io.milvus.v2.client.ConnectConfig
-import io.milvus.v2.client.MilvusClientV2
-import io.milvus.v2.service.collection.request.DropCollectionReq
-import org.neo4j.driver.AuthTokens
-import org.neo4j.driver.Driver
-import org.neo4j.driver.GraphDatabase
+import top.emilejones.hhu.milvus.SingleCollectionMilvusRepository
+import top.emilejones.hhu.neo4j.Neo4jRepositoryImpl
+import top.emilejones.hhu.repository.IMilvusRepository
+import top.emilejones.hhu.repository.INeo4jRepository
 import top.emilejones.huu.env.AutoFindConfigFile
 
 /**
  * 清空数据库的命令
  * @author EmileJones
  */
-class ClearDatabasesCommand : SuspendingCliktCommand(name = "clear") {
+class ClearDatabasesCommand() : SuspendingCliktCommand(name = "clear") {
     override fun help(context: Context): String = "Clear all stored data related to the RAG application"
 
     private val config = AutoFindConfigFile.find()
@@ -35,33 +33,26 @@ class ClearDatabasesCommand : SuspendingCliktCommand(name = "clear") {
     }
 
     private fun clearMilvusDB() {
-        val client = MilvusClientV2(
-            ConnectConfig.builder()
-                .uri("http://${config.milvus.host}:${config.milvus.port}")
-                .build()
+        val milvusRepository: IMilvusRepository = SingleCollectionMilvusRepository(
+            port = config.milvus.port,
+            host = config.milvus.host,
+            database = config.milvus.database,
+            collection = config.milvus.collection,
+            dimension = config.model.dimension
         )
-        val dropQuickSetupParam = DropCollectionReq.builder()
-            .collectionName(config.milvus.collection)
-            .databaseName(config.milvus.database)
-            .build()
-        client.dropCollection(dropQuickSetupParam)
-
-        client.close()
+        milvusRepository.clearAllData()
+        milvusRepository.close()
     }
 
     private fun clearNeo4jDB() {
-        val driver: Driver =
-            GraphDatabase.driver(
-                "bolt://${config.neo4j.host}:${config.neo4j.port}",
-                AuthTokens.basic(config.neo4j.user, config.neo4j.password)
-            )
-
-        driver.session().use { session ->
-            session.executeWriteWithoutResult {
-                it.run("MATCH (n: TextNode | FileNode) DETACH DELETE n")
-            }
-        }
-
-        driver.close()
+        val neo4jRepository: INeo4jRepository = Neo4jRepositoryImpl(
+            username = config.neo4j.user,
+            password = config.neo4j.password,
+            host = config.neo4j.host,
+            port = config.neo4j.port,
+            databaseName = config.neo4j.database
+        )
+        neo4jRepository.clearAllData()
+        neo4jRepository.close()
     }
 }

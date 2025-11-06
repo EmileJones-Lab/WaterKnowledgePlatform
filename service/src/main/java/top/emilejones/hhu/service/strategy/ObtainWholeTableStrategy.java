@@ -1,9 +1,9 @@
 package top.emilejones.hhu.service.strategy;
 
 import kotlin.Pair;
+import top.emilejones.hhu.domain.enums.TextType;
 import top.emilejones.hhu.entity.FileNode;
 import top.emilejones.hhu.entity.TextNode;
-import top.emilejones.hhu.enums.TextType;
 import top.emilejones.hhu.repository.INeo4jRepository;
 
 import java.util.HashSet;

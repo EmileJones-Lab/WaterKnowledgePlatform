@@ -6,11 +6,11 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import top.emilejones.hhu.milvus.SingleCollectionMilvusRepository
 import top.emilejones.hhu.model.impl.ModelClientByHttp
-import top.emilejones.hhu.repository.milvus.IMilvusRepository
-import top.emilejones.hhu.repository.milvus.impl.MilvusRepositoryImpl
-import top.emilejones.hhu.repository.neo4j.INeo4jRepository
-import top.emilejones.hhu.repository.neo4j.impl.Neo4jRepositoryImpl
+import top.emilejones.hhu.neo4j.Neo4jRepositoryImpl
+import top.emilejones.hhu.repository.IMilvusRepository
+import top.emilejones.hhu.repository.INeo4jRepository
 import top.emilejones.hhu.service.impl.RagService
 import top.emilejones.huu.env.AutoFindConfigFile
 import top.emilejones.huu.env.pojo.ApplicationConfig
@@ -28,11 +28,11 @@ class InsertCommand : SuspendingCliktCommand(name = "insert"), AutoCloseable {
     private val filePath: String by argument().help("文件或者文件夹的路径")
     private val logger: Logger = LoggerFactory.getLogger(Application::class.java)
 
-    private val milvusRepository: IMilvusRepository = MilvusRepositoryImpl(
+    private val milvusRepository: IMilvusRepository = SingleCollectionMilvusRepository(
         port = config.milvus.port,
         host = config.milvus.host,
-        databaseName = config.milvus.database,
-        collectionName = config.milvus.collection,
+        database = config.milvus.database,
+        collection = config.milvus.collection,
         dimension = config.model.dimension
     )
     private val neo4jRepository: INeo4jRepository = Neo4jRepositoryImpl(

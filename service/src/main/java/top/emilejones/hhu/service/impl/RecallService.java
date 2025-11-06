@@ -3,14 +3,13 @@ package top.emilejones.hhu.service.impl;
 import kotlin.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import top.emilejones.hhu.entity.DenseRecallResult;
+import top.emilejones.hhu.domain.dto.DenseRecallResult;
 import top.emilejones.hhu.entity.FileNode;
 import top.emilejones.hhu.entity.TextNode;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.repository.IMilvusRepository;
 import top.emilejones.hhu.repository.INeo4jRepository;
 import top.emilejones.hhu.service.IRecallService;
-import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.List;
 import java.util.stream.Collectors;
