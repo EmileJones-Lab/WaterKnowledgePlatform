@@ -7,10 +7,11 @@ import top.emilejones.hhu.web.enums.TextType;
  *
  * @author EmileJones
  */
-public class MilvusDatum {
+public class DenseRecallResult {
     private String elementId;
     private String text;
     private TextType type;
+    private Float score;
 
     public String getElementId() {
         return elementId;
@@ -36,12 +37,21 @@ public class MilvusDatum {
         this.type = type;
     }
 
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
+    }
+
     @Override
     public String toString() {
-        return "MilvusDatum{" +
+        return "DenseRecallResult{" +
                 "elementId='" + elementId + '\'' +
                 ", text='" + text + '\'' +
                 ", type=" + type +
+                ", score=" + score +
                 '}';
     }
 }

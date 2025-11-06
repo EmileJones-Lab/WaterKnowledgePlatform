@@ -65,7 +65,8 @@ class ModelClientByHttp(
                 strings.add(textList[index + i])
                 i++
             }
-            val rerankResult = getRerankResult(query, strings)
+            // 需要将请求的rerank结果的index加一个偏移
+            val rerankResult = getRerankResult(query, strings).map { it.copy(index = it.index + index) }.toList()
             rerankResults.addAll(rerankResult)
             index += step
         }
