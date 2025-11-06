@@ -1,8 +1,9 @@
-package top.emilejones.hhu.web.service;
+package top.emilejones.hhu.service;
+
 
 import kotlin.Pair;
-import top.emilejones.hhu.web.entity.FileNode;
-import top.emilejones.hhu.web.entity.TextNode;
+import top.emilejones.hhu.entity.FileNode;
+import top.emilejones.hhu.entity.TextNode;
 
 import java.util.List;
 

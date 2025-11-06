@@ -1,9 +1,9 @@
-package top.emilejones.hhu.web.repository;
+package top.emilejones.hhu.repository;
 
 
 import kotlin.Pair;
-import top.emilejones.hhu.web.entity.FileNode;
-import top.emilejones.hhu.web.entity.TextNode;
+import top.emilejones.hhu.entity.FileNode;
+import top.emilejones.hhu.entity.TextNode;
 
 /**
  * 请求Neo4j数据库的借口规范

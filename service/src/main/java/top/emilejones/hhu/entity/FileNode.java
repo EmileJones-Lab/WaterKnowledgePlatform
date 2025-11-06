@@ -1,4 +1,4 @@
-package top.emilejones.hhu.web.entity;
+package top.emilejones.hhu.entity;
 
 public class FileNode {
     private String elementId;

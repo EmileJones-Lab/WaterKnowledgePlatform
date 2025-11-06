@@ -1,6 +1,6 @@
-package top.emilejones.hhu.web.entity;
+package top.emilejones.hhu.entity;
 
-import top.emilejones.hhu.web.enums.TextType;
+import top.emilejones.hhu.enums.TextType;
 
 /**
  * 向量数据库中的一条数据

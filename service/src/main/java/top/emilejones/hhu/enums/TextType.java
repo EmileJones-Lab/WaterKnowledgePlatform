@@ -1,4 +1,4 @@
-package top.emilejones.hhu.web.enums;
+package top.emilejones.hhu.enums;
 
 /**
  * 文本类型枚举

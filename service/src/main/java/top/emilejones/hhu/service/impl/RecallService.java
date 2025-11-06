@@ -1,16 +1,15 @@
-package top.emilejones.hhu.web.service.impl;
+package top.emilejones.hhu.service.impl;
 
 import kotlin.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import top.emilejones.hhu.entity.DenseRecallResult;
+import top.emilejones.hhu.entity.FileNode;
+import top.emilejones.hhu.entity.TextNode;
 import top.emilejones.hhu.model.ModelClient;
-import top.emilejones.hhu.web.entity.DenseRecallResult;
-import top.emilejones.hhu.web.entity.FileNode;
-import top.emilejones.hhu.web.entity.TextNode;
-import top.emilejones.hhu.web.repository.IMilvusRepository;
-import top.emilejones.hhu.web.repository.INeo4jRepository;
-import top.emilejones.hhu.web.service.IRecallService;
+import top.emilejones.hhu.repository.IMilvusRepository;
+import top.emilejones.hhu.repository.INeo4jRepository;
+import top.emilejones.hhu.service.IRecallService;
 import top.emilejones.huu.env.pojo.ApplicationConfig;
 
 import java.util.List;
@@ -19,19 +18,18 @@ import java.util.stream.Collectors;
 /**
  * @author EmileJones
  */
-@Service
 public class RecallService implements IRecallService {
     private final IMilvusRepository milvusRepository;
     private final INeo4jRepository neo4jRepository;
     private final ModelClient client;
+    private final Integer recallNumber;
     private static final Logger logger = LoggerFactory.getLogger(RecallService.class);
-    private final ApplicationConfig config;
 
-    public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ApplicationConfig config, ModelClient client) {
+    public RecallService(IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ModelClient client, Integer recallNumber) {
         this.milvusRepository = milvusRepository;
         this.neo4jRepository = neo4jRepository;
-        this.config = config;
         this.client = client;
+        this.recallNumber = recallNumber;
     }
 
     @Override
@@ -41,7 +39,7 @@ public class RecallService implements IRecallService {
 
     @Override
     public List<Pair<FileNode, TextNode>> recallNode(String query) {
-        final int maxResultNumber = config.getRag().getRecallNumber();
+        final int maxResultNumber = recallNumber;
 
         // 从向量数据库中召回数据
         List<Float> queryVector = client.embedding(query);

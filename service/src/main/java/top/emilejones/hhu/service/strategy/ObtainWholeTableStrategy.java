@@ -1,10 +1,10 @@
-package top.emilejones.hhu.web.service.strategy;
+package top.emilejones.hhu.service.strategy;
 
 import kotlin.Pair;
-import top.emilejones.hhu.web.entity.FileNode;
-import top.emilejones.hhu.web.entity.TextNode;
-import top.emilejones.hhu.web.enums.TextType;
-import top.emilejones.hhu.web.repository.INeo4jRepository;
+import top.emilejones.hhu.entity.FileNode;
+import top.emilejones.hhu.entity.TextNode;
+import top.emilejones.hhu.enums.TextType;
+import top.emilejones.hhu.repository.INeo4jRepository;
 
 import java.util.HashSet;
 import java.util.List;

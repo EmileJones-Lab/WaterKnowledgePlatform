@@ -1,7 +1,8 @@
-package top.emilejones.hhu.web.repository;
+package top.emilejones.hhu.repository;
 
 
-import top.emilejones.hhu.web.entity.DenseRecallResult;
+
+import top.emilejones.hhu.entity.DenseRecallResult;
 
 import java.util.List;
 

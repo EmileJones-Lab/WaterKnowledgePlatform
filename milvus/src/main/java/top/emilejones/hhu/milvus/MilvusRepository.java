@@ -1,15 +1,14 @@
-package top.emilejones.hhu.web.repository.impl;
+package top.emilejones.hhu.milvus;
+
 
 import io.milvus.v2.client.ConnectConfig;
 import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.SearchResp;
-import org.springframework.stereotype.Repository;
-import top.emilejones.hhu.web.entity.DenseRecallResult;
-import top.emilejones.hhu.web.enums.TextType;
-import top.emilejones.hhu.web.repository.IMilvusRepository;
-import top.emilejones.huu.env.pojo.ApplicationConfig;
+import top.emilejones.hhu.entity.DenseRecallResult;
+import top.emilejones.hhu.enums.TextType;
+import top.emilejones.hhu.repository.IMilvusRepository;
 
 import java.util.List;
 
@@ -18,21 +17,19 @@ import java.util.List;
  *
  * @author EmileJones
  */
-@Repository
 public class MilvusRepository implements IMilvusRepository {
     private final MilvusClientV2 client;
     private final String databaseName;
     private final String collectionName;
-    private final ApplicationConfig config;
 
-    public MilvusRepository(ApplicationConfig config) {
-        this.config = config;
+    public MilvusRepository(String host, Integer port, String database, String collection) {
+
         ConnectConfig connectConfig = ConnectConfig.builder()
-                .uri("http://%s:%d".formatted(config.getMilvus().getHost(), config.getMilvus().getPort()))
+                .uri("http://%s:%d".formatted(host, port))
                 .build();
-        client = new MilvusClientV2(connectConfig);
-        databaseName = config.getMilvus().getDatabase();
-        collectionName = config.getMilvus().getCollection();
+        this.client = new MilvusClientV2(connectConfig);
+        this.databaseName = database;
+        this.collectionName = collection;
     }
 
     @Override

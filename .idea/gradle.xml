@@ -24,8 +24,11 @@
             <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/env" />
             <option value="$PROJECT_DIR$/mcp" />
+            <option value="$PROJECT_DIR$/milvus" />
+            <option value="$PROJECT_DIR$/neo4j" />
             <option value="$PROJECT_DIR$/preprocessing" />
             <option value="$PROJECT_DIR$/qa" />
+            <option value="$PROJECT_DIR$/service" />
             <option value="$PROJECT_DIR$/utils" />
             <option value="$PROJECT_DIR$/web" />
           </set>

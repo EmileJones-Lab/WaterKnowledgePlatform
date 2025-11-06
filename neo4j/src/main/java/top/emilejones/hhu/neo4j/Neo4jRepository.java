@@ -1,15 +1,13 @@
-package top.emilejones.hhu.web.repository.impl;
+package top.emilejones.hhu.neo4j;
 
 import kotlin.Pair;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Node;
-import org.springframework.stereotype.Repository;
-import top.emilejones.hhu.web.entity.FileNode;
-import top.emilejones.hhu.web.entity.TextNode;
-import top.emilejones.hhu.web.enums.TextType;
-import top.emilejones.hhu.web.repository.INeo4jRepository;
-import top.emilejones.huu.env.pojo.ApplicationConfig;
+import top.emilejones.hhu.entity.FileNode;
+import top.emilejones.hhu.entity.TextNode;
+import top.emilejones.hhu.enums.TextType;
+import top.emilejones.hhu.repository.INeo4jRepository;
 
 import java.util.Map;
 
@@ -18,15 +16,14 @@ import java.util.Map;
  *
  * @author EmileJones
  */
-@Repository
 public class Neo4jRepository implements INeo4jRepository {
     private final Driver driver;
-    private final ApplicationConfig config;
+    private final String databaseName;
 
-    public Neo4jRepository(ApplicationConfig config) {
-        this.config = config;
-        String uri = "bolt://%s:%d".formatted(config.getNeo4j().getHost(), config.getNeo4j().getPort());
-        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(config.getNeo4j().getUser(), config.getNeo4j().getPassword()));
+    public Neo4jRepository(String host, Integer port, String user, String password, String databaseName) {
+        String uri = "bolt://%s:%d".formatted(host, port);
+        this.driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
+        this.databaseName = databaseName;
     }
 
     @Override
@@ -41,7 +38,7 @@ public class Neo4jRepository implements INeo4jRepository {
 
         Map<String, Object> params = Map.of("elementId", elementId);
 
-        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
+        try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
             Record record = session.run(
                     cypher,
                     params
@@ -63,7 +60,7 @@ public class Neo4jRepository implements INeo4jRepository {
 
         Map<String, Object> params = Map.of("elementId", elementId);
 
-        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
+        try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
             Record record = session.run(
                     cypher,
                     params
@@ -84,7 +81,7 @@ public class Neo4jRepository implements INeo4jRepository {
 
         Map<String, Object> params = Map.of("elementId", elementId);
 
-        try (Session session = driver.session(SessionConfig.forDatabase(config.getNeo4j().getDatabase()))) {
+        try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
             Record record = session.run(
                     cypher,
                     params

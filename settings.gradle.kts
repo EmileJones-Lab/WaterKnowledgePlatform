@@ -26,4 +26,7 @@ include(":qa")
 include(":mcp")
 include(":env")
 include(":web")
+include("milvus")
+include("neo4j")
+include("service")
 rootProject.name = "mission2"
