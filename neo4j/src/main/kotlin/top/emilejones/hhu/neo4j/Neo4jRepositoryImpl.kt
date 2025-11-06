@@ -1,19 +1,15 @@
 package top.emilejones.hhu.neo4j
 
 import org.neo4j.driver.*
-import org.neo4j.driver.types.Node
-import org.neo4j.driver.types.Relationship
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.domain.dto.FileNode
 import top.emilejones.hhu.domain.dto.TextNode
 import top.emilejones.hhu.domain.enums.Neo4jRelationshipType
-import top.emilejones.hhu.domain.enums.TextType
 import top.emilejones.hhu.domain.po.Neo4jFileNode
 import top.emilejones.hhu.domain.po.Neo4jRelationship
 import top.emilejones.hhu.domain.po.Neo4jTextNode
+import top.emilejones.hhu.neo4j.delegates.elementId
+import top.emilejones.hhu.neo4j.extensions.*
 import top.emilejones.hhu.repository.INeo4jRepository
-import java.util.*
-import kotlin.reflect.KProperty
 
 class Neo4jRepositoryImpl(
     private val host: String,
@@ -286,135 +282,5 @@ class Neo4jRepositoryImpl(
         )
     }
 
-    private fun QueryRunner.insertTextNode(neo4jTextNode: Neo4jTextNode): Neo4jTextNode {
-        logger.trace(
-            "Start insert TextNode, textLength:[{}], sequence: [{}]",
-            neo4jTextNode.length,
-            neo4jTextNode.seq
-        )
-        val insertTextNodeResult = this.run(
-            """
-            CREATE (n:TextNode {
-                text: ${'$'}text,
-                seq: ${'$'}seq,
-                level: ${'$'}level,
-                name: ${'$'}name,
-                length: ${'$'}length,
-                type: ${'$'}type
-            })
-            RETURN n
-        """,
-            Values.parameters(
-                "text", neo4jTextNode.text,
-                "seq", neo4jTextNode.seq,
-                "level", neo4jTextNode.level,
-                "name", neo4jTextNode.seq,
-                "length", neo4jTextNode.length,
-                "type", neo4jTextNode.type.name
-            )
-        ).single()
-        return insertTextNodeResult["n"].asNode().asNeo4jTextNode()
-    }
-
-    private fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
-        logger.trace("Start insert FileNode, fileName: [{}]", neo4jFileNode.fileName)
-        val insertFileNodeResult = this.run(
-            """
-            CREATE (n:FileNode {
-                fileName: ${'$'}fileName,
-                isEmbedded: ${'$'}isEmbedded
-            })
-            RETURN n
-        """,
-            Values.parameters(
-                "fileName", neo4jFileNode.fileName,
-                "isEmbedded", neo4jFileNode.isEmbedded
-            )
-        ).single()
-        return insertFileNodeResult["n"].asNode().asNeo4jFileNode()
-    }
-
-    private fun QueryRunner.insertRelationship(neo4jRelationship: Neo4jRelationship): Neo4jRelationship {
-        logger.trace(
-            "Start insert neo4j relationship, relationship type: [{}], startElementId: [{}], endElementId: [{}]",
-            neo4jRelationship.type,
-            neo4jRelationship.startNodeElementId,
-            neo4jRelationship.endNodeElementId
-        )
-        val insertRelationshipResult = this.run(
-            """
-            MATCH (startNode)
-            WHERE elementId(startNode) = "%s" 
-            MATCH (endNode)
-            WHERE elementId(endNode) = "%s"
-            CREATE (startNode)-[r:`%s`]->(endNode)
-            RETURN r
-        """.trimIndent().format(
-                neo4jRelationship.startNodeElementId,
-                neo4jRelationship.endNodeElementId,
-                neo4jRelationship.type.name
-            )
-        ).single()
-        return insertRelationshipResult["r"].asRelationship().asNeo4jRelationship()
-    }
-
-    private fun TextNode.toNeo4jTextNode(): Neo4jTextNode {
-        return Neo4jTextNode(
-            text = this.text,
-            seq = this.seq,
-            level = this.level,
-            type = this.type
-        )
-    }
-
-    private fun FileNode.toNeo4jFileNode(): Neo4jFileNode {
-        return Neo4jFileNode(
-            fileName = this.fileName,
-            isEmbedded = false
-        )
-    }
-
-    private fun Node.asNeo4jTextNode(): Neo4jTextNode {
-        return Neo4jTextNode(
-            elementId = this.elementId(),
-            text = this["text"].asString(),
-            seq = this["seq"].asInt(),
-            level = this["level"].asInt(),
-            type = TextType.valueOf(this["type"].asString())
-        )
-    }
-
-    private fun Node.asNeo4jFileNode(): Neo4jFileNode {
-        return Neo4jFileNode(
-            elementId = this.elementId(),
-            fileName = this["fileName"].asString(),
-            isEmbedded = this["isEmbedded"].asBoolean()
-        )
-    }
-
-    private fun Relationship.asNeo4jRelationship(): Neo4jRelationship {
-        return Neo4jRelationship(
-            elementId = this.elementId(),
-            startNodeElementId = this.startNodeElementId(),
-            endNodeElementId = this.endNodeElementId(),
-            type = Neo4jRelationshipType.valueOf(this.type())
-        )
-    }
 }
 
-/**
- * 用来绑定每一个TextNode和FileNode对应的elementId
- */
-private class TextNodeDelegate {
-    private val cache = WeakHashMap<TextNode, String?>()
-
-    operator fun getValue(thisRef: TextNode, property: KProperty<*>): String? {
-        return cache.getOrPut(thisRef) { null }
-    }
-
-    operator fun setValue(thisRef: TextNode, property: KProperty<*>, value: String?) {
-        cache[thisRef] = value
-    }
-}
-
-private var TextNode.elementId: String? by TextNodeDelegate()
