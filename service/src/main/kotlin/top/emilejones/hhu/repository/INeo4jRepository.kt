@@ -49,5 +49,8 @@ interface INeo4jRepository : AutoCloseable {
      */
     fun selectByElementId(elementId: String?): Pair<Neo4jFileNode, Neo4jTextNode>?
 
+    /**
+     * 清除所有数据
+     */
     fun clearAllData()
 }
