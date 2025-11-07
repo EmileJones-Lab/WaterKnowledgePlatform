@@ -1,3 +1,4 @@
+import top.yeyezhi.hhu.preprocessing.handler.MixedStructureCorrector;
 import top.yeyezhi.hhu.preprocessing.handler.MixedStructureCorrector4;
 
 import java.io.IOException;
@@ -13,17 +14,17 @@ public class TestRunner {
     public static void main(String[] args) {
         try {
             // 读取示例Markdown文件
-            Path inputPath = Paths.get("C:\\Users\\byl\\Desktop\\调度规程md\\屯溪流域龙头水库4330127000125  14\\auto\\屯溪流域龙头水库4330127000125.md");
+            Path inputPath = Paths.get("C:\\Users\\byl\\Desktop\\调度规程md\\屯溪流域丰乐水库(二坝)4341004000440  111\\auto\\屯溪流域丰乐水库(二坝)4341004000440.md");
             String markdownContent = Files.readString(inputPath);
 
 
             // 使用MixedStructureCorrector处理内容
-            MixedStructureCorrector4 corrector = new MixedStructureCorrector4();
+            MixedStructureCorrector corrector = new MixedStructureCorrector();
             String processedContent = corrector.handle(markdownContent);
 
 
             // 将处理后的内容保存到新文件
-            Path outputPath = Paths.get("C:\\Users\\byl\\Desktop\\调度规程md\\屯溪流域龙头水库4330127000125  14\\auto\\屯溪流域龙头水库4330127000125更正后.md");
+            Path outputPath = Paths.get("C:\\Users\\byl\\Desktop\\调度规程md\\屯溪流域丰乐水库(二坝)4341004000440  111\\auto\\屯溪流域丰乐水库(二坝)4341004000440更正后.md");
             Files.writeString(outputPath, processedContent);
 
             System.out.println("\n处理完成，结果已保存到：" + outputPath);

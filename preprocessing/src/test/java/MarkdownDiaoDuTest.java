@@ -8,7 +8,7 @@ public class MarkdownDiaoDuTest {
     public static void main(String[] args) {
         try {
             MultiMarkdownFileSelectDelegate multiMarkdownFileSelectDelegate =
-                    new MultiMarkdownFileSelectDelegate("C:\\Users\\byl\\Desktop\\调度规程md", "C:\\Users\\byl\\Desktop\\调度规程md_output");
+                    new MultiMarkdownFileSelectDelegate("C:\\Users\\byl\\Desktop\\调度规程md", "C:\\Users\\byl\\Desktop\\调度规程md_outTest");
             multiMarkdownFileSelectDelegate.run();
             System.out.println("所有符合条件的 Markdown 文件已处理完成！");
         } catch (Exception e) {
