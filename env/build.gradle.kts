@@ -1,5 +1,4 @@
 plugins {
-    id("buildsrc.convention.kotlin-jvm")
     alias(libs.plugins.kotlinPluginSerialization)
 }
 

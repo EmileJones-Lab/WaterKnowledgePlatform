@@ -16,18 +16,20 @@
           </compositeBuild>
         </compositeConfiguration>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/buildSrc" />
+            <option value="$PROJECT_DIR$/controller-command" />
+            <option value="$PROJECT_DIR$/controller-mcp" />
+            <option value="$PROJECT_DIR$/controller-web" />
+            <option value="$PROJECT_DIR$/data-milvus" />
+            <option value="$PROJECT_DIR$/data-neo4j" />
             <option value="$PROJECT_DIR$/env" />
-            <option value="$PROJECT_DIR$/mcp" />
+            <option value="$PROJECT_DIR$/model" />
             <option value="$PROJECT_DIR$/preprocessing" />
             <option value="$PROJECT_DIR$/qa" />
-            <option value="$PROJECT_DIR$/utils" />
-            <option value="$PROJECT_DIR$/web" />
+            <option value="$PROJECT_DIR$/service" />
           </set>
         </option>
       </GradleProjectSettings>
