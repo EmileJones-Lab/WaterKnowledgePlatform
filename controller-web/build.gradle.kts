@@ -13,8 +13,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.18")
 
     implementation(project(":service"))
-    implementation(project(":milvus"))
-    implementation(project(":neo4j"))
+    implementation(project(":data-milvus"))
+    implementation(project(":data-neo4j"))
     implementation(project(":env"))
     implementation(project(":model"))
 }

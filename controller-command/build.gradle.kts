@@ -9,8 +9,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
     implementation(project(":service"))
-    implementation(project(":milvus"))
-    implementation(project(":neo4j"))
+    implementation(project(":data-milvus"))
+    implementation(project(":data-neo4j"))
     implementation(project(":model"))
     implementation(project(":env"))
 }

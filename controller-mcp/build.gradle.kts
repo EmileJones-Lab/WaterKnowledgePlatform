@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":env"))
     implementation(project(":model"))
     implementation(project(":service"))
-    implementation(project(":neo4j"))
+    implementation(project(":data-neo4j"))
 }
 
 application {
