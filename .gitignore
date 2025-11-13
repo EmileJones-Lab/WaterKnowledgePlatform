@@ -43,3 +43,6 @@ bin/
 
 config.yml
 qa/qa.csv
+
+### Congfig ###
+**/application-emilejones.yml

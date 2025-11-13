@@ -11,7 +11,7 @@ import top.emilejones.hhu.model.impl.ModelClientByHttp
 import top.emilejones.hhu.neo4j.Neo4jRepositoryImpl
 import top.emilejones.hhu.repository.IMilvusRepository
 import top.emilejones.hhu.repository.INeo4jRepository
-import top.emilejones.hhu.service.impl.RagService
+import top.emilejones.hhu.service.impl.DataProcessingService
 import top.emilejones.huu.env.AutoFindConfigFile
 import top.emilejones.huu.env.pojo.ApplicationConfig
 import java.io.File
@@ -49,7 +49,7 @@ class InsertCommand : SuspendingCliktCommand(name = "insert"), AutoCloseable {
         embeddingModel = config.model.embeddingModel,
         rerankModel = config.model.rerankModel
     )
-    private val ragService = RagService(
+    private val ragService = DataProcessingService(
         milvusRepository = milvusRepository,
         neo4jRepository = neo4jRepository,
         modelClient = modelClient,

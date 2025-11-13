@@ -8,7 +8,7 @@ import top.emilejones.hhu.parser.MarkdownStructureParser
 import top.emilejones.hhu.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.repository.IMilvusRepository
 import top.emilejones.hhu.repository.INeo4jRepository
-import top.emilejones.hhu.service.IRagService
+import top.emilejones.hhu.service.IDataProcessService
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.name
@@ -16,14 +16,14 @@ import kotlin.io.path.name
 /**
  * @author EmileJones
  */
-class RagService(
+class DataProcessService(
     private val milvusRepository: IMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
     private val maxSentenceLength: Int,
     private val maxTableLength: Int
-) : IRagService {
-    private val logger = LoggerFactory.getLogger(RagService::class.java)
+) : IDataProcessService {
+    private val logger = LoggerFactory.getLogger(DataProcessService::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override suspend fun saveMarkdownFileToAllDatabase(filePath: Path) {

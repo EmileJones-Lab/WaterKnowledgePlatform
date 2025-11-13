@@ -12,6 +12,8 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("ch.qos.logback:logback-classic:1.5.18")
 
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
+
     implementation(project(":service"))
     implementation(project(":data-milvus"))
     implementation(project(":data-neo4j"))
