@@ -8,27 +8,45 @@ import top.emilejones.hhu.parser.MarkdownStructureParser
 import top.emilejones.hhu.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.repository.IMilvusRepository
 import top.emilejones.hhu.repository.INeo4jRepository
-import top.emilejones.hhu.service.IDataProcessService
+import top.emilejones.hhu.service.IDataProcessingService
 import java.io.File
+import java.io.InputStream
 import java.nio.file.Path
 import kotlin.io.path.name
 
 /**
  * @author EmileJones
  */
-class DataProcessService(
+class DataProcessingService(
     private val milvusRepository: IMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
     private val maxSentenceLength: Int,
     private val maxTableLength: Int
-) : IDataProcessService {
-    private val logger = LoggerFactory.getLogger(DataProcessService::class.java)
+) : IDataProcessingService {
+    private val logger = LoggerFactory.getLogger(DataProcessingService::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override suspend fun saveMarkdownFileToAllDatabase(filePath: Path) {
         saveFileInNeo4j(filePath.toFile())
         saveInMilvusFromNeo4jByFilename(filePath.name)
+    }
+
+    override fun ocrFileToMarkdownFile(
+        filename: String,
+        fileInputStream: InputStream,
+        contentType: String,
+        catalogId: String
+    ): Result<InputStream> {
+        TODO("Not yet implemented")
+    }
+
+    override fun extractMarkdownStructure(fileId: String): Result<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun embedMarkdownFileChunks(fileId: String) {
+        TODO("Not yet implemented")
     }
 
     /**
