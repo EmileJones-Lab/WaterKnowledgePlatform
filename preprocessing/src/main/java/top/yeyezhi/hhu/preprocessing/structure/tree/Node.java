@@ -2,6 +2,7 @@ package top.yeyezhi.hhu.preprocessing.structure.tree;
 
 import top.yeyezhi.hhu.preprocessing.structure.enums.TitleType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public class Node {
     // 该标题的类型
     private final TitleType titleType;
     // 该标题的孩子节点
-    private List<Node> children;
+    private final List<Node> children = new ArrayList<>();
     // 该标题的父亲节点
     private Node parent;
 
@@ -40,15 +41,15 @@ public class Node {
         this.parent = parent;
     }
 
-    private void appendChild(Node child) {
+    public void appendChild(Node child) {
         children.add(child);
     }
 
-    private Node getChild(int index) {
+    public Node getChild(int index) {
         return children.get(index);
     }
 
-    private int childrenNumber() {
+    public int childrenNumber() {
         return children.size();
     }
 }
