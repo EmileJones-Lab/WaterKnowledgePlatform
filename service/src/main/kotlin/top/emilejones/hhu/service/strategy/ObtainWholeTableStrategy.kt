@@ -1,6 +1,6 @@
 package top.emilejones.hhu.service.strategy
 
-import top.emilejones.hhu.domain.enums.TextType
+import top.emilejones.hhu.enums.TextType
 import top.emilejones.hhu.domain.po.Neo4jFileNode
 import top.emilejones.hhu.domain.po.Neo4jTextNode
 import top.emilejones.hhu.repository.INeo4jRepository

@@ -2,7 +2,7 @@ package top.emilejones.hhu.preprocessor
 
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.TextNode
-import top.emilejones.hhu.domain.enums.TextType
+import top.emilejones.hhu.enums.TextType
 import top.emilejones.hhu.spliter.impl.HtmlTableToCsvSplitter
 import top.emilejones.hhu.spliter.impl.PunctuationSplitter
 

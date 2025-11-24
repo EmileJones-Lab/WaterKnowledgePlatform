@@ -3,7 +3,7 @@ package top.emilejones.hhu.parser
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.FileNode
 import top.emilejones.hhu.domain.dto.TextNode
-import top.emilejones.hhu.domain.enums.TextType
+import top.emilejones.hhu.enums.TextType
 import java.io.File
 import java.util.function.Supplier
 

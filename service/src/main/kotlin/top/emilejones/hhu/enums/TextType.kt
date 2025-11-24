@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.enums
+package top.emilejones.hhu.enums
 
 enum class TextType(val comment: String) {
     COMMON_TEXT("普通文本"),

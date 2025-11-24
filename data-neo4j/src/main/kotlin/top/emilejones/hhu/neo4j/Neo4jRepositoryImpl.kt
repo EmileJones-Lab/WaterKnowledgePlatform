@@ -4,7 +4,7 @@ import org.neo4j.driver.*
 import org.neo4j.driver.types.Node
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.TextNode
-import top.emilejones.hhu.domain.enums.Neo4jRelationshipType
+import top.emilejones.hhu.enums.Neo4jRelationshipType
 import top.emilejones.hhu.domain.po.Neo4jFileNode
 import top.emilejones.hhu.domain.po.Neo4jRelationship
 import top.emilejones.hhu.domain.po.Neo4jTextNode

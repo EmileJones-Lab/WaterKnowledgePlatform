@@ -17,7 +17,7 @@ import io.milvus.v2.service.vector.request.data.FloatVec
 import io.milvus.v2.service.vector.response.SearchResp
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.dto.DenseRecallResult
-import top.emilejones.hhu.domain.enums.TextType
+import top.emilejones.hhu.enums.TextType
 import top.emilejones.hhu.domain.po.EmbeddingDatum
 import top.emilejones.hhu.repository.IMilvusRepository
 

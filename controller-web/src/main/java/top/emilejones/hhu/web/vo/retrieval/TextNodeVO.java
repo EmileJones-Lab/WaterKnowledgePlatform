@@ -1,7 +1,7 @@
-package top.emilejones.hhu.web.vo;
+package top.emilejones.hhu.web.vo.retrieval;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.domain.enums.TextType;
+import top.emilejones.hhu.enums.TextType;
 
 @Schema(description = "切片节点相关数据")
 public class TextNodeVO {
