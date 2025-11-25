@@ -31,7 +31,9 @@ public class KnowledgeDirectoryController {
     @Operation(summary = "新增一个知识库",
             description = "此接口会新增一个知识库，并且自动生成一个milvusCollection")
     @ApiResponse(responseCode = "200", description = "新增的知识库元数据")
-    public KnowledgeDirectoryVO addStructuredKnowledgeDirectory(@RequestBody AddKnowledgeDirectoryRequest request) {
+    public KnowledgeDirectoryVO addStructuredKnowledgeDirectory(
+            @RequestBody AddKnowledgeDirectoryRequest request
+    ) {
         return null;
     }
 

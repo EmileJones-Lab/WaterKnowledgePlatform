@@ -5,8 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import top.emilejones.hhu.web.vo.*;
-import top.emilejones.hhu.web.vo.mission.*;
+import top.emilejones.hhu.web.vo.LazyPageInfoVO;
+import top.emilejones.hhu.web.vo.mission.EmbeddingMissionVO;
+import top.emilejones.hhu.web.vo.mission.ExtractStructureMissionVO;
+import top.emilejones.hhu.web.vo.mission.MissionsVO;
 import top.emilejones.hhu.web.vo.mission.request.StartEmbeddingMissionRequest;
 import top.emilejones.hhu.web.vo.mission.request.StartExtractStructureMissionRequest;
 
@@ -21,7 +23,8 @@ public class MissionController {
     @ApiResponse(responseCode = "200", description = "成功查询到数据")
     public LazyPageInfoVO<MissionsVO> getMissionsList(
             @RequestParam @Schema(name = "limit", description = "每页多少个数据") Integer limit,
-            @RequestParam @Schema(name = "pageNum", description = "第几页（从0开始）") Integer pageNum
+            @RequestParam @Schema(name = "pageNum", description = "第几页（从0开始）") Integer pageNum,
+            @RequestParam(required = false) @Schema(name = "keyword", description = "模糊匹配文件名，如果为空则返回全部数据") String keyword
     ) {
         return null;
     }
@@ -37,7 +40,7 @@ public class MissionController {
 
     @PostMapping("/embedding-missions")
     @Operation(summary = "开启一个层次结构向量化任务",
-            description = "通过文件唯一Id开启一个OCR任务。如果此文件没有开启过OCR任务和结构提取任务，此接口会自动按顺序开启上述任务。")
+            description = "通过文件唯一Id开启一个向量化任务。如果此文件没有开启过OCR任务和结构提取任务，此接口会自动按顺序开启上述任务。")
     @ApiResponse(responseCode = "200", description = "返回当前向量化任务的详细信息")
     public EmbeddingMissionVO startEmbeddingMission(@RequestBody StartEmbeddingMissionRequest request) {
         return null;

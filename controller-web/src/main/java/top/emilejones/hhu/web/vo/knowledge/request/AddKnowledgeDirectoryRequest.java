@@ -3,7 +3,7 @@ package top.emilejones.hhu.web.vo.knowledge.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import top.emilejones.hhu.enums.StructuredKnowledgeDirectoryType;
+import top.emilejones.hhu.enums.KnowledgeDirectoryType;
 
 @Schema(description = "新增一个知识库的请求")
 public class AddKnowledgeDirectoryRequest {
@@ -13,7 +13,7 @@ public class AddKnowledgeDirectoryRequest {
 
     @NotNull
     @Schema(description = "文件夹类型")
-    private StructuredKnowledgeDirectoryType type;
+    private KnowledgeDirectoryType type;
 
     public String getDirName() {
         return dirName;
@@ -23,11 +23,11 @@ public class AddKnowledgeDirectoryRequest {
         this.dirName = dirName;
     }
 
-    public StructuredKnowledgeDirectoryType getType() {
+    public KnowledgeDirectoryType getType() {
         return type;
     }
 
-    public void setType(StructuredKnowledgeDirectoryType type) {
+    public void setType(KnowledgeDirectoryType type) {
         this.type = type;
     }
 }

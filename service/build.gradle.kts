@@ -13,7 +13,7 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jsoup:jsoup:1.16.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-    implementation(project(":model"))
+    implementation(project(":infra-model"))
     implementation(project(":env"))
 }
 

@@ -23,12 +23,12 @@
             <option value="$PROJECT_DIR$/controller-command" />
             <option value="$PROJECT_DIR$/controller-mcp" />
             <option value="$PROJECT_DIR$/controller-web" />
-            <option value="$PROJECT_DIR$/data-milvus" />
-            <option value="$PROJECT_DIR$/data-neo4j" />
             <option value="$PROJECT_DIR$/env" />
-            <option value="$PROJECT_DIR$/model" />
-            <option value="$PROJECT_DIR$/preprocessing" />
-            <option value="$PROJECT_DIR$/qa" />
+            <option value="$PROJECT_DIR$/infra-milvus" />
+            <option value="$PROJECT_DIR$/infra-model" />
+            <option value="$PROJECT_DIR$/infra-neo4j" />
+            <option value="$PROJECT_DIR$/infra-preprocessing" />
+            <option value="$PROJECT_DIR$/infra-qa" />
             <option value="$PROJECT_DIR$/service" />
           </set>
         </option>

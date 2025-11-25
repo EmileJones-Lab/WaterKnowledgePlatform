@@ -1,6 +1,7 @@
 package top.emilejones.hhu.web.vo.mission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import top.emilejones.hhu.enums.DocumentSplittingMissionType;
 import top.emilejones.hhu.enums.ExtractStructureMissionStatus;
 
 import java.time.Instant;
@@ -11,6 +12,8 @@ public class ExtractStructureMissionVO {
     private String extractStructureMissionId;
     @Schema(description = "结构提取任务状态")
     private ExtractStructureMissionStatus status;
+    @Schema(description = "文本切割类型")
+    private DocumentSplittingMissionType type;
     @Schema(description = "结构任务提取失败后详细说明")
     private String remark;
     @Schema(description = "任务开始时间")
@@ -56,5 +59,13 @@ public class ExtractStructureMissionVO {
 
     public void setEndTime(Instant endTime) {
         this.endTime = endTime;
+    }
+
+    public DocumentSplittingMissionType getType() {
+        return type;
+    }
+
+    public void setType(DocumentSplittingMissionType type) {
+        this.type = type;
     }
 }

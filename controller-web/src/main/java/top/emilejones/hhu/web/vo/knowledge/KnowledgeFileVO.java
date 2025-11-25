@@ -1,7 +1,7 @@
 package top.emilejones.hhu.web.vo.knowledge;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.enums.EmbeddingMissionType;
+import top.emilejones.hhu.enums.DocumentSplittingMissionType;
 import top.emilejones.hhu.web.vo.mission.EmbeddingMissionVO;
 import top.emilejones.hhu.web.vo.mission.ExtractStructureMissionVO;
 import top.emilejones.hhu.web.vo.mission.OcrMissionVO;
@@ -13,8 +13,8 @@ import java.util.List;
 public class KnowledgeFileVO {
     @Schema(description = "向量化任务唯一Id")
     private String embeddingMissionId;
-    @Schema(description = "向量化任务类型")
-    private EmbeddingMissionType type;
+    @Schema(description = "文本切割任务类型")
+    private DocumentSplittingMissionType type;
     @Schema(description = "文件名称")
     private String fileName;
     @Schema(description = "加入知识库时间")
@@ -58,11 +58,11 @@ public class KnowledgeFileVO {
         this.embeddingMission = embeddingMission;
     }
 
-    public EmbeddingMissionType getType() {
+    public DocumentSplittingMissionType getType() {
         return type;
     }
 
-    public void setType(EmbeddingMissionType type) {
+    public void setType(DocumentSplittingMissionType type) {
         this.type = type;
     }
 

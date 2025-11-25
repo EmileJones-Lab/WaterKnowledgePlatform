@@ -15,10 +15,10 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
     implementation(project(":service"))
-    implementation(project(":data-milvus"))
-    implementation(project(":data-neo4j"))
+    implementation(project(":infra-milvus"))
+    implementation(project(":infra-neo4j"))
     implementation(project(":env"))
-    implementation(project(":model"))
+    implementation(project(":infra-model"))
 }
 
 application {

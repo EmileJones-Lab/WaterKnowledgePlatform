@@ -20,13 +20,13 @@ plugins {
 // If there are changes in only one of the projects, Gradle will rebuild only the one that has changed.
 // Learn more about structuring projects with Gradle - https://docs.gradle.org/8.7/userguide/multi_project_builds.html
 include(":controller-command")
-include(":model")
-include(":preprocessing")
-include(":qa")
+include(":infra-model")
+include(":infra-preprocessing")
+include(":infra-qa")
 include(":controller-mcp")
 include(":env")
 include(":controller-web")
-include(":data-milvus")
-include(":data-neo4j")
+include(":infra-milvus")
+include(":infra-neo4j")
 include(":service")
 rootProject.name = "mission2"

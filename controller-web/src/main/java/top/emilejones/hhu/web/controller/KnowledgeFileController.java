@@ -22,7 +22,9 @@ public class KnowledgeFileController {
             description = "根据知识库唯一Id获取此文件夹下的文件详细信息列表，如果没有数据，则返回的数据中的data为空列表")
     public LazyPageInfoVO<KnowledgeFileVO> getAllKnowledgeFileByDirId(
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId,
-            @RequestParam("keyword") @Schema(name = "keyword", description = "文件名称关键词（用来模糊匹配）", requiredMode = Schema.RequiredMode.NOT_REQUIRED) String keyword
+            @RequestParam @Schema(name = "limit", description = "每页多少个数据") Integer limit,
+            @RequestParam @Schema(name = "pageNum", description = "第几页（从0开始）") Integer pageNum,
+            @RequestParam(value = "keyword", required = false) @Schema(name = "keyword", description = "根据文件名模糊匹配，如果为空则返回全部内容。") String keyword
     ) {
         return null;
     }

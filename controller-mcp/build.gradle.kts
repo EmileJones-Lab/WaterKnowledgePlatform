@@ -10,9 +10,9 @@ dependencies {
     implementation("org.springframework.ai:spring-ai-starter-mcp-server-webflux")
 
     implementation(project(":env"))
-    implementation(project(":model"))
+    implementation(project(":infra-model"))
     implementation(project(":service"))
-    implementation(project(":data-neo4j"))
+    implementation(project(":infra-neo4j"))
 }
 
 application {

@@ -1,7 +1,7 @@
 package top.emilejones.hhu.web.vo.knowledge;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.enums.StructuredKnowledgeDirectoryType;
+import top.emilejones.hhu.enums.KnowledgeDirectoryType;
 
 import java.time.Instant;
 
@@ -16,7 +16,7 @@ public class KnowledgeDirectoryVO {
     @Schema(description = "创建时间")
     private Instant createTime;
     @Schema(description = "知识库类型")
-    private StructuredKnowledgeDirectoryType type;
+    private KnowledgeDirectoryType type;
 
     public String getId() {
         return id;
@@ -50,11 +50,11 @@ public class KnowledgeDirectoryVO {
         this.createTime = createTime;
     }
 
-    public StructuredKnowledgeDirectoryType getType() {
+    public KnowledgeDirectoryType getType() {
         return type;
     }
 
-    public void setType(StructuredKnowledgeDirectoryType type) {
+    public void setType(KnowledgeDirectoryType type) {
         this.type = type;
     }
 }
