@@ -38,8 +38,8 @@ public class KnowledgeFileController {
                     description = "成功将知识文件加入到知识库中后，返回此知识文件的元信息。"
             ),
             @ApiResponse(
-                    responseCode = "400",
-                    description = "添加失败，操作不合法",
+                    responseCode = "409",
+                    description = "添加失败，操作不合法，此文件无法加入到此文件夹中",
                     content = @Content(
                             schema = @Schema(implementation = FailureVO.class)
                     )

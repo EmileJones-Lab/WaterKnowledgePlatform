@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import top.emilejones.hhu.service.IRecallService;
 import top.emilejones.hhu.web.vo.retrieval.TextNodeVO;
+import top.emilejones.hhu.web.vo.retrieval.TextType;
 
 import java.util.List;
 
@@ -65,8 +66,19 @@ public class RecallController {
                     textNodeVO.setLevel(neo4jTextNode.getLevel());
                     textNodeVO.setSeq(neo4jTextNode.getSeq());
                     textNodeVO.setElementId(neo4jTextNode.getElementId());
-                    textNodeVO.setType(neo4jTextNode.getType());
+                    textNodeVO.setType(convertTextType(neo4jTextNode.getType()));
                     return textNodeVO;
                 }).toList();
+    }
+
+    private TextType convertTextType(top.emilejones.hhu.enums.TextType domainType) {
+        if (domainType == null) {
+            return null;
+        }
+        try {
+            return TextType.valueOf(domainType.name());
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 }

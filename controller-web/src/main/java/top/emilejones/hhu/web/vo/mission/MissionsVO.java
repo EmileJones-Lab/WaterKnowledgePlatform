@@ -13,7 +13,7 @@ public class MissionsVO {
     @Schema(description = "OCR任务列表（按照时间倒序排列），如果没有OCR任务，则返回空列表")
     private List<OcrMissionVO> ocrMission;
     @Schema(description = "结构提取任务列表（按照时间倒序排列），如果没有结构提取任务，则返回空列表")
-    private List<DocumentSplittingMission> extractStructureMission;
+    private List<DocumentSplittingMissionVO> extractStructureMission;
     @Schema(description = "向量化任务列表（按照时间倒序排列），如果没有向量化任务，则返回空列表")
     private List<EmbeddingMissionVO> embeddingMission;
 
@@ -41,11 +41,11 @@ public class MissionsVO {
         this.ocrMission = ocrMission;
     }
 
-    public List<DocumentSplittingMission> getExtractStructureMission() {
+    public List<DocumentSplittingMissionVO> getExtractStructureMission() {
         return extractStructureMission;
     }
 
-    public void setExtractStructureMission(List<DocumentSplittingMission> extractStructureMission) {
+    public void setExtractStructureMission(List<DocumentSplittingMissionVO> extractStructureMission) {
         this.extractStructureMission = extractStructureMission;
     }
 

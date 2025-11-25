@@ -1,7 +1,7 @@
 package top.emilejones.hhu.web.vo.mission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
+import top.emilejones.hhu.web.vo.mission.enums.MissionStatus;
 
 import java.time.Instant;
 

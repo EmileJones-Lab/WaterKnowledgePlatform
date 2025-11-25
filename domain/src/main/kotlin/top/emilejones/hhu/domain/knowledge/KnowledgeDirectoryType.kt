@@ -1,4 +1,4 @@
-package top.emilejones.hhu.enums
+package top.emilejones.hhu.domain.knowledge
 
 enum class KnowledgeDirectoryType(val comment: String) {
     CHAR_NUMBER_SPLIT_DIR("根据字符长度切割的知识库"),

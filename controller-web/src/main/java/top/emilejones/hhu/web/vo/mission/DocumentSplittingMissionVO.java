@@ -7,7 +7,7 @@ import top.emilejones.hhu.web.vo.mission.enums.MissionStatus;
 import java.time.Instant;
 
 @Schema(description = "结构提取任务详细信息")
-public class DocumentSplittingMission {
+public class DocumentSplittingMissionVO {
     @Schema(description = "结构提取任务唯一Id")
     private String extractStructureMissionId;
     @Schema(description = "结构提取任务状态")

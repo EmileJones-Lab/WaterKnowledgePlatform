@@ -1,7 +1,6 @@
 package top.emilejones.hhu.web.vo.knowledge;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.enums.KnowledgeDirectoryType;
 
 import java.time.Instant;
 
