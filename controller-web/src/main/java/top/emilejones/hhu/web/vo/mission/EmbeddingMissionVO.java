@@ -1,7 +1,7 @@
 package top.emilejones.hhu.web.vo.mission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.enums.EmbeddingMissionStatus;
+import top.emilejones.hhu.web.vo.mission.enums.MissionStatus;
 
 import java.time.Instant;
 
@@ -10,7 +10,7 @@ public class EmbeddingMissionVO {
     @Schema(description = "向量化任务唯一Id")
     private String embeddingMissionId;
     @Schema(description = "向量化任务状态")
-    private EmbeddingMissionStatus status;
+    private MissionStatus status;
     @Schema(description = "向量化任务失败后详细信息")
     private String remark;
     @Schema(description = "任务开始时间")
@@ -26,11 +26,11 @@ public class EmbeddingMissionVO {
         this.embeddingMissionId = embeddingMissionId;
     }
 
-    public EmbeddingMissionStatus getStatus() {
+    public MissionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(EmbeddingMissionStatus status) {
+    public void setStatus(MissionStatus status) {
         this.status = status;
     }
 

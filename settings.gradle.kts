@@ -29,4 +29,5 @@ include(":controller-web")
 include(":infra-milvus")
 include(":infra-neo4j")
 include(":service")
+include(":domain")
 rootProject.name = "mission2"

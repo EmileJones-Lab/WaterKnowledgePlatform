@@ -1,4 +1,4 @@
-package top.emilejones.hhu.enums
+package top.emilejones.hhu.domain.pipeline.splitter
 
 enum class DocumentSplittingMissionType(comment: String) {
     CHAR_LENGTH_SPLITTER_200("根据200个字符长度切割"),

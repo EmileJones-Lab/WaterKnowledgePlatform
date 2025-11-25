@@ -1,9 +1,9 @@
 package top.emilejones.hhu.web.vo.knowledge;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.enums.DocumentSplittingMissionType;
+import top.emilejones.hhu.domain.pipeline.splitter.DocumentSplittingMissionType;
 import top.emilejones.hhu.web.vo.mission.EmbeddingMissionVO;
-import top.emilejones.hhu.web.vo.mission.ExtractStructureMissionVO;
+import top.emilejones.hhu.web.vo.mission.DocumentSplittingMission;
 import top.emilejones.hhu.web.vo.mission.OcrMissionVO;
 
 import java.time.Instant;
@@ -22,7 +22,7 @@ public class KnowledgeFileVO {
     @Schema(description = "OCR任务列表（按照时间倒序排列），如果没有OCR任务，则返回空列表")
     private List<OcrMissionVO> ocrMission;
     @Schema(description = "结构提取任务列表（按照时间倒序排列），如果没有结构提取任务，则返回空列表")
-    private List<ExtractStructureMissionVO> extractStructureMission;
+    private List<DocumentSplittingMission> extractStructureMission;
     @Schema(description = "向量化任务列表（按照时间倒序排列），如果没有向量化任务，则返回空列表")
     private List<EmbeddingMissionVO> embeddingMission;
 
@@ -42,11 +42,11 @@ public class KnowledgeFileVO {
         this.ocrMission = ocrMission;
     }
 
-    public List<ExtractStructureMissionVO> getExtractStructureMission() {
+    public List<DocumentSplittingMission> getExtractStructureMission() {
         return extractStructureMission;
     }
 
-    public void setExtractStructureMission(List<ExtractStructureMissionVO> extractStructureMission) {
+    public void setExtractStructureMission(List<DocumentSplittingMission> extractStructureMission) {
         this.extractStructureMission = extractStructureMission;
     }
 

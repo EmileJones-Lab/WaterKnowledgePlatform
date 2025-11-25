@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import top.emilejones.hhu.web.vo.LazyPageInfoVO;
 import top.emilejones.hhu.web.vo.mission.EmbeddingMissionVO;
-import top.emilejones.hhu.web.vo.mission.ExtractStructureMissionVO;
+import top.emilejones.hhu.web.vo.mission.DocumentSplittingMission;
 import top.emilejones.hhu.web.vo.mission.MissionsVO;
 import top.emilejones.hhu.web.vo.mission.request.StartEmbeddingMissionRequest;
 import top.emilejones.hhu.web.vo.mission.request.StartExtractStructureMissionRequest;
@@ -33,7 +33,7 @@ public class MissionController {
     @Operation(summary = "开启一个结构提取任务",
             description = "通过文件唯一Id开启一个文本结构提取任务。如果之前没有开启过OCR任务，则自动开启一个OCR任务。")
     @ApiResponse(responseCode = "200", description = "返回此结构提取任务的详细信息")
-    public ExtractStructureMissionVO startExtractStructureMission(@RequestBody StartExtractStructureMissionRequest request) {
+    public DocumentSplittingMission startExtractStructureMission(@RequestBody StartExtractStructureMissionRequest request) {
         return null;
     }
 

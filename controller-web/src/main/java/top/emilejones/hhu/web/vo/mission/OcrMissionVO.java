@@ -1,7 +1,7 @@
 package top.emilejones.hhu.web.vo.mission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.enums.OcrMissionStatus;
+import top.emilejones.hhu.domain.pipeline.MissionStatus;
 
 import java.time.Instant;
 
@@ -10,7 +10,7 @@ public class OcrMissionVO {
     @Schema(description = "OCR任务唯一Id")
     private String ocrMissionId;
     @Schema(description = "OCR任务状态")
-    private OcrMissionStatus status;
+    private MissionStatus status;
     @Schema(description = "任务失败后详细信息")
     private String remark;
     @Schema(description = "任务开始时间")
@@ -26,11 +26,11 @@ public class OcrMissionVO {
         this.ocrMissionId = ocrMissionId;
     }
 
-    public OcrMissionStatus getStatus() {
+    public MissionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(OcrMissionStatus status) {
+    public void setStatus(MissionStatus status) {
         this.status = status;
     }
 

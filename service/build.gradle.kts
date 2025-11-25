@@ -15,6 +15,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation(project(":infra-model"))
     implementation(project(":env"))
+    implementation(project(":domain"))
 }
 
 tasks.test {

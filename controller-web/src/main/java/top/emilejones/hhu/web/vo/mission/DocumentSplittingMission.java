@@ -1,17 +1,17 @@
 package top.emilejones.hhu.web.vo.mission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import top.emilejones.hhu.enums.DocumentSplittingMissionType;
-import top.emilejones.hhu.enums.ExtractStructureMissionStatus;
+import top.emilejones.hhu.web.vo.mission.enums.DocumentSplittingMissionType;
+import top.emilejones.hhu.web.vo.mission.enums.MissionStatus;
 
 import java.time.Instant;
 
 @Schema(description = "结构提取任务详细信息")
-public class ExtractStructureMissionVO {
+public class DocumentSplittingMission {
     @Schema(description = "结构提取任务唯一Id")
     private String extractStructureMissionId;
     @Schema(description = "结构提取任务状态")
-    private ExtractStructureMissionStatus status;
+    private MissionStatus status;
     @Schema(description = "文本切割类型")
     private DocumentSplittingMissionType type;
     @Schema(description = "结构任务提取失败后详细说明")
@@ -29,11 +29,11 @@ public class ExtractStructureMissionVO {
         this.extractStructureMissionId = extractStructureMissionId;
     }
 
-    public ExtractStructureMissionStatus getStatus() {
+    public MissionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ExtractStructureMissionStatus status) {
+    public void setStatus(MissionStatus status) {
         this.status = status;
     }
 

@@ -23,6 +23,7 @@
             <option value="$PROJECT_DIR$/controller-command" />
             <option value="$PROJECT_DIR$/controller-mcp" />
             <option value="$PROJECT_DIR$/controller-web" />
+            <option value="$PROJECT_DIR$/domain" />
             <option value="$PROJECT_DIR$/env" />
             <option value="$PROJECT_DIR$/infra-milvus" />
             <option value="$PROJECT_DIR$/infra-model" />
