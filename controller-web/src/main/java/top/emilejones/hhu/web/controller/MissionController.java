@@ -1,13 +1,16 @@
 package top.emilejones.hhu.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+import top.emilejones.hhu.web.vo.FailureVO;
 import top.emilejones.hhu.web.vo.LazyPageInfoVO;
-import top.emilejones.hhu.web.vo.mission.EmbeddingMissionVO;
 import top.emilejones.hhu.web.vo.mission.DocumentSplittingMissionVO;
+import top.emilejones.hhu.web.vo.mission.EmbeddingMissionVO;
 import top.emilejones.hhu.web.vo.mission.MissionsVO;
 import top.emilejones.hhu.web.vo.mission.request.StartEmbeddingMissionRequest;
 import top.emilejones.hhu.web.vo.mission.request.StartExtractStructureMissionRequest;
@@ -17,24 +20,30 @@ import top.emilejones.hhu.web.vo.mission.request.StartExtractStructureMissionReq
 @Tag(name = "Mission", description = "关于任务的接口说明")
 public class MissionController {
 
-    @GetMapping
-    @Operation(summary = "分页的获取已经开启了任意任务的文件信息列表",
-            description = "按照文件创建时间倒序查询任务列表，该接口会返回当页的文件详细信息，如果当前页面没有内容，那么会返回空列表。没有开启任何任务的文件，不会被返回。")
-    @ApiResponse(responseCode = "200", description = "成功查询到数据")
-    public LazyPageInfoVO<MissionsVO> getMissionsList(
-            @RequestParam @Schema(name = "limit", description = "每页多少个数据") Integer limit,
-            @RequestParam @Schema(name = "pageNum", description = "第几页（从0开始）") Integer pageNum,
-            @RequestParam(required = false) @Schema(name = "keyword", description = "模糊匹配文件名，如果为空则返回全部数据") String keyword
-    ) {
-        return null;
-    }
-
     @PostMapping("/extract-structure-missions")
     @Operation(summary = "开启一个结构提取任务",
             description = "通过文件唯一Id开启一个文本结构提取任务。如果之前没有开启过OCR任务，则自动开启一个OCR任务。")
     @ApiResponse(responseCode = "200", description = "返回此结构提取任务的详细信息")
     public DocumentSplittingMissionVO startExtractStructureMission(@RequestBody StartExtractStructureMissionRequest request) {
         return null;
+    }
+
+    @DeleteMapping("/extract-structure-missions/{documentSplittingMissionId}")
+    @Operation(summary = "删除结构提取任务",
+            description = "通过结构提取任务的唯一Id删除结构提取任务，包括其生成的结构树，以及向量化后的知识文件。")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "删除成功，什么都不返回"),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "删除失败",
+                    content = @Content(
+                            schema = @Schema(implementation = FailureVO.class)
+                    )
+            )
+    })
+    public void deleteExtractStructureMission(
+            @PathVariable("documentSplittingMissionId") @Schema(name = "documentSplittingMissionId", description = "文本切割任务唯一Id") String documentSplittingMissionId
+    ) {
     }
 
 
