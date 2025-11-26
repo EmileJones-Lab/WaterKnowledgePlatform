@@ -3,12 +3,13 @@ package top.emilejones.hhu.domain.pipeline.ocr
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import java.time.Instant
 
-class OcrMission(
+class OcrMission @JvmOverloads constructor(
     val id: String,
     val sourceDocumentId: String,
     status: MissionStatus = MissionStatus.PENDING,
     result: OcrMissionResult? = null,
-    val startTime: Instant = Instant.now(),
+    val createTime: Instant = Instant.now(),
+    val startTime: Instant? = null,
     var endTime: Instant? = null
 ) {
 

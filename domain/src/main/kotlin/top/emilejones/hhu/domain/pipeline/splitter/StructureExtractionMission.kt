@@ -3,21 +3,22 @@ package top.emilejones.hhu.domain.pipeline.splitter
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import java.time.Instant
 
-class DocumentSplittingMission (
+class StructureExtractionMission @JvmOverloads constructor(
     val id: String,
     val sourceDocumentId: String,
-    var processedDocumentId: String?,
-    val type: DocumentSplittingMissionType,
+    var processedDocumentId: String? = null,
+    val type: StructureExtractionMissionType,
     status: MissionStatus,
-    result: DocumentSplittingResult?,
-    val startTime: Instant,
-    var endTime: Instant?
+    result: StructureExtractionResult? = null,
+    val createTime: Instant = Instant.now(),
+    val startTime: Instant? = null,
+    var endTime: Instant? = null
 ) {
 
     var status: MissionStatus = status
         private set
 
-    var result: DocumentSplittingResult? = result
+    var result: StructureExtractionResult? = result
         private set
 
     init {
@@ -32,7 +33,7 @@ class DocumentSplittingMission (
             "StructureExtractionMission can only start from PENDING"
         }
         require(!processedDocumentId.isNullOrBlank()) {
-            "processedDocumentId can't be null"
+            "processedDocumentId can't be null or blank"
         }
         status = MissionStatus.RUNNING
     }
@@ -45,7 +46,7 @@ class DocumentSplittingMission (
             "StructureExtractionMission can only complete from RUNNING"
         }
 
-        result = DocumentSplittingResult.Success(
+        result = StructureExtractionResult.Success(
             fileNodeId = fileNodeId,
             extractedTextNodeCount = textNodeCount
         )
@@ -60,7 +61,7 @@ class DocumentSplittingMission (
             "StructureExtractionMission can only fail from RUNNING"
         }
 
-        result = DocumentSplittingResult.Failure(reason)
+        result = StructureExtractionResult.Failure(reason)
         status = MissionStatus.ERROR
     }
 

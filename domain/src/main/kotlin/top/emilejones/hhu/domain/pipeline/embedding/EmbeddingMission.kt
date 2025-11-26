@@ -3,12 +3,13 @@ package top.emilejones.hhu.domain.pipeline.embedding
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import java.time.Instant
 
-class EmbeddingMission(
+class EmbeddingMission @JvmOverloads constructor(
     val id: String,
     val sourceDocumentId: String,
-    val neo4jFileNodeElementId: String,
+    var neo4jFileNodeElementId: String? = null,
     status: MissionStatus = MissionStatus.PENDING,
     result: EmbeddingMissionResult? = null,
+    val createTime: Instant = Instant.now(),
     var startTime: Instant? = null,
     var endTime: Instant? = null
 ) {
@@ -19,6 +20,7 @@ class EmbeddingMission(
 
     fun start() {
         require(status == MissionStatus.PENDING) { "Embedding can only start from PENDING state." }
+        require(!neo4jFileNodeElementId.isNullOrBlank()) { "neo4jFileNodeElementId is required" }
         status = MissionStatus.RUNNING
         startTime = Instant.now()
     }
