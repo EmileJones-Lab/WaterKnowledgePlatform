@@ -1,13 +1,17 @@
 package top.emilejones.huu.env
 
 import net.mamoe.yamlkt.Yaml
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import top.emilejones.huu.env.pojo.ApplicationConfig
 import java.io.File
 import java.io.IOException
 
-object AutoFindConfigFile: ConfigFileReader {
+@Configuration
+object AutoFindConfigFile : ConfigFileReader {
     private var config: ApplicationConfig? = null
 
+    @Bean
     override fun find(): ApplicationConfig {
         if (config != null)
             return config as ApplicationConfig
