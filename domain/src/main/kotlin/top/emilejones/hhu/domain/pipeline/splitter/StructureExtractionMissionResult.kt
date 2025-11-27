@@ -1,12 +1,12 @@
 package top.emilejones.hhu.domain.pipeline.splitter
 
-sealed class StructureExtractionResult {
+sealed class StructureExtractionMissionResult {
     data class Success(
         val fileNodeId: String,
-        val extractedTextNodeCount: Int
-    ) : StructureExtractionResult()
+        val chunkNumber: Int
+    ) : StructureExtractionMissionResult()
 
     data class Failure(
         val errorMessage: String
-    ) : StructureExtractionResult()
+    ) : StructureExtractionMissionResult()
 }

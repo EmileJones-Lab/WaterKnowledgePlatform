@@ -3,29 +3,44 @@ package top.emilejones.hhu.domain.pipeline.embedding
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import java.time.Instant
 
-class EmbeddingMission @JvmOverloads constructor(
+class EmbeddingMission(
     val id: String,
     val sourceDocumentId: String,
-    var neo4jFileNodeElementId: String? = null,
-    status: MissionStatus = MissionStatus.PENDING,
-    result: EmbeddingMissionResult? = null,
-    val createTime: Instant = Instant.now(),
-    var startTime: Instant? = null,
-    var endTime: Instant? = null
+    var fileNodeId: String?,
+    status: MissionStatus,
+    result: EmbeddingMissionResult?,
+    val createTime: Instant,
+    var startTime: Instant?,
+    var endTime: Instant?
 ) {
     var status: MissionStatus = status
         private set
     var result: EmbeddingMissionResult? = result
         private set
 
+    companion object {
+        fun create(id: String, sourceDocumentId: String): EmbeddingMission {
+            return EmbeddingMission(
+                id = id,
+                sourceDocumentId = sourceDocumentId,
+                fileNodeId = null,
+                status = MissionStatus.PENDING,
+                result = null,
+                createTime = Instant.now(),
+                startTime = null,
+                endTime = null
+            )
+        }
+    }
+
     fun start() {
         require(status == MissionStatus.PENDING) { "Embedding can only start from PENDING state." }
-        require(!neo4jFileNodeElementId.isNullOrBlank()) { "neo4jFileNodeElementId is required" }
+        require(!fileNodeId.isNullOrBlank()) { "fileNodeId is required" }
         status = MissionStatus.RUNNING
         startTime = Instant.now()
     }
 
-    fun complete() {
+    fun success() {
         require(status == MissionStatus.RUNNING) { "Embedding can only complete from RUNNING state." }
         result = EmbeddingMissionResult.Success()
         status = MissionStatus.SUCCESS

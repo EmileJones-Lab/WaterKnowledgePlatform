@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.structuresplitter
+package top.emilejones.hhu.domain.pipeline
 
 class TextNode(
     val elementId: String,

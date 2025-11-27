@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.document
+package top.emilejones.hhu.domain.pipeline
 
 class ProcessedDocument(
     val id: String,

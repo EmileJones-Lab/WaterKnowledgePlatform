@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.structuresplitter
+package top.emilejones.hhu.domain.pipeline
 
 class EmbeddingRecord(
     val vector: List<Float>,

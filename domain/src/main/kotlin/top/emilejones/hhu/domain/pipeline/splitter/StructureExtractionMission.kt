@@ -3,26 +3,43 @@ package top.emilejones.hhu.domain.pipeline.splitter
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import java.time.Instant
 
-class StructureExtractionMission @JvmOverloads constructor(
+class StructureExtractionMission(
     val id: String,
     val sourceDocumentId: String,
-    var processedDocumentId: String? = null,
-    val type: StructureExtractionMissionType,
+    var processedDocumentId: String?,
     status: MissionStatus,
-    result: StructureExtractionResult? = null,
-    val createTime: Instant = Instant.now(),
-    val startTime: Instant? = null,
-    var endTime: Instant? = null
+    result: StructureExtractionMissionResult?,
+    val createTime: Instant,
+    var startTime: Instant?,
+    var endTime: Instant?
 ) {
 
     var status: MissionStatus = status
         private set
 
-    var result: StructureExtractionResult? = result
+    var result: StructureExtractionMissionResult? = result
         private set
 
     init {
         sourceDocumentId.isNotBlank()
+    }
+
+    companion object {
+        fun create(
+            id: String,
+            sourceDocumentId: String,
+        ): StructureExtractionMission {
+            return StructureExtractionMission(
+                id = id,
+                sourceDocumentId = sourceDocumentId,
+                processedDocumentId = null,
+                status = MissionStatus.PENDING,
+                result = null,
+                createTime = Instant.now(),
+                startTime = null,
+                endTime = null
+            )
+        }
     }
 
     /**
@@ -33,24 +50,26 @@ class StructureExtractionMission @JvmOverloads constructor(
             "StructureExtractionMission can only start from PENDING"
         }
         require(!processedDocumentId.isNullOrBlank()) {
-            "processedDocumentId can't be null or blank"
+            "processedDocumentId can't be null"
         }
         status = MissionStatus.RUNNING
+        startTime = Instant.now()
     }
 
     /**
      * 文本切割任务完成
      */
-    fun complete(fileNodeId: String, textNodeCount: Int, processedResourcePath: String? = null) {
+    fun success(fileNodeId: String, textNodeCount: Int) {
         require(status == MissionStatus.RUNNING) {
             "StructureExtractionMission can only complete from RUNNING"
         }
 
-        result = StructureExtractionResult.Success(
+        result = StructureExtractionMissionResult.Success(
             fileNodeId = fileNodeId,
-            extractedTextNodeCount = textNodeCount
+            chunkNumber = textNodeCount
         )
         status = MissionStatus.SUCCESS
+        endTime = Instant.now()
     }
 
     /**
@@ -61,9 +80,11 @@ class StructureExtractionMission @JvmOverloads constructor(
             "StructureExtractionMission can only fail from RUNNING"
         }
 
-        result = StructureExtractionResult.Failure(reason)
+        result = StructureExtractionMissionResult.Failure(reason)
         status = MissionStatus.ERROR
+        endTime = Instant.now()
     }
 
     fun isCompleted(): Boolean = status == MissionStatus.SUCCESS || status == MissionStatus.ERROR
+    fun isSuccess(): Boolean = status == MissionStatus.SUCCESS
 }

@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.document
+package top.emilejones.hhu.domain.pipeline
 
 enum class ProcessedDocumentType {
     TXT,
