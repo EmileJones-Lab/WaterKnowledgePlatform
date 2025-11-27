@@ -3,7 +3,6 @@ package top.yeyezhi.hhu.preprocessing.handler;
 import org.jetbrains.annotations.NotNull;
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
 import top.emilejones.hhu.preprocessing.handler.structure.*;
-import top.yeyezhi.hhu.preprocessing.handler.structure.SubTitleLevelCorrectorReverse;
 
 
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ public class MarkdownStructureCorrector3 implements MarkdownFileHandler {
     static {
         chain.add(new PreHandler());
         chain.add(new TitleLevelCorrector());
-        chain.add(new SubTitleLevelCorrectorReverse()); // 处理 1）, （1）
+      /*  chain.add(new SubTitleLevelCorrectorReverse()); // 处理 1）, （1）*/
         chain.add(new CatalogTitleLevelCorrectorPlus());
         chain.add(new MergeTitleToTextPlus());
     }

@@ -48,6 +48,7 @@ public abstract class AbstractTitleTreeExtractor implements MarkdownStructureExt
      */
     protected abstract String correctOriginTextByStructureTree(Node root);
 
+
     @Override
     public String extract(String originText) {
         String processedText = initOriginText(originText);
@@ -55,5 +56,6 @@ public abstract class AbstractTitleTreeExtractor implements MarkdownStructureExt
         if (!TitleType.NilType.equals(root.getTitleType()))
             throw new IllegalArgumentException("树的头节点不是NilType类型");
         return correctOriginTextByStructureTree(root);
+        
     }
 }
