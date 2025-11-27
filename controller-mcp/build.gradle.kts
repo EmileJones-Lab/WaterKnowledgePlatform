@@ -11,8 +11,7 @@ dependencies {
 
     implementation(project(":env"))
     implementation(project(":infra-model"))
-    implementation(project(":service"))
-    implementation(project(":infra-neo4j"))
+    implementation(project(":infra-textsplitter"))
 }
 
 application {

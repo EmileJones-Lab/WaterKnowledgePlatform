@@ -1,4 +1,4 @@
-package top.emilejones.hhu.neo4j.extensions
+package top.emilejones.hhu.repository.impl.neo4j.extensions
 
 import top.emilejones.hhu.domain.dto.FileNode
 import top.emilejones.hhu.domain.dto.TextNode

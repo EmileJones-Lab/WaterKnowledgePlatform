@@ -1,4 +1,4 @@
-package top.emilejones.hhu.neo4j.delegates
+package top.emilejones.hhu.repository.impl.neo4j.delegates
 
 import top.emilejones.hhu.domain.dto.TextNode
 import java.util.*

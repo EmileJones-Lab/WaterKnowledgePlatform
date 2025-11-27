@@ -1,4 +1,4 @@
-package top.emilejones.hhu.neo4j.extensions
+package top.emilejones.hhu.repository.impl.neo4j.extensions
 
 import org.neo4j.driver.QueryRunner
 import org.neo4j.driver.Values

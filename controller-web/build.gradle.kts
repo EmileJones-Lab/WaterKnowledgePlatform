@@ -14,9 +14,7 @@ dependencies {
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
-    implementation(project(":service"))
-    implementation(project(":infra-milvus"))
-    implementation(project(":infra-neo4j"))
+    implementation(project(":infra-textsplitter"))
     implementation(project(":env"))
     implementation(project(":infra-model"))
 }

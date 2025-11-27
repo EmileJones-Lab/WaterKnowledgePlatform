@@ -1,4 +1,4 @@
-package top.emilejones.hhu.neo4j
+package top.emilejones.hhu.repository.impl.neo4j
 
 import org.neo4j.driver.*
 import org.neo4j.driver.types.Node
@@ -8,9 +8,9 @@ import top.emilejones.hhu.enums.Neo4jRelationshipType
 import top.emilejones.hhu.domain.po.Neo4jFileNode
 import top.emilejones.hhu.domain.po.Neo4jRelationship
 import top.emilejones.hhu.domain.po.Neo4jTextNode
-import top.emilejones.hhu.neo4j.delegates.elementId
-import top.emilejones.hhu.neo4j.extensions.*
+import top.emilejones.hhu.repository.impl.neo4j.delegates.elementId
 import top.emilejones.hhu.repository.INeo4jRepository
+import top.emilejones.hhu.repository.impl.neo4j.extensions.*
 
 class Neo4jRepositoryImpl(
     private val host: String,
