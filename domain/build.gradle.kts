@@ -1,5 +1,5 @@
 plugins {
-    application
+    alias(libs.plugins.kotlinPluginSerialization)
 }
 
 group = "top.emilejones"

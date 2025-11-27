@@ -28,4 +28,5 @@ include(":env")
 include(":controller-web")
 include(":infra-textsplitter")
 include(":domain")
+include(":application")
 rootProject.name = "mission2"
