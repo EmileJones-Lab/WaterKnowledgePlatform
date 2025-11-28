@@ -1,18 +1,27 @@
 package top.emilejones.hhu.domain.pipeline.splitter
 
+import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import java.time.Instant
 
 class StructureExtractionMission(
-    val id: String,
+    override val id: String,
     val sourceDocumentId: String,
-    var processedDocumentId: String?,
-    private var status: MissionStatus,
-    private var result: StructureExtractionMissionResult?,
+    processedDocumentId: String?,
+    status: MissionStatus,
+    result: StructureExtractionMissionResult?,
     val createTime: Instant,
     var startTime: Instant?,
     var endTime: Instant?
-) {
+) : AggregateRoot<String>(id) {
+
+
+    var processedDocumentId: String? = processedDocumentId
+        private set
+    var status: MissionStatus = status
+        private set
+    var result: StructureExtractionMissionResult? = result
+        private set
 
     init {
         sourceDocumentId.isNotBlank()
@@ -39,15 +48,13 @@ class StructureExtractionMission(
     /**
      * 启动一个文本切割任务
      */
-    fun start() {
+    fun start(processedDocumentId: String) {
         require(status == MissionStatus.PENDING) {
             "StructureExtractionMission can only start from PENDING"
         }
-        require(!processedDocumentId.isNullOrBlank()) {
-            "processedDocumentId can't be null"
-        }
-        status = MissionStatus.RUNNING
-        startTime = Instant.now()
+        this.processedDocumentId = processedDocumentId
+        this.status = MissionStatus.RUNNING
+        this.startTime = Instant.now()
     }
 
     /**
@@ -70,7 +77,7 @@ class StructureExtractionMission(
      * 文本切割任务失败
      */
     fun failure(reason: String) {
-        require(status == MissionStatus.RUNNING) {
+        require(status == MissionStatus.RUNNING || status == MissionStatus.PENDING) {
             "StructureExtractionMission can only fail from RUNNING"
         }
 

@@ -1,18 +1,24 @@
 package top.emilejones.hhu.domain.pipeline.ocr
 
+import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument
 import java.time.Instant
 
 class OcrMission(
-    val id: String,
+    override val id: String,
     val sourceDocumentId: String,
-    private var status: MissionStatus,
-    private var result: OcrMissionResult?,
+    status: MissionStatus,
+    result: OcrMissionResult?,
     val createTime: Instant,
     var startTime: Instant?,
     var endTime: Instant?
-) {
+) : AggregateRoot<String>(id) {
+
+    var status: MissionStatus = status
+        private set
+    var result: OcrMissionResult? = result
+        private set
 
     init {
         sourceDocumentId.isNotBlank()
@@ -53,7 +59,7 @@ class OcrMission(
 
     /** OCR 执行失败 */
     fun failure(reason: String) {
-        require(status == MissionStatus.RUNNING) { "OCR can only fail from RUNNING state." }
+        require(status == MissionStatus.RUNNING || status == MissionStatus.PENDING) { "OCR can only fail from RUNNING state." }
         status = MissionStatus.ERROR
         result = OcrMissionResult.Failure(reason)
         endTime = Instant.now()

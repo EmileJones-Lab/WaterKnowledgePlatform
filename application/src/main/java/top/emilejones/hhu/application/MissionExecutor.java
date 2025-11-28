@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class MissionApplicationService {
+public class MissionExcutor {
 
     private final StructureExtractionGateway structureExtractionGateway;
     private final OcrMissionRepository ocrMissionRepository;
@@ -33,7 +33,7 @@ public class MissionApplicationService {
     private final EmbeddingGateway embeddingGateway;
     private final EmbeddingMissionRepository embeddingMissionRepository;
 
-    public MissionApplicationService(StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, SourceDocumentGateway sourceDocumentGateway, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository) {
+    public MissionExcutor(StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, SourceDocumentGateway sourceDocumentGateway, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository) {
         this.structureExtractionGateway = structureExtractionGateway;
         this.ocrMissionRepository = ocrMissionRepository;
         this.sourceDocumentGateway = sourceDocumentGateway;
@@ -57,7 +57,7 @@ public class MissionApplicationService {
         OcrMissionResult.Success successResult = ocrMission.getSuccessResult();
 
         ProcessedDocument processedDocument = successResult.getProcessedDocument();
-        structureExtractionMission.setProcessedDocumentId(processedDocument.getId());
+        structureExtractionMission.start(processedDocument.getId());
 
         runStructureExtractionMission(structureExtractionMission);
 
@@ -77,8 +77,7 @@ public class MissionApplicationService {
         StructureExtractionMission extractionMission = first.get();
         StructureExtractionMissionResult.Success successResult = extractionMission.getSuccessResult();
 
-        embeddingMission.setFileNodeId(successResult.getFileNodeId());
-
+        embeddingMission.start(successResult.getFileNodeId());
         runEmbeddingMission(embeddingMission);
 
         embeddingMissionRepository.save(embeddingMission);
@@ -87,12 +86,12 @@ public class MissionApplicationService {
 
     public OcrMission startOcrMission(String sourceDocumentId) {
         OcrMission ocrMission = OcrMission.Companion.create(UUID.randomUUID().toString(), sourceDocumentId);
+        ocrMission.start();
         runOcrMission(ocrMission);
         return ocrMission;
     }
 
     private void runEmbeddingMission(EmbeddingMission embeddingMission) {
-        embeddingMission.start();
         try {
             embeddingGateway.embed(Objects.requireNonNull(embeddingMission.getFileNodeId()));
             embeddingMission.success();
@@ -104,7 +103,6 @@ public class MissionApplicationService {
     }
 
     private void runOcrMission(OcrMission ocrMission) {
-        ocrMission.start();
         SourceDocument sourceDocument = sourceDocumentGateway.getSourceDocument(ocrMission.getSourceDocumentId());
         if (sourceDocument == null) {
             ocrMission.failure("源文件不存在！");
@@ -123,8 +121,6 @@ public class MissionApplicationService {
     }
 
     private void runStructureExtractionMission(StructureExtractionMission structureExtractionMission) {
-        structureExtractionMission.start();
-
         try {
             String processedDocumentId =
                     Objects.requireNonNull(structureExtractionMission.getProcessedDocumentId());

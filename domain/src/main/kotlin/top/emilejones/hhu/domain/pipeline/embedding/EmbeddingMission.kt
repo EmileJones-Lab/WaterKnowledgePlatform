@@ -1,18 +1,25 @@
 package top.emilejones.hhu.domain.pipeline.embedding
 
+import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import java.time.Instant
 
 class EmbeddingMission(
-    val id: String,
+    override val id: String,
     val sourceDocumentId: String,
     var fileNodeId: String?,
-    private var status: MissionStatus,
-    private var result: EmbeddingMissionResult?,
+    status: MissionStatus,
+    result: EmbeddingMissionResult?,
     val createTime: Instant,
     var startTime: Instant?,
     var endTime: Instant?
-) {
+) : AggregateRoot<String>(id) {
+
+    var status: MissionStatus = status
+        private set
+    var result: EmbeddingMissionResult? = result
+        private set
+
 
     companion object {
         fun create(id: String, sourceDocumentId: String): EmbeddingMission {
@@ -29,11 +36,11 @@ class EmbeddingMission(
         }
     }
 
-    fun start() {
+    fun start(fileNodeId: String) {
         require(status == MissionStatus.PENDING) { "Embedding can only start from PENDING state." }
-        require(!fileNodeId.isNullOrBlank()) { "fileNodeId is required" }
-        status = MissionStatus.RUNNING
-        startTime = Instant.now()
+        this.fileNodeId = fileNodeId
+        this.status = MissionStatus.RUNNING
+        this.startTime = Instant.now()
     }
 
     fun success() {
@@ -44,7 +51,7 @@ class EmbeddingMission(
     }
 
     fun failure(errorMessage: String) {
-        require(status == MissionStatus.RUNNING) { "Embedding can only fail from RUNNING state." }
+        require(status == MissionStatus.RUNNING || status == MissionStatus.PENDING) { "Embedding can only fail from RUNNING state." }
         status = MissionStatus.ERROR
         endTime = Instant.now()
         this.result = EmbeddingMissionResult.Failure(errorMessage)

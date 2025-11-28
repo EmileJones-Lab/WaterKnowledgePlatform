@@ -1,10 +1,12 @@
 package top.emilejones.hhu.domain.pipeline
 
+import top.emilejones.hhu.domain.AggregateRoot
+
 class ProcessedDocument(
-    val id: String,
+    override val id: String,
     val name: String,
     val sourceDocumentId: String,
     val filePath: String,
     val type: ProcessedDocumentType
-) {
+): AggregateRoot<String>(id) {
 }
