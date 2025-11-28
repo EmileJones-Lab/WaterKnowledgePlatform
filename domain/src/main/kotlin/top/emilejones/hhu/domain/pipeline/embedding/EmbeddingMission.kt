@@ -7,16 +7,12 @@ class EmbeddingMission(
     val id: String,
     val sourceDocumentId: String,
     var fileNodeId: String?,
-    status: MissionStatus,
-    result: EmbeddingMissionResult?,
+    private var status: MissionStatus,
+    private var result: EmbeddingMissionResult?,
     val createTime: Instant,
     var startTime: Instant?,
     var endTime: Instant?
 ) {
-    var status: MissionStatus = status
-        private set
-    var result: EmbeddingMissionResult? = result
-        private set
 
     companion object {
         fun create(id: String, sourceDocumentId: String): EmbeddingMission {
@@ -55,4 +51,27 @@ class EmbeddingMission(
     }
 
     fun isCompleted(): Boolean = status == MissionStatus.SUCCESS || status == MissionStatus.ERROR
+    fun isSuccess(): Boolean = status == MissionStatus.SUCCESS
+
+    fun getSuccessResult(): EmbeddingMissionResult.Success {
+        require(status == MissionStatus.SUCCESS) {
+            "任务没有成功，不可以获取成功的结果"
+        }
+        require(result is EmbeddingMissionResult.Success) {
+            "任务成功但没有生成结果"
+        }
+
+        return result as EmbeddingMissionResult.Success
+    }
+
+    fun getFailureResult(): EmbeddingMissionResult.Failure {
+        require(status == MissionStatus.ERROR) {
+            "任务没有失败，不可以获取失败的结果"
+        }
+        require(result is EmbeddingMissionResult.Failure) {
+            "任务失败但没有失败原因"
+        }
+
+        return result as EmbeddingMissionResult.Failure
+    }
 }

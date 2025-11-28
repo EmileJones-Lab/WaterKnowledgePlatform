@@ -2,24 +2,17 @@ package top.emilejones.hhu.domain.pipeline.ocr
 
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.SourceDocumentGateway
 import java.time.Instant
 
 class OcrMission(
     val id: String,
     val sourceDocumentId: String,
-    status: MissionStatus,
-    result: OcrMissionResult?,
+    private var status: MissionStatus,
+    private var result: OcrMissionResult?,
     val createTime: Instant,
     var startTime: Instant?,
     var endTime: Instant?
 ) {
-
-    private var status: MissionStatus = status
-
-    var result: OcrMissionResult? = result
-        private set
 
     init {
         sourceDocumentId.isNotBlank()
@@ -66,4 +59,25 @@ class OcrMission(
         endTime = Instant.now()
     }
 
+    fun getSuccessResult(): OcrMissionResult.Success {
+        require(status == MissionStatus.SUCCESS) {
+            "任务没有成功，不可以获取成功的结果"
+        }
+        require(result is OcrMissionResult.Success) {
+            "任务成功但没有生成结果"
+        }
+
+        return result as OcrMissionResult.Success
+    }
+
+    fun getFailureResult(): OcrMissionResult.Failure {
+        require(status == MissionStatus.ERROR) {
+            "任务没有失败，不可以获取失败的结果"
+        }
+        require(result is OcrMissionResult.Failure) {
+            "任务失败但没有失败原因"
+        }
+
+        return result as OcrMissionResult.Failure
+    }
 }

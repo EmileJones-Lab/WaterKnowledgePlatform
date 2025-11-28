@@ -54,11 +54,9 @@ public class MissionApplicationService {
         }
 
         OcrMission ocrMission = first.get();
-        if (!(ocrMission.getResult() instanceof OcrMissionResult.Success ocrMissionResult)) {
-            throw new IllegalStateException("代码逻辑异常，成功执行后的OCR任务没有产生结果");
-        }
+        OcrMissionResult.Success successResult = ocrMission.getSuccessResult();
 
-        ProcessedDocument processedDocument = ocrMissionResult.getProcessedDocument();
+        ProcessedDocument processedDocument = successResult.getProcessedDocument();
         structureExtractionMission.setProcessedDocumentId(processedDocument.getId());
 
         runStructureExtractionMission(structureExtractionMission);
@@ -77,11 +75,9 @@ public class MissionApplicationService {
         }
 
         StructureExtractionMission extractionMission = first.get();
-        if (!(extractionMission.getResult() instanceof StructureExtractionMissionResult.Success extractionResult)) {
-            throw new IllegalStateException("代码异常，成功结束的文本切割任务没有生成结果");
-        }
+        StructureExtractionMissionResult.Success successResult = extractionMission.getSuccessResult();
 
-        embeddingMission.setFileNodeId(extractionResult.getFileNodeId());
+        embeddingMission.setFileNodeId(successResult.getFileNodeId());
 
         runEmbeddingMission(embeddingMission);
 

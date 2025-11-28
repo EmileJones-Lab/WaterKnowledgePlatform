@@ -7,18 +7,12 @@ class StructureExtractionMission(
     val id: String,
     val sourceDocumentId: String,
     var processedDocumentId: String?,
-    status: MissionStatus,
-    result: StructureExtractionMissionResult?,
+    private var status: MissionStatus,
+    private var result: StructureExtractionMissionResult?,
     val createTime: Instant,
     var startTime: Instant?,
     var endTime: Instant?
 ) {
-
-    var status: MissionStatus = status
-        private set
-
-    var result: StructureExtractionMissionResult? = result
-        private set
 
     init {
         sourceDocumentId.isNotBlank()
@@ -87,4 +81,26 @@ class StructureExtractionMission(
 
     fun isCompleted(): Boolean = status == MissionStatus.SUCCESS || status == MissionStatus.ERROR
     fun isSuccess(): Boolean = status == MissionStatus.SUCCESS
+
+    fun getSuccessResult(): StructureExtractionMissionResult.Success {
+        require(status == MissionStatus.SUCCESS) {
+            "任务没有成功，不可以获取成功的结果"
+        }
+        require(result is StructureExtractionMissionResult.Success) {
+            "任务成功但没有生成结果"
+        }
+
+        return result as StructureExtractionMissionResult.Success
+    }
+
+    fun getFailureResult(): StructureExtractionMissionResult.Failure {
+        require(status == MissionStatus.ERROR) {
+            "任务没有失败，不可以获取失败的结果"
+        }
+        require(result is StructureExtractionMissionResult.Failure) {
+            "任务失败但没有失败原因"
+        }
+
+        return result as StructureExtractionMissionResult.Failure
+    }
 }
