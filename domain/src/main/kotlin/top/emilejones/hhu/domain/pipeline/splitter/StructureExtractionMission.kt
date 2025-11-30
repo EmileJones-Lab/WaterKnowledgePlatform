@@ -2,6 +2,7 @@ package top.emilejones.hhu.domain.pipeline.splitter
 
 import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
+import top.emilejones.hhu.domain.pipeline.event.StructureExtractionMissionReadyEvent
 import java.time.Instant
 
 class StructureExtractionMission(
@@ -36,13 +37,24 @@ class StructureExtractionMission(
                 id = id,
                 sourceDocumentId = sourceDocumentId,
                 processedDocumentId = null,
-                status = MissionStatus.PENDING,
+                status = MissionStatus.CREATED,
                 result = null,
                 createTime = Instant.now(),
                 startTime = null,
                 endTime = null
             )
         }
+    }
+
+    /**
+     * 可以被执行
+     */
+    fun preparedToExecution() {
+        require(status == MissionStatus.CREATED) {
+            "StructureExtractionMission can only ready from CREATED"
+        }
+        this.status = MissionStatus.PENDING
+        raiseEvent(StructureExtractionMissionReadyEvent(this))
     }
 
     /**

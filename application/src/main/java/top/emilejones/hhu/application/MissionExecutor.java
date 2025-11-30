@@ -1,13 +1,14 @@
 package top.emilejones.hhu.application;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.application.event.StartEmbeddingMissionEvent;
-import top.emilejones.hhu.application.event.StartStructureExtractionMissionEvent;
 import top.emilejones.hhu.domain.pipeline.FileNode;
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
+import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionReadyEvent;
+import top.emilejones.hhu.domain.pipeline.event.StructureExtractionMissionReadyEvent;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.SourceDocumentGateway;
@@ -28,7 +29,7 @@ import java.util.UUID;
 
 @Component
 public class MissionExecutor {
-
+    private final ApplicationEventPublisher publisher;
     private final StructureExtractionGateway structureExtractionGateway;
     private final OcrMissionRepository ocrMissionRepository;
     private final SourceDocumentGateway sourceDocumentGateway;
@@ -37,7 +38,8 @@ public class MissionExecutor {
     private final EmbeddingGateway embeddingGateway;
     private final EmbeddingMissionRepository embeddingMissionRepository;
 
-    public MissionExecutor(StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, SourceDocumentGateway sourceDocumentGateway, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository) {
+    public MissionExecutor(ApplicationEventPublisher publisher, StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, SourceDocumentGateway sourceDocumentGateway, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository) {
+        this.publisher = publisher;
         this.structureExtractionGateway = structureExtractionGateway;
         this.ocrMissionRepository = ocrMissionRepository;
         this.sourceDocumentGateway = sourceDocumentGateway;
@@ -47,22 +49,26 @@ public class MissionExecutor {
         this.embeddingMissionRepository = embeddingMissionRepository;
     }
 
-    @Async("missionEventExecutor")
+    @Async("domainEventExecutor")
     @EventListener
-    public void handlerStartStructureExtractionEvent(StartStructureExtractionMissionEvent event) {
+    public void handlerStartStructureExtractionEvent(StructureExtractionMissionReadyEvent event) {
         StructureExtractionMission structureExtractionMission = event.getStructureExtractionMission();
         startStructureExtraction(structureExtractionMission);
     }
 
-    @Async("missionEventExecutor")
+    @Async("domainEventExecutor")
     @EventListener
-    public void handlerStartEmbeddingMissionEvent(StartEmbeddingMissionEvent event) {
+    public void handlerStartEmbeddingMissionEvent(EmbeddingMissionReadyEvent event) {
         EmbeddingMission embeddingMission = event.getEmbeddingMission();
         startEmbeddingMission(embeddingMission);
+        embeddingMission.pushEvents().forEach(publisher::publishEvent);
     }
 
     private OcrMission startOcrMission(String sourceDocumentId) {
         OcrMission ocrMission = OcrMission.Companion.create(UUID.randomUUID().toString(), sourceDocumentId);
+        ocrMission.preparedToExecution();
+        // 清空领域事件
+        ocrMission.pushEvents();
         ocrMission.start();
         ocrMissionRepository.save(ocrMission);
         SourceDocument sourceDocument = sourceDocumentGateway.getSourceDocument(ocrMission.getSourceDocumentId());
@@ -115,8 +121,13 @@ public class MissionExecutor {
         // 获取曾经执行过的结构提取任务，如果没有执行成功的结构提取任务，则开启一个新的结构提取任务。
         List<StructureExtractionMission> structureExtractionMissions = structureExtractionMissionRepository.selectBySourceDocumentId(embeddingMission.getSourceDocumentId());
         Optional<StructureExtractionMission> succeesfulStructureExtractionOptional = structureExtractionMissions.stream().filter(StructureExtractionMission::isSuccess).findFirst();
-        StructureExtractionMission structureExtractionMission = succeesfulStructureExtractionOptional.orElseGet(() ->
-                startStructureExtraction(StructureExtractionMission.Companion.create(UUID.randomUUID().toString(), embeddingMission.getSourceDocumentId()))
+        StructureExtractionMission structureExtractionMission = succeesfulStructureExtractionOptional.orElseGet(() -> {
+                    StructureExtractionMission newMission = StructureExtractionMission.Companion.create(UUID.randomUUID().toString(), embeddingMission.getSourceDocumentId());
+                    newMission.preparedToExecution();
+                    // 清空领域事件
+                    newMission.pushEvents();
+                    return startStructureExtraction(newMission);
+                }
         );
         if (!structureExtractionMission.isSuccess()) {
             embeddingMission.failure("结构提取任务未成功，无法开启向量化任务");

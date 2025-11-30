@@ -11,13 +11,13 @@ import java.util.concurrent.Executor;
 @EnableAsync
 public class AsyncEventConfig {
 
-    @Bean(name = "missionEventExecutor")
-    public Executor missionEventExecutor() {
+    @Bean(name = "domainEventExecutor")
+    public Executor domainEventExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(16);
         executor.setQueueCapacity(200);
-        executor.setThreadNamePrefix("mission-event-");
+        executor.setThreadNamePrefix("event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
         executor.initialize();

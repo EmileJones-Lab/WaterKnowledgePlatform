@@ -3,6 +3,7 @@ package top.emilejones.hhu.domain.pipeline.ocr
 import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument
+import top.emilejones.hhu.domain.pipeline.event.OcrMissionReadyEvent
 import java.time.Instant
 
 class OcrMission(
@@ -29,13 +30,22 @@ class OcrMission(
             return OcrMission(
                 id = id,
                 sourceDocumentId = sourceDocumentId,
-                status = MissionStatus.PENDING,
+                status = MissionStatus.CREATED,
                 result = null,
                 createTime = Instant.now(),
                 startTime = null,
                 endTime = null
             )
         }
+    }
+
+    /**
+     * 可以被执行
+     */
+    fun preparedToExecution() {
+        require(status == MissionStatus.CREATED) { "OcrMission can only ready from CREATED" }
+        status = MissionStatus.PENDING
+        raiseEvent(OcrMissionReadyEvent(this))
     }
 
     /** 启动 OCR 任务 */

@@ -2,6 +2,8 @@ package top.emilejones.hhu.domain.pipeline.embedding
 
 import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
+import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionReadyEvent
+import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent
 import java.time.Instant
 
 class EmbeddingMission(
@@ -27,13 +29,22 @@ class EmbeddingMission(
                 id = id,
                 sourceDocumentId = sourceDocumentId,
                 fileNodeId = null,
-                status = MissionStatus.PENDING,
+                status = MissionStatus.CREATED,
                 result = null,
                 createTime = Instant.now(),
                 startTime = null,
                 endTime = null
             )
         }
+    }
+
+    /**
+     * 可以被执行
+     */
+    fun preparedToExecution() {
+        require(status == MissionStatus.CREATED) { "EmbeddingMission can only ready from CREATED" }
+        status = MissionStatus.PENDING
+        raiseEvent(EmbeddingMissionReadyEvent(this))
     }
 
     fun start(fileNodeId: String) {
@@ -48,6 +59,7 @@ class EmbeddingMission(
         result = EmbeddingMissionResult.Success()
         status = MissionStatus.SUCCESS
         endTime = Instant.now()
+        raiseEvent(EmbeddingMissionSuccessEvent(this))
     }
 
     fun failure(errorMessage: String) {
