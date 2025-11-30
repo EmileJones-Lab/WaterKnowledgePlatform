@@ -43,7 +43,7 @@ public class MissionApplicationService {
     }
 
     private StructureExtractionMission findExistingOrCreateStructureExtractionMission(String sourceDocumentId) {
-        return structureExtractionMissionRepository.selectBySourceDocumentId(sourceDocumentId).stream()
+        return structureExtractionMissionRepository.findBySourceDocumentId(sourceDocumentId).stream()
                 .filter(StructureExtractionMission::isSuccess)
                 .findFirst()
                 .orElseGet(() -> {
@@ -57,7 +57,7 @@ public class MissionApplicationService {
     }
 
     private EmbeddingMission findExistingOrCreateEmbeddingMission(String sourceDocumentId) {
-        return embeddingMissionRepository.selectBySourceDocumentId(sourceDocumentId).stream()
+        return embeddingMissionRepository.findBySourceDocumentId(sourceDocumentId).stream()
                 .filter(EmbeddingMission::isSuccess)
                 .findFirst()
                 .orElseGet(() -> {

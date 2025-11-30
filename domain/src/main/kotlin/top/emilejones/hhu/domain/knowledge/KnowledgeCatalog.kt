@@ -7,6 +7,4 @@ class KnowledgeCatalog(
     val name: String,
     val milvusCollectionName: String,
     val type: KnowledgeCatalogType
-): AggregateRoot<String>(id) {
-
-}
+): AggregateRoot<String>(id)

@@ -2,7 +2,7 @@ package top.emilejones.hhu.domain.pipeline.ocr
 
 import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument
+import top.emilejones.hhu.domain.pipeline.MarkdownDocument
 import top.emilejones.hhu.domain.pipeline.event.OcrMissionReadyEvent
 import java.time.Instant
 
@@ -60,9 +60,9 @@ class OcrMission(
     fun isSuccess(): Boolean = status == MissionStatus.SUCCESS
 
     /** 完成 OCR 任务，必须包含结果 */
-    fun success(processedDocument: ProcessedDocument) {
+    fun success(markdownDocumentId: String) {
         require(status == MissionStatus.RUNNING) { "OCR can only complete from RUNNING state." }
-        result = OcrMissionResult.Success(processedDocument)
+        result = OcrMissionResult.Success(markdownDocumentId)
         status = MissionStatus.SUCCESS
         endTime = Instant.now()
     }
