@@ -9,7 +9,7 @@ dependencies {
     implementation(platform("org.springframework.ai:spring-ai-bom:1.0.1"))
     implementation("org.springframework.ai:spring-ai-starter-mcp-server-webflux")
 
-    implementation(project(":env"))
+    implementation(project(":common"))
     implementation(project(":infra-model"))
     implementation(project(":infra-textsplitter"))
 }

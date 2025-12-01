@@ -14,7 +14,7 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
     implementation(project(":infra-textsplitter"))
-    implementation(project(":env"))
+    implementation(project(":common"))
     implementation(project(":infra-model"))
 }
 

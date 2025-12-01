@@ -10,7 +10,7 @@ dependencies {
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
     implementation(project(":infra-textsplitter"))
     implementation(project(":infra-model"))
-    implementation(project(":env"))
+    implementation(project(":common"))
 }
 
 application {

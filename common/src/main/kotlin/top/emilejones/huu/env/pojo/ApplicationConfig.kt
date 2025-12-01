@@ -7,5 +7,6 @@ data class ApplicationConfig(
     val milvus: MilvusConfig,
     val neo4j: Neo4jConfig,
     val model: HttpModelClientConfig,
-    val rag: RAGConfig
+    val rag: RAGConfig,
+    val mysql: MysqlConfig
 )
