@@ -12,14 +12,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import top.emilejones.hhu.service.IRecallService;
-import top.emilejones.hhu.web.vo.TextNodeVO;
+import top.emilejones.hhu.web.vo.retrieval.TextNodeVO;
+import top.emilejones.hhu.web.vo.retrieval.TextType;
 
 import java.util.List;
 
 
 @RestController
 @RequestMapping("/recall")
-@Tag(name = "retrieval", description = "关于召回文本的功能接口说明")
+@Tag(name = "Retrieval", description = "关于召回文本的功能接口说明")
 public class RecallController {
 
     private final IRecallService recallService;
@@ -28,7 +29,7 @@ public class RecallController {
         this.recallService = recallService;
     }
 
-    @GetMapping("/textList")
+    @GetMapping("/texts")
     @Operation(
             summary = "通过问题去召回相关片段",
             description = "根据问题去图数据库中召回相关片段，并且基于已有策略去图数据库中查询上下文，最后返回一个片段的列表"
@@ -50,7 +51,7 @@ public class RecallController {
         return recallService.recallText(query);
     }
 
-    @GetMapping("/nodeList")
+    @GetMapping("/nodes")
     @Operation(
             summary = "通过问题去召回相关片段，并且返回每一个片段的详细信息",
             description = "根据问题去图数据库中召回相关片段，并且基于已有策略去图数据库中查询上下文，最后返回每一个片段的详细信息"
@@ -65,8 +66,19 @@ public class RecallController {
                     textNodeVO.setLevel(neo4jTextNode.getLevel());
                     textNodeVO.setSeq(neo4jTextNode.getSeq());
                     textNodeVO.setElementId(neo4jTextNode.getElementId());
-                    textNodeVO.setType(neo4jTextNode.getType());
+                    textNodeVO.setType(convertTextType(neo4jTextNode.getType()));
                     return textNodeVO;
                 }).toList();
+    }
+
+    private TextType convertTextType(top.emilejones.hhu.enums.TextType domainType) {
+        if (domainType == null) {
+            return null;
+        }
+        try {
+            return TextType.valueOf(domainType.name());
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 }

@@ -6,7 +6,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.types.choice
 import top.emilejones.hhu.milvus.SingleCollectionMilvusRepository
-import top.emilejones.hhu.neo4j.Neo4jRepositoryImpl
+import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl
 import top.emilejones.hhu.repository.IMilvusRepository
 import top.emilejones.hhu.repository.INeo4jRepository
 import top.emilejones.huu.env.AutoFindConfigFile

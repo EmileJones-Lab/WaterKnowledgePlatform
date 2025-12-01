@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import top.emilejones.hhu.milvus.SingleCollectionMilvusRepository;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.impl.ModelClientByHttp;
-import top.emilejones.hhu.neo4j.Neo4jRepositoryImpl;
+import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl;
 import top.emilejones.hhu.repository.IMilvusRepository;
 import top.emilejones.hhu.repository.INeo4jRepository;
 import top.emilejones.hhu.service.impl.RecallService;

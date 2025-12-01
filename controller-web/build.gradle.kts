@@ -6,7 +6,6 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation(platform("org.springframework.boot:spring-boot-starter-parent:3.5.5"))
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     implementation("org.slf4j:slf4j-api:2.0.13")
@@ -14,11 +13,9 @@ dependencies {
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
-    implementation(project(":service"))
-    implementation(project(":data-milvus"))
-    implementation(project(":data-neo4j"))
-    implementation(project(":env"))
-    implementation(project(":model"))
+    implementation(project(":infra-textsplitter"))
+    implementation(project(":common"))
+    implementation(project(":infra-model"))
 }
 
 application {

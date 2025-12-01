@@ -8,11 +8,9 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
-    implementation(project(":service"))
-    implementation(project(":data-milvus"))
-    implementation(project(":data-neo4j"))
-    implementation(project(":model"))
-    implementation(project(":env"))
+    implementation(project(":infra-textsplitter"))
+    implementation(project(":infra-model"))
+    implementation(project(":common"))
 }
 
 application {
