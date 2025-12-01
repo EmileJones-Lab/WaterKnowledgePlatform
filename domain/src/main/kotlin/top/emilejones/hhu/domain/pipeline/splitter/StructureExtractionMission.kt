@@ -5,6 +5,10 @@ import top.emilejones.hhu.domain.pipeline.MissionStatus
 import top.emilejones.hhu.domain.pipeline.event.StructureExtractionMissionReadyEvent
 import java.time.Instant
 
+/**
+ * 文档结构切割任务聚合根，管理切分流程状态。
+ * @author EmileJones
+ */
 class StructureExtractionMission(
     override val id: String,
     val sourceDocumentId: String,
@@ -29,6 +33,9 @@ class StructureExtractionMission(
     }
 
     companion object {
+        /**
+         * 创建初始化状态的切割任务。
+         */
         fun create(
             id: String,
             sourceDocumentId: String,
@@ -47,7 +54,7 @@ class StructureExtractionMission(
     }
 
     /**
-     * 可以被执行
+     * 准备任务，进入待调度状态并发布事件。
      */
     fun preparedToExecution() {
         require(status == MissionStatus.CREATED) {
@@ -58,7 +65,7 @@ class StructureExtractionMission(
     }
 
     /**
-     * 启动一个文本切割任务
+     * 启动一个文本切割任务。
      */
     fun start(processedDocumentId: String) {
         require(status == MissionStatus.PENDING) {
@@ -70,7 +77,7 @@ class StructureExtractionMission(
     }
 
     /**
-     * 文本切割任务完成
+     * 文本切割任务完成。
      */
     fun success(fileNodeId: String, textNodeCount: Int) {
         require(status == MissionStatus.RUNNING) {
@@ -86,7 +93,7 @@ class StructureExtractionMission(
     }
 
     /**
-     * 文本切割任务失败
+     * 文本切割任务失败。
      */
     fun failure(reason: String) {
         require(status == MissionStatus.RUNNING || status == MissionStatus.PENDING) {
@@ -98,9 +105,19 @@ class StructureExtractionMission(
         endTime = Instant.now()
     }
 
+    /**
+     * 判断任务是否完成（成功或失败）。 
+     */
     fun isCompleted(): Boolean = status == MissionStatus.SUCCESS || status == MissionStatus.ERROR
+
+    /**
+     * 判断任务是否成功。
+     */
     fun isSuccess(): Boolean = status == MissionStatus.SUCCESS
 
+    /**
+     * 获取成功结果，若状态不匹配则抛出异常。
+     */
     fun getSuccessResult(): StructureExtractionMissionResult.Success {
         require(status == MissionStatus.SUCCESS) {
             "任务没有成功，不可以获取成功的结果"
@@ -112,6 +129,9 @@ class StructureExtractionMission(
         return result as StructureExtractionMissionResult.Success
     }
 
+    /**
+     * 获取失败结果，若状态不匹配则抛出异常。
+     */
     fun getFailureResult(): StructureExtractionMissionResult.Failure {
         require(status == MissionStatus.ERROR) {
             "任务没有失败，不可以获取失败的结果"
