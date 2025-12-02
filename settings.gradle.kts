@@ -28,7 +28,7 @@ include(":controller-web")
 include(":controller-mcp")
 
 include(":infra-model")
-include(":infra-preprocessing")
+include(":markdown-corrector")
 include(":infra-qa")
 include(":infra-textsplitter")
 include(":infra-pipeline")

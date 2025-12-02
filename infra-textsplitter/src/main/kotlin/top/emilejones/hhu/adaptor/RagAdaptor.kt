@@ -1,11 +1,13 @@
 package top.emilejones.hhu.adaptor
 
+import org.springframework.stereotype.Service
 import top.emilejones.hhu.domain.pipeline.FileNode
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.StructureExtractionGateway
 import java.io.InputStream
 
+@Service
 class RagAdaptor : OcrGateway, StructureExtractionGateway, EmbeddingGateway {
     override fun minerU(input: InputStream): InputStream {
         TODO("Not yet implemented")

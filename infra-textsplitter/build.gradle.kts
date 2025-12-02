@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":infra-model"))
     implementation(project(":common"))
     implementation(project(":domain"))
+    implementation(project(":markdown-corrector"))
 }
 
 tasks.test {
