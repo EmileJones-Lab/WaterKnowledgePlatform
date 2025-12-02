@@ -28,7 +28,6 @@ interface KnowledgeDocumentRepository {
     /**
      * 保存或更新知识文档；若已存在相同标识的记录，将覆盖旧内容（等同于 upsert）。
      * @param knowledgeDocument 知识库文档
-     * @return 一个success的信息，这里可不可以考虑封装一个Result类？
      * @author EmileNathon
      */
     fun save(knowledgeDocument: KnowledgeDocument)
@@ -36,7 +35,6 @@ interface KnowledgeDocumentRepository {
     /**
      * 删除指定知识文档。
      * @param knowledgeDocumentId 知识库文档id
-     * @return 一个success的信息，这里可不可以考虑封装一个Result类？
      * @author EmileNathon
      */
     fun delete(knowledgeDocumentId: String)

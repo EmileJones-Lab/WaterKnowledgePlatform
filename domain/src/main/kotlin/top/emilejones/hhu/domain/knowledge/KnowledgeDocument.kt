@@ -13,4 +13,21 @@ class KnowledgeDocument(
     val embeddingMissionId: String,
     val type: KnowledgeDocumentType,
     val createTime: Instant
-) : AggregateRoot<String>(id)
+) : AggregateRoot<String>(id) {
+    companion object {
+        fun create(
+            id: String,
+            name: String,
+            embeddingMissionId: String,
+            type: KnowledgeDocumentType
+        ): KnowledgeDocument {
+            return KnowledgeDocument(
+                id,
+                name,
+                embeddingMissionId,
+                type,
+                Instant.now()
+            )
+        }
+    }
+}
