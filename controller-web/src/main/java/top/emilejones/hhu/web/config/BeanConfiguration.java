@@ -10,11 +10,11 @@ import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl;
 import top.emilejones.hhu.repository.IMilvusRepository;
 import top.emilejones.hhu.repository.INeo4jRepository;
 import top.emilejones.hhu.service.impl.RecallService;
-import top.emilejones.huu.env.AutoFindConfigFile;
-import top.emilejones.huu.env.pojo.HttpModelClientConfig;
-import top.emilejones.huu.env.pojo.MilvusConfig;
-import top.emilejones.huu.env.pojo.Neo4jConfig;
-import top.emilejones.huu.env.pojo.RAGConfig;
+import top.emilejones.hhu.env.AutoFindConfigFile;
+import top.emilejones.hhu.env.pojo.HttpModelClientConfig;
+import top.emilejones.hhu.env.pojo.MilvusConfig;
+import top.emilejones.hhu.env.pojo.Neo4jConfig;
+import top.emilejones.hhu.env.pojo.RAGConfig;
 
 @Configuration
 @Import(AutoFindConfigFile.class)

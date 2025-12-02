@@ -7,9 +7,9 @@ import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.impl.ModelClientByHttp;
 import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl;
 import top.emilejones.hhu.repository.INeo4jRepository;
-import top.emilejones.huu.env.AutoFindConfigFile;
-import top.emilejones.huu.env.pojo.HttpModelClientConfig;
-import top.emilejones.huu.env.pojo.Neo4jConfig;
+import top.emilejones.hhu.env.AutoFindConfigFile;
+import top.emilejones.hhu.env.pojo.HttpModelClientConfig;
+import top.emilejones.hhu.env.pojo.Neo4jConfig;
 
 @Configuration
 @Import(AutoFindConfigFile.class)

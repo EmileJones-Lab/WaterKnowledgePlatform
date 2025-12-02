@@ -9,7 +9,7 @@ import top.emilejones.hhu.milvus.SingleCollectionMilvusRepository
 import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl
 import top.emilejones.hhu.repository.IMilvusRepository
 import top.emilejones.hhu.repository.INeo4jRepository
-import top.emilejones.huu.env.AutoFindConfigFile
+import top.emilejones.hhu.env.AutoFindConfigFile
 
 /**
  * 清空数据库的命令
