@@ -3,37 +3,52 @@ package top.emilejones.hhu.domain.pipeline.infrastructure.repository
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission
 
 /**
- * 向量化任务仓储接口。
+ * 向量化任务仓储接口，管理任务的持久化与向量入库。
+ *
+ * 约定：通用约束与实现细节以各方法注释为准。
  * @author EmileJones
  */
 interface EmbeddingMissionRepository {
     /**
      * 保存单个任务；已存在同标识任务时覆盖旧记录。
+     *
+     * 约定：具备 upsert 语义。
      */
     fun save(embeddingMission: EmbeddingMission)
 
     /**
      * 删除任务。
+     *
+     * 约定：删除操作应幂等，重复删除或未命中不应抛出异常。
      */
     fun delete(embeddingMissionId: String)
 
     /**
      * 根据源文档查询任务列表。
+     *
+     * 约定：返回该文档关联的全部向量化任务；未命中时返回空列表，返回顺序按任务创建时间倒序。
+     *
+     * @param sourceDocumentId 源文档标识
+     * @return 该文档关联的全部向量化任务
      */
     fun findBySourceDocumentId(sourceDocumentId: String): List<EmbeddingMission>
 
     /**
      * 批量查询任务列表。
+     *
+     * 约定：结果顺序需与入参列表保持一致；缺失项应返回空列表占位，确保位置一一对应。
+     *
+     * @param sourceDocumentIdList 源文档标识列表
+     * @return 与入参一一对应的任务列表集合
      */
     fun findBatchBySourceDocumentId(sourceDocumentIdList: List<String>): List<List<EmbeddingMission>>
 
     /**
      * 批量保存任务；遇到已存在的标识时执行覆盖（upsert）。
+     *
+     * 约定：具备 upsert 语义；当批量写入部分失败时需能定位具体任务以便重试。
+     *
+     * @param embeddingMissionList 待保存任务集合
      */
     fun saveBatch(embeddingMissionList: List<EmbeddingMission>)
-
-    /**
-     * 将向量化结果保存到向量数据库中
-     */
-    fun saveToVectorDatabases(embeddingMissionId: String, collectionName: String)
 }
