@@ -1,4 +1,4 @@
-package top.emilejones.hhu.enums
+package top.emilejones.hhu.domain.po
 
 enum class Neo4jRelationshipType(val comment: String) {
     PARENT("父节点"),

@@ -4,8 +4,8 @@ import org.neo4j.driver.QueryRunner
 import org.neo4j.driver.Values
 import org.neo4j.driver.types.Node
 import org.neo4j.driver.types.Relationship
-import top.emilejones.hhu.enums.Neo4jRelationshipType
-import top.emilejones.hhu.enums.TextType
+import top.emilejones.hhu.domain.pipeline.TextType
+import top.emilejones.hhu.domain.po.Neo4jRelationshipType
 import top.emilejones.hhu.domain.po.Neo4jFileNode
 import top.emilejones.hhu.domain.po.Neo4jRelationship
 import top.emilejones.hhu.domain.po.Neo4jTextNode
@@ -16,15 +16,18 @@ fun Node.asNeo4jTextNode(): Neo4jTextNode {
         text = this["text"].asString(),
         seq = this["seq"].asInt(),
         level = this["level"].asInt(),
-        type = TextType.valueOf(this["type"].asString())
+        type = TextType.valueOf(this["type"].asString()),
+        vector = this["vector"].asList { it.asFloat() },
+        id = this["id"].asString()
     )
 }
 
 fun Node.asNeo4jFileNode(): Neo4jFileNode {
     return Neo4jFileNode(
         elementId = this.elementId(),
-        fileName = this["fileName"].asString(),
-        isEmbedded = this["isEmbedded"].asBoolean()
+        fileId = this["fileId"].asString(),
+        isEmbedded = this["isEmbedded"].asBoolean(),
+        id = this["id"].asString()
     )
 }
 
@@ -41,12 +44,14 @@ fun QueryRunner.insertTextNode(neo4jTextNode: Neo4jTextNode): Neo4jTextNode {
     val insertTextNodeResult = this.run(
         """
             CREATE (n:TextNode {
+                id: ${'$'}id,
                 text: ${'$'}text,
                 seq: ${'$'}seq,
                 level: ${'$'}level,
                 name: ${'$'}name,
                 length: ${'$'}length,
-                type: ${'$'}type
+                type: ${'$'}type,
+                vector: ${'$'}vector
             })
             RETURN n
         """,
@@ -56,7 +61,9 @@ fun QueryRunner.insertTextNode(neo4jTextNode: Neo4jTextNode): Neo4jTextNode {
             "level", neo4jTextNode.level,
             "name", neo4jTextNode.seq,
             "length", neo4jTextNode.length,
-            "type", neo4jTextNode.type.name
+            "type", neo4jTextNode.type.name,
+            "vector", neo4jTextNode.vector,
+            "id", neo4jTextNode.id
         )
     ).single()
     return insertTextNodeResult["n"].asNode().asNeo4jTextNode()
@@ -66,14 +73,16 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
     val insertFileNodeResult = this.run(
         """
             CREATE (n:FileNode {
-                fileName: ${'$'}fileName,
+                id: ${'$'}id,
+                fileId: ${'$'}fileId,
                 isEmbedded: ${'$'}isEmbedded
             })
             RETURN n
         """,
         Values.parameters(
-            "fileName", neo4jFileNode.fileName,
-            "isEmbedded", neo4jFileNode.isEmbedded
+            "fileId", neo4jFileNode.fileId,
+            "isEmbedded", neo4jFileNode.isEmbedded,
+            "id", neo4jFileNode.id
         )
     ).single()
     return insertFileNodeResult["n"].asNode().asNeo4jFileNode()

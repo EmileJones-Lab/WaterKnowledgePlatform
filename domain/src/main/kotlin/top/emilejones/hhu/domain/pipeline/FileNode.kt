@@ -7,9 +7,9 @@ import top.emilejones.hhu.domain.AggregateRoot
  * @author EmileJones
  */
 class FileNode(
-    val elementId: String,
+    override val id: String,
     val sourceDocumentId: String,
     var isEmbedded: Boolean,
     val childNodeNumber: Int
-): AggregateRoot<String>(elementId) {
+): AggregateRoot<String>(id) {
 }

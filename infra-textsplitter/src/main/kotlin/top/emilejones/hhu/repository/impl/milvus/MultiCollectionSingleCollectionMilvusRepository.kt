@@ -1,8 +1,7 @@
-package top.emilejones.hhu.milvus
+package top.emilejones.hhu.repository.impl.milvus
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import io.milvus.v2.client.ConnectConfig
 import io.milvus.v2.client.MilvusClientV2
 import io.milvus.v2.common.DataType
 import io.milvus.v2.common.IndexParam
@@ -16,47 +15,50 @@ import io.milvus.v2.service.vector.request.data.BaseVector
 import io.milvus.v2.service.vector.request.data.FloatVec
 import io.milvus.v2.service.vector.response.SearchResp
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.domain.dto.DenseRecallResult
-import top.emilejones.hhu.enums.TextType
+import org.springframework.stereotype.Service
+import top.emilejones.hhu.domain.pipeline.TextType
 import top.emilejones.hhu.domain.po.EmbeddingDatum
-import top.emilejones.hhu.repository.IMilvusRepository
+import top.emilejones.hhu.env.pojo.HttpModelClientConfig
+import top.emilejones.hhu.env.pojo.MilvusConfig
+import top.emilejones.hhu.repository.IMultiCollectionMilvusRepository
 
-class SingleCollectionMilvusRepository(
-    private val host: String?,
-    private val port: Int?,
-    private val database: String,
-    private val collection: String,
-    private val dimension: Int
-) : IMilvusRepository {
-    private val client: MilvusClientV2
-    private val databaseName: String
-    private val collectionName: String
-    private val logger = LoggerFactory.getLogger(SingleCollectionMilvusRepository::class.java)
+
+@Service
+class MultiCollectionSingleCollectionMilvusRepository(
+    private val client: MilvusClientV2,
+    milvusConfig: MilvusConfig,
+    httpModelClientConfig: HttpModelClientConfig
+) : IMultiCollectionMilvusRepository {
+    private val databaseName: String = milvusConfig.database
+    private val dimension: Int = httpModelClientConfig.dimension
+    private val existsCollection: MutableSet<String> = HashSet()
+    private val logger = LoggerFactory.getLogger(MultiCollectionSingleCollectionMilvusRepository::class.java)
     private val gson = Gson()
 
     init {
-        val connectConfig = ConnectConfig.builder().uri("http://%s:%d".format(host, port)).build()
-        this.client = MilvusClientV2(connectConfig)
-        this.databaseName = database
-        this.collectionName = collection
+        createDatabaseIfNotExists()
+        client.useDatabase(databaseName)
     }
 
-    override fun insert(datum: EmbeddingDatum): Boolean {
-        logger.trace("Start insert embedding node [{}] ", datum.neo4jElementId)
+    override fun insert(collectionName: String, datum: EmbeddingDatum): Boolean {
+        logger.trace("Start insert embedding node [{}] ", datum.neo4jNodeId)
         // 1. 封装向量为 FloatArray
         val vectorArray: FloatArray = datum.vector.toFloatArray()
 
         // 2. 构建单条数据的 JsonObject
         val jsonData = JsonObject().apply {
             add("vector", gson.toJsonTree(vectorArray))
-            addProperty("elementId", datum.neo4jElementId)
+            addProperty("neo4jNodeId", datum.neo4jNodeId)
             addProperty("text", datum.text)
             addProperty("type", datum.type.name)
         }
 
         // 3. 构建 InsertReq
-        val insertReq =
-            InsertReq.builder().databaseName(databaseName).collectionName(collectionName).data(listOf(jsonData)).build()
+        val insertReq = InsertReq.builder()
+            .databaseName(databaseName)
+            .collectionName(collectionName)
+            .data(listOf(jsonData))
+            .build()
 
         // 4. 执行插入
         val resp = client.insert(insertReq)
@@ -64,7 +66,7 @@ class SingleCollectionMilvusRepository(
         return true
     }
 
-    override fun batchInsert(data: List<EmbeddingDatum>): Boolean {
+    override fun batchInsert(collectionName: String, data: List<EmbeddingDatum>): Boolean {
         logger.trace("Start batch insert embedding nodes, nodes number: [{}]", data.size)
         val jsonObjectList = data.map { datum ->
             // 封装向量为 FloatArray
@@ -73,15 +75,18 @@ class SingleCollectionMilvusRepository(
             // 构建单条数据的 JsonObject
             JsonObject().apply {
                 add("vector", gson.toJsonTree(vectorArray))
-                addProperty("elementId", datum.neo4jElementId)
+                addProperty("neo4jNodeId", datum.neo4jNodeId)
                 addProperty("text", datum.text)
                 addProperty("type", datum.type.name)
             }
         }.toMutableList()
 
         // 3. 构建 InsertReq
-        val insertReq =
-            InsertReq.builder().databaseName(databaseName).collectionName(collectionName).data(jsonObjectList).build()
+        val insertReq = InsertReq.builder()
+            .databaseName(databaseName)
+            .collectionName(collectionName)
+            .data(jsonObjectList)
+            .build()
 
         // 4. 执行插入
         val resp = client.insert(insertReq)
@@ -89,7 +94,12 @@ class SingleCollectionMilvusRepository(
         return true
     }
 
-    override fun searchByVector(queryVector: List<Float>, topK: Int, filter: String?): List<EmbeddingDatum> {
+    override fun searchByVector(
+        collectionName: String,
+        queryVector: List<Float>,
+        topK: Int,
+        filter: String?
+    ): List<EmbeddingDatum> {
         val mutableListOf: MutableList<BaseVector> = mutableListOf(FloatVec(queryVector))
         val searchParamsMap: Map<String, Any> = mapOf(
             "metric_type" to "L2", "params" to mapOf("nprobe" to 10)
@@ -97,7 +107,7 @@ class SingleCollectionMilvusRepository(
         // 构建搜索请求
         val searchReq =
             SearchReq.builder().databaseName(databaseName).collectionName(collectionName).annsField("vector").topK(topK)
-                .data(mutableListOf).outputFields(listOf("text", "elementId", "vector")).apply {
+                .data(mutableListOf).outputFields(listOf("text", "neo4jNodeId", "vector")).apply {
                     if (!filter.isNullOrBlank()) {
                         filter(filter)
                     }
@@ -111,7 +121,7 @@ class SingleCollectionMilvusRepository(
         val resultsForQuery: List<SearchResp.SearchResult> = data.firstOrNull() ?: return emptyList()
         // 6. 映射成 EmbeddingDatum
         return resultsForQuery.map { r ->
-            val neo4jId = r.entity["elementId"].toString()
+            val neo4jId = r.entity["neo4jNodeId"].toString()
             val text = r.entity["text"].toString()
             val vector = r.entity["vector"]
             val type = r.entity["type"].toString()
@@ -119,32 +129,12 @@ class SingleCollectionMilvusRepository(
                 throw RuntimeException("Illegal vector type")
             }
             EmbeddingDatum(
-                vector = vector as List<Float>, neo4jElementId = neo4jId, text = text, type = TextType.valueOf(type)
+                vector = vector as List<Float>, neo4jNodeId = neo4jId, text = text, type = TextType.valueOf(type)
             )
         }
     }
 
-    override fun search(queryVector: List<Float?>?, topK: Int): List<DenseRecallResult>? {
-        val floatVec = FloatVec(queryVector)
-        val searchR = client.search(
-            SearchReq.builder().databaseName(databaseName).collectionName(collectionName)
-                .data(java.util.List.of<BaseVector>(floatVec)).topK(topK)
-                .outputFields(listOf("text", "elementId", "type")).build()
-        )
-        val searchResults = searchR.searchResults
-        return searchResults.stream().flatMap { list: List<SearchResp.SearchResult> ->
-            list.stream().map { result: SearchResp.SearchResult ->
-                DenseRecallResult(
-                    elementId = result.entity["elementId"].toString(),
-                    text = result.entity["text"].toString(),
-                    type = TextType.valueOf(result.entity["type"].toString()),
-                    score = result.score
-                )
-            }
-        }.toList()
-    }
-
-    override fun clearAllData() {
+    override fun clearAllData(collectionName: String) {
         val dropQuickSetupParam = DropCollectionReq.builder()
             .collectionName(collectionName)
             .databaseName(databaseName)
@@ -152,25 +142,32 @@ class SingleCollectionMilvusRepository(
         client.dropCollection(dropQuickSetupParam)
     }
 
-    override fun close() {
-        client.close()
+    private fun checkCollectionExistOrCreate(collectionName: String) {
+        if (existsCollection.contains(collectionName))
+            return
+        val resp = client.listCollections()
+        if (!resp.collectionNames.contains(collectionName))
+            createCollection(collectionName)
+        existsCollection.add(collectionName)
     }
 
-    private fun createDatabase() {
+    private fun createDatabaseIfNotExists() {
+        val resp = client.listDatabases() // 列出所有数据库
+        if (resp.databaseNames.contains(databaseName))
+            return
         val createDatabaseReq = CreateDatabaseReq.builder().databaseName(databaseName).build()
-
         client.createDatabase(createDatabaseReq)
         logger.debug("Create milvus database named [{}]", databaseName)
     }
 
-    private fun createCollection() {
+    private fun createCollection(collectionName: String) {
         // 1. 创建schema
         val schema = MilvusClientV2.CreateSchema()
         // 2. 创建字段
-        // 2.1 elementId (VarChar 主键)
+        // 2.1 neo4jNodeId (VarChar 主键)
         schema.addField(
-            AddFieldReq.builder().fieldName("elementId").dataType(DataType.VarChar).isPrimaryKey(true).autoID(false)
-                .maxLength(64) // 必须指定长度
+            AddFieldReq.builder().fieldName("neo4jNodeId").dataType(DataType.VarChar).isPrimaryKey(true).autoID(false)
+                .maxLength(36) // 必须指定长度
                 .build()
         )
 

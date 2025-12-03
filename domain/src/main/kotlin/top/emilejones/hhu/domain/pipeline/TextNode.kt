@@ -7,12 +7,25 @@ import top.emilejones.hhu.domain.AggregateRoot
  * @author EmileJones
  */
 class TextNode(
-    val elementId: String,
-    val fileNodeElementId: String,
+    override val id: String,
+    val fileNodeId: String,
     val text: String,
     val seq: Int,
     val level: Int,
     val type: TextType,
-    var isEmbedded: Boolean
-): AggregateRoot<String>(elementId) {
+    isEmbedded: Boolean,
+    vector: List<Float>?
+) : AggregateRoot<String>(id) {
+    var vector: List<Float>? = vector
+        private set
+    var isEmbedded: Boolean = isEmbedded
+        private set
+
+    fun saveVector(vector: List<Float>) {
+        require(!isEmbedded) { "TextNode[$id]节点向量已经被向量化" }
+        require(this.vector == null) { "TextNode[$id]节点向量已经存在" }
+        this.vector = vector
+        this.isEmbedded = true
+    }
+
 }

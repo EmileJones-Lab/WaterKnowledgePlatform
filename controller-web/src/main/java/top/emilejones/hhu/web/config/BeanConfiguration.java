@@ -3,11 +3,11 @@ package top.emilejones.hhu.web.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import top.emilejones.hhu.milvus.SingleCollectionMilvusRepository;
+import top.emilejones.hhu.repository.impl.milvus.SingleCollectionSingleCollectionMilvusRepository;
 import top.emilejones.hhu.model.ModelClient;
 import top.emilejones.hhu.model.impl.ModelClientByHttp;
 import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl;
-import top.emilejones.hhu.repository.IMilvusRepository;
+import top.emilejones.hhu.repository.ISingleCollectionMilvusRepository;
 import top.emilejones.hhu.repository.INeo4jRepository;
 import top.emilejones.hhu.service.impl.RecallService;
 import top.emilejones.hhu.env.AutoFindConfigFile;
@@ -31,13 +31,13 @@ public class BeanConfiguration {
     }
 
     @Bean
-    public RecallService getRecallService(RAGConfig ragConfig, IMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ModelClient modelClient) {
+    public RecallService getRecallService(RAGConfig ragConfig, ISingleCollectionMilvusRepository milvusRepository, INeo4jRepository neo4jRepository, ModelClient modelClient) {
         return new RecallService(milvusRepository, neo4jRepository, modelClient, ragConfig.getRecallNumber());
     }
 
     @Bean
-    public IMilvusRepository getMilvusRepository(MilvusConfig milvusConfig, HttpModelClientConfig modelConfig) {
-        return new SingleCollectionMilvusRepository(milvusConfig.getHost(),
+    public ISingleCollectionMilvusRepository getMilvusRepository(MilvusConfig milvusConfig, HttpModelClientConfig modelConfig) {
+        return new SingleCollectionSingleCollectionMilvusRepository(milvusConfig.getHost(),
                 milvusConfig.getPort(),
                 milvusConfig.getDatabase(),
                 milvusConfig.getCollection(),

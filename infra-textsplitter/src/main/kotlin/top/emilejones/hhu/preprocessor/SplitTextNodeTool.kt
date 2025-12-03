@@ -1,10 +1,11 @@
 package top.emilejones.hhu.preprocessor
 
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.domain.dto.TextNode
-import top.emilejones.hhu.enums.TextType
+import top.emilejones.hhu.domain.pipeline.TextType
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
 import top.emilejones.hhu.spliter.impl.HtmlTableToCsvSplitter
 import top.emilejones.hhu.spliter.impl.PunctuationSplitter
+import java.util.*
 
 /**
  * 切分节点的工具
@@ -15,7 +16,7 @@ import top.emilejones.hhu.spliter.impl.PunctuationSplitter
  * @author EmileJones
  */
 class SplitTextNodeTool(
-    private val rootNode: TextNode,
+    private val rootNode: TextNodeDTO,
     private val maxTableLength: Int,
     private val maxSentenceLength: Int
 ) : Runnable {
@@ -34,7 +35,7 @@ class SplitTextNodeTool(
      * 将整个文件树的seq字段重新按照顺序设置
      * @param rootNode 根节点（需要传入最上层的无效节点）
      */
-    private fun correctSeq(rootNode: TextNode) {
+    private fun correctSeq(rootNode: TextNodeDTO) {
         if (rootNode.type != TextType.NULL)
             throw IllegalArgumentException("需要传入最上层的节点")
         var nowNode = rootNode.nextNode
@@ -48,7 +49,7 @@ class SplitTextNodeTool(
      * 深度遍历处理所有节点
      * @param nowNode 当前遍历到的节点
      */
-    private fun deepVisit(nowNode: TextNode) {
+    private fun deepVisit(nowNode: TextNodeDTO) {
         // 如果是表格则进行处理
         when (nowNode.type) {
             TextType.TABLE -> handleTableNode(nowNode)
@@ -68,22 +69,18 @@ class SplitTextNodeTool(
      * 处理表格节点
      * @param tableNode 表格节点
      */
-    private fun handleTableNode(tableNode: TextNode) {
+    private fun handleTableNode(tableNode: TextNodeDTO) {
         if (!tableNode.text.startsWith("<table"))
             return
-        logger.debug(
-            "Handling table node of file [{}], seq number: [{}]",
-            tableNode.fileNode!!.fileName,
-            tableNode.seq
-        )
         // 将HTML table转换为Csv
         val splitResults = HtmlTableToCsvSplitter.split(tableNode.text, maxTableLength).getOrThrow()
         val newNodeList = splitResults.map {
-            TextNode(
+            TextNodeDTO(
                 text = it,
                 seq = -1,
                 level = Int.MAX_VALUE,
-                type = TextType.TABLE
+                type = TextType.TABLE,
+                id = UUID.randomUUID().toString()
             )
         }
         rebindRelationship(tableNode, newNodeList)
@@ -93,13 +90,13 @@ class SplitTextNodeTool(
      * 处理句子节点
      * @param sentenceNode 句子节点
      */
-    private fun handleSentence(sentenceNode: TextNode) {
+    private fun handleSentence(sentenceNode: TextNodeDTO) {
 
         if (sentenceNode.text.length < maxSentenceLength)
             return
         logger.debug(
             "Handling sentence node of file [{}], seq number: [{}]",
-            sentenceNode.fileNode!!.fileName,
+            sentenceNode.fileNode!!.id,
             sentenceNode.seq
         )
         // 切分句子
@@ -107,11 +104,12 @@ class SplitTextNodeTool(
         val newNodeList = splitResults.map {
             if (it.length > maxSentenceLength)
                 throw RuntimeException("Find a sentence sequence length [${it.length}] is more than $maxSentenceLength")
-            TextNode(
+            TextNodeDTO(
                 text = it,
                 seq = -1,
                 level = Int.MAX_VALUE,
-                type = TextType.TABLE
+                type = TextType.TABLE,
+                id = UUID.randomUUID().toString()
             )
         }
         rebindRelationship(sentenceNode, newNodeList)
@@ -129,12 +127,12 @@ class SplitTextNodeTool(
      * @param oldNode 被拆分的节点，只能是叶子节点
      * @param newNodeList 被拆分后的节点片段
      */
-    private fun rebindRelationship(oldNode: TextNode, newNodeList: List<TextNode>) {
+    private fun rebindRelationship(oldNode: TextNodeDTO, newNodeList: List<TextNodeDTO>) {
         // 记录其他节点
         val preNode = oldNode.preNode
         val nextNode = oldNode.nextNode
         val parentNode = oldNode.parentNode
-            ?: throw IllegalArgumentException("此文件没有标题，请检查此文件: [${oldNode.fileNode?.fileName}]")
+            ?: throw IllegalArgumentException("此文件没有标题，请检查此文件: [${oldNode.fileNode?.id}]")
 
         if (oldNode.childNum() != 0)
             throw IllegalArgumentException("不能切分非叶子节点")

@@ -1,10 +1,12 @@
 package top.emilejones.hhu.parser
 
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.domain.dto.FileNode
-import top.emilejones.hhu.domain.dto.TextNode
-import top.emilejones.hhu.enums.TextType
+import top.emilejones.hhu.domain.pipeline.TextType
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
 import java.io.File
+import java.io.InputStream
+import java.util.*
 import java.util.function.Supplier
 
 private fun String.markdownLevel(): Int {
@@ -28,41 +30,60 @@ private val String.textType: TextType
 /**
  * 将文件解析为树状结构
  * @author EmileJones
- * @param file 需要解析的文件
  */
-class MarkdownStructureParser(file: File) : Supplier<TextNode> {
-    private val lines: List<String> = file.readText(Charsets.UTF_8).lines()
-    private val fileName: String = file.name
+class MarkdownStructureParser private constructor(
+    private val lines: List<String>,
+    private val fileName: String,
+    private val fileId: String
+) : Supplier<TextNodeDTO> {
 
     private var index = 0
-    private var fileNode: FileNode
-    private var preSeqNode: TextNode
-    private var rootNode: TextNode
+    private var fileNode: FileNodeDTO
+    private var preSeqNode: TextNodeDTO
+    private var rootNode: TextNodeDTO
     private var isOver: Boolean
 
     private val logger = LoggerFactory.getLogger(MarkdownStructureParser::class.java)
 
+    @Deprecated("这是本地文件测试使用的构造函数，已经弃用")
+    constructor(file: File) : this(
+        lines = file.readText(Charsets.UTF_8).lines(),
+        fileName = file.name,
+        fileId = ""
+    )
+
+    constructor(inputStream: InputStream, fileId: String) : this(
+        lines = String(inputStream.readAllBytes()).lines(),
+        fileName = "",
+        fileId = fileId
+    )
+
+    constructor(inputStream: InputStream) : this(
+        lines = String(inputStream.readAllBytes()).lines(),
+        fileName = "",
+        fileId = ""
+    )
+
     init {
         isOver = false
         index = 0
-        fileNode = FileNode(
-            fileName = fileName
-        )
-        rootNode = TextNode(
+        fileNode = FileNodeDTO(UUID.randomUUID().toString(), null)
+        rootNode = TextNodeDTO(
             type = TextType.NULL,
             text = "",
             seq = -1,
-            level = 0
+            level = 0,
+            id = UUID.randomUUID().toString()
         )
         rootNode.fileNode = fileNode
         preSeqNode = rootNode
     }
 
     /**
-     * 将文件解析为树状结构，根节点为空节点，方便算法书写和后续处理，并无实际意义。
+     * 将文件解析为树状结构，根节点为NULL类型节点，方便算法书写和后续处理，并无实际意义。
      * @return 树状结构的根节点
      */
-    override fun get(): TextNode {
+    override fun get(): TextNodeDTO {
         if (isOver)
             return rootNode
         // 构建树状结构和序列结构
@@ -73,7 +94,7 @@ class MarkdownStructureParser(file: File) : Supplier<TextNode> {
         return rootNode
     }
 
-    private fun handleChild(parentNode: TextNode) {
+    private fun handleChild(parentNode: TextNodeDTO) {
         if (index >= lines.size)
             return
 
@@ -84,11 +105,12 @@ class MarkdownStructureParser(file: File) : Supplier<TextNode> {
         val nowIndex = index
         logger.debug("Parsing row [{}] of file [{}], line text: [{}]", nowIndex, fileName, lines[nowIndex])
 
-        val nowNode: TextNode = TextNode(
+        val nowNode: TextNodeDTO = TextNodeDTO(
             text = lines[nowIndex],
             seq = preSeqNode.seq + 1,
             level = lines[nowIndex].markdownLevel(),
-            type = lines[nowIndex].textType
+            type = lines[nowIndex].textType,
+            id = UUID.randomUUID().toString()
         )
         // 插入父子关系、序列关系
         setParentRelationship(parentNode, nowNode)
@@ -110,17 +132,17 @@ class MarkdownStructureParser(file: File) : Supplier<TextNode> {
         }
     }
 
-    private fun setFileRelationship(fileNode: FileNode, textNode: TextNode) {
+    private fun setFileRelationship(fileNode: FileNodeDTO, textNode: TextNodeDTO) {
         fileNode.addChild(textNode)
         textNode.fileNode = fileNode
     }
 
-    private fun setParentRelationship(parent: TextNode, textNode: TextNode) {
+    private fun setParentRelationship(parent: TextNodeDTO, textNode: TextNodeDTO) {
         parent.addChild(textNode)
         textNode.parentNode = parent
     }
 
-    private fun setPreSequenceRelationship(preSequenceNode: TextNode, textNode: TextNode) {
+    private fun setPreSequenceRelationship(preSequenceNode: TextNodeDTO, textNode: TextNodeDTO) {
         preSequenceNode.nextNode = textNode
         textNode.preNode = preSequenceNode
     }

@@ -9,8 +9,7 @@ sealed class StructureExtractionMissionResult {
      * 成功结果，包含生成的文件节点与切分数量。
      */
     data class Success(
-        val fileNodeId: String,
-        val chunkNumber: Int
+        val fileNodeId: String
     ) : StructureExtractionMissionResult()
 
     /**

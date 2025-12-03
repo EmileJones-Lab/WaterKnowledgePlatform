@@ -1,6 +1,5 @@
 package top.emilejones.hhu.service
 
-import top.emilejones.hhu.domain.po.Neo4jFileNode
 import top.emilejones.hhu.domain.po.Neo4jTextNode
 
 /**
@@ -13,15 +12,17 @@ interface IRecallService {
      * 召回和问题相关的文本
      *
      * @param query 问题
+     * @param collectionName milvus的collection名称
      * @return 和问题相关的文本
      */
-    fun recallText(query: String): List<String>
+    fun recallText(query: String, collectionName: String): List<String>
 
     /**
      * 召回和问题相关的节点
      *
      * @param query 问题
+     * @param collectionName milvus的collection名称
      * @return 和问题相关的节点
      */
-    fun recallNode(query: String): List<Pair<Neo4jFileNode, Neo4jTextNode>>
+    fun recallNode(query: String, collectionName: String): List<Neo4jTextNode>
 }

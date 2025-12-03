@@ -71,7 +71,7 @@ public class RecallController {
                 }).toList();
     }
 
-    private TextType convertTextType(top.emilejones.hhu.enums.TextType domainType) {
+    private TextType convertTextType(top.emilejones.hhu.domain.enums.TextType domainType) {
         if (domainType == null) {
             return null;
         }

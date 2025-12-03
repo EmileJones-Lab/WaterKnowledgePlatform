@@ -1,7 +1,7 @@
 package top.emilejones.hhu.preprocessing.structure;
 
+import org.springframework.stereotype.Service;
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
-import top.emilejones.hhu.preprocessing.handler.structure.CatalogTitleLevelCorrector;
 import top.emilejones.hhu.preprocessing.handler.structure.CatalogTitleLevelCorrectorPlus;
 import top.emilejones.hhu.preprocessing.structure.enums.TitleType;
 import top.emilejones.hhu.preprocessing.structure.tree.Node;
@@ -19,9 +19,11 @@ import java.util.regex.Pattern;
  * @author EmileJones
  * @author yeyezhi
  */
+@Service
 public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
 
     private String[] lines;
+
     @Override
     protected String initOriginText(String originText) {
         String haveNoCatalogText = removeCatalog(originText);
@@ -48,7 +50,7 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
             }
 
             String processedLine = trimmedLine;
-            
+
             // 处理层级标题：删除数字和点号之间的空格（如 "1. 1. 1" -> "1.1.1"）
             // 但保留数字序列和文字之间的空格
             // 匹配格式：可选的#号 + 数字序列（如 "1. 2. 3" 或 "1. 2. 3. 4"）+ 空格 + 文字
@@ -58,15 +60,15 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
                 String numberSequence = hierarchicalMatcher.group(1);
                 String spaceAfterNumbers = hierarchicalMatcher.group(2);
                 String textAfter = hierarchicalMatcher.group(3);
-                
+
                 // 删除数字和点号之间的空格，但保留点号
                 // 将 "1. 2. 3" 转换为 "1.2.3"
                 String normalizedSequence = numberSequence.replaceAll("(\\d+)\\s*\\.\\s*", "$1.");
-                
+
                 processedLine = normalizedSequence + spaceAfterNumbers + textAfter;
                 lineChanged = true;
             }
-            
+
             for (TitleType type : TitleType.values()) {
                 if (type == TitleType.NilType || type.getTitleRegex() == null) {
                     continue;
@@ -80,8 +82,8 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
                     int matchEnd = matcher.end();
                     if (processedLine.length() > matchEnd && !Character.isWhitespace(processedLine.charAt(matchEnd))) {
                         processedLine = processedLine.substring(0, matchEnd)
-                              + " "
-                              + processedLine.substring(matchEnd);
+                                + " "
+                                + processedLine.substring(matchEnd);
                         lineChanged = true;
                         break;
                     }
@@ -223,7 +225,7 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
             System.out.println("标题树为空");
             return;
         }
-        
+
         StringBuilder sb = new StringBuilder();
         sb.append("========== 标题层次结构树 ==========\n");
         printStructureTreeRecursive(root, "", true, sb);
@@ -234,10 +236,10 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
     /**
      * 递归打印标题树结构
      *
-     * @param node 当前节点
+     * @param node   当前节点
      * @param indent 当前缩进字符串
      * @param isLast 是否是最后一个子节点
-     * @param sb 用于构建输出的StringBuilder
+     * @param sb     用于构建输出的StringBuilder
      */
     private void printStructureTreeRecursive(Node node, String indent, boolean isLast, StringBuilder sb) {
         if (node == null) {
@@ -248,18 +250,18 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
         if (node.getTitleType() != TitleType.NilType) {
             String prefix = isLast ? "└── " : "├── ";
             sb.append(indent).append(prefix);
-            
+
             // 获取标题文本
             String titleText = "";
             if (node.getIndex() >= 0 && node.getIndex() < lines.length) {
                 titleText = lines[node.getIndex()].trim();
             }
-            
+
             // 打印节点信息：行号、标题类型、标题内容
-            sb.append(String.format("[行%d] [%s] %s\n", 
-                node.getIndex() + 1, 
-                node.getTitleType().name(), 
-                titleText));
+            sb.append(String.format("[行%d] [%s] %s\n",
+                    node.getIndex() + 1,
+                    node.getTitleType().name(),
+                    titleText));
         }
 
         // 处理子节点
@@ -290,7 +292,7 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
         return s.replaceAll(catalogPattern, "");
     }
 
-    public void printTitleLevel(String originText){
+    public void printTitleLevel(String originText) {
         String s = initOriginText(originText);
         Node node = extractStructureTree(s);
         printStructureTree(node);

@@ -6,15 +6,14 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.springframework.stereotype.Service
+import top.emilejones.hhu.env.pojo.HttpModelClientConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.model.pojo.RerankResult
 
+@Service
 class ModelClientByHttp(
-    private val host: String,
-    private val port: Int,
-    private val token: String?,
-    private val embeddingModel: String,
-    private val rerankModel: String
+    private val modelClientConfig: HttpModelClientConfig
 ) : ModelClient {
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
@@ -24,9 +23,9 @@ class ModelClientByHttp(
     private val gson = Gson()
 
     override fun embedding(text: String): List<Float> {
-        val url = "http://$host:$port/v1/embeddings"
+        val url = "http://${modelClientConfig.host}:${modelClientConfig.port}/v1/embeddings"
         val payload = mapOf(
-            "model" to embeddingModel,
+            "model" to modelClientConfig.embeddingModel,
             "input" to text
         )
         val json = gson.toJson(payload)
@@ -36,8 +35,8 @@ class ModelClientByHttp(
             .post(body)
             .addHeader("accept", "application/json")
             .addHeader("Content-Type", "application/json")
-        if (token != null)
-            requestBuilder.addHeader("Authorization", "Bearer $token")
+        if (modelClientConfig.token != null)
+            requestBuilder.addHeader("Authorization", "Bearer ${modelClientConfig.token}")
         val request = requestBuilder.build()
 
         val responseBody = client.newCall(request).execute().use { response ->
@@ -80,9 +79,9 @@ class ModelClientByHttp(
     }
 
     private fun getRerankResult(query: String, textList: List<String>): List<RerankResult> {
-        val url = "http://$host:$port/v1/rerank"
+        val url = "http://${modelClientConfig.host}:${modelClientConfig.port}/v1/rerank"
         val payload = mapOf(
-            "model" to rerankModel,
+            "model" to modelClientConfig.rerankModel,
             "query" to query,
             "documents" to textList
         )
@@ -94,8 +93,8 @@ class ModelClientByHttp(
             .addHeader("accept", "application/json")
             .addHeader("Content-Type", "application/json")
 
-        if (token != null)
-            requestBuilder.addHeader("Authorization", "Bearer $token")
+        if (modelClientConfig.token != null)
+            requestBuilder.addHeader("Authorization", "Bearer ${modelClientConfig.token}")
 
         val request = requestBuilder.build()
 

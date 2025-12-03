@@ -2,101 +2,111 @@ package top.emilejones.hhu.service.impl
 
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 import top.emilejones.hhu.domain.po.EmbeddingDatum
+import top.emilejones.hhu.domain.po.Neo4jTextNode
+import top.emilejones.hhu.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
+import top.emilejones.hhu.ocr.MinerUClient
 import top.emilejones.hhu.parser.MarkdownStructureParser
+import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
 import top.emilejones.hhu.preprocessor.SplitTextNodeTool
-import top.emilejones.hhu.repository.IMilvusRepository
+import top.emilejones.hhu.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.repository.INeo4jRepository
 import top.emilejones.hhu.service.IDataProcessingService
-import java.io.File
 import java.io.InputStream
-import java.nio.file.Path
-import kotlin.io.path.name
 
 /**
  * @author EmileJones
  */
+@Service
 class DataProcessingService(
-    private val milvusRepository: IMilvusRepository,
+    private val milvusRepository: IMultiCollectionMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
-    private val maxSentenceLength: Int,
-    private val maxTableLength: Int
+    private val ragConfig: RAGConfig,
+    private val minerUClient: MinerUClient,
+    private val markdownStructureExtractor: MarkdownStructureExtractor
 ) : IDataProcessingService {
     private val logger = LoggerFactory.getLogger(DataProcessingService::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override suspend fun saveMarkdownFileToAllDatabase(filePath: Path) {
-        saveFileInNeo4j(filePath.toFile())
-        saveInMilvusFromNeo4jByFilename(filePath.name)
-    }
 
-    override fun ocrFileToMarkdownFile(
-        filename: String,
-        fileInputStream: InputStream,
-        contentType: String,
-        catalogId: String
-    ): Result<InputStream> {
-        TODO("Not yet implemented")
-    }
-
-    override fun extractMarkdownStructure(fileId: String): Result<String> {
-        TODO("Not yet implemented")
-    }
-
-    override fun embedMarkdownFileChunks(fileId: String) {
-        TODO("Not yet implemented")
-    }
-
-    /**
-     * 根据文件名称从Neo4j数据库中读取出整个文件的节点，将其存入向量数据库。
-     * 如果这个文件曾经被成功存入过向量数据库，则不会再次被存入。
-     * @param filename 需要存入的文件名
-     */
-    private suspend fun saveInMilvusFromNeo4jByFilename(filename: String) {
-        val fileNode = neo4jRepository.searchNeo4jFileNodeByFileName(filename)
-            ?: throw RuntimeException("The file [${filename}] is not exist")
-        if (fileNode.isEmbedded) {
-            logger.info("The file [{}] was embedded", filename)
-            return
+    override fun ocrFileToMarkdownFile(fileInputStream: InputStream): Result<InputStream> {
+        return kotlin.runCatching {
+            val ocrResult = minerUClient.ocr(fileInputStream)
+            val extract = markdownStructureExtractor.extract(String(ocrResult.readAllBytes()))
+            extract.byteInputStream()
         }
-        val textNodeList = neo4jRepository.searchNeo4jTextNodeByFilename(filename)
-        logger.debug("Embedding file [{}]", filename)
-        val embeddingData = textNodeList.map {
-            scope.async {
-                EmbeddingDatum(
-                    vector = modelClient.embedding(it.text),
-                    text = it.text,
-                    neo4jElementId = it.elementId!!,
-                    type = it.type
-                )
-            }
-        }.awaitAll()
-        logger.debug("Performing Batch Insertion of file [{}] in Milvus", filename)
-        milvusRepository.batchInsert(embeddingData)
-        logger.debug("Changing FileNode [{}] field isEmbedding from false to true in Neo4j", filename);
-        neo4jRepository.updateNodeByElementId(fileNode.elementId!!, mapOf(Pair("isEmbedded", true)))
-        logger.info("Success save all nodes about file [{}] in milvus", filename)
     }
 
-    /**
-     * 将Markdown文件存入图数据库中
-     * @param file markdown文件
-     */
-    private fun saveFileInNeo4j(file: File) {
-        val fileNode = neo4jRepository.searchNeo4jFileNodeByFileName(file.name)
+    override fun extractMarkdownStructure(fileId: String, inputStream: InputStream): Result<String> {
+        val fileNode = neo4jRepository.searchNeo4jFileNodeByFileId(fileId)
         if (fileNode != null) {
-            logger.info("The file [{}] is already exist in neo4j", file.name)
-            return
+            logger.info("The file [{}] is already exist in neo4j", fileId)
+            return Result.success(fileNode.fileId)
         }
 
-        logger.debug("Reading file [{}] as a tree structure", file.name)
-        val result = MarkdownStructureParser(file).get()
-        logger.debug("Preprocessing file [{}] structure", file.name);
-        SplitTextNodeTool(result, maxTableLength, maxSentenceLength).run()
+        logger.debug("Reading file [{}] as a tree structure", fileId)
+        val result = MarkdownStructureParser(inputStream, fileId).get()
+        logger.debug("Preprocessing file [{}] structure", fileId)
+        SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
 
         neo4jRepository.insertTree(result)
-        logger.info("Success save tree structure of the file [{}] in neo4j", file.name)
+        logger.info("Success save tree structure of the file [{}] in neo4j", fileId)
+        val existsFileNode = neo4jRepository.searchNeo4jFileNodeByFileId(fileId)!!
+
+        return Result.success(existsFileNode.elementId!!)
+    }
+
+    override fun embedTextNodes(fileId: String): Result<Unit> = runCatching {
+        runBlocking(scope.coroutineContext) {
+            val fileNode = neo4jRepository.searchNeo4jFileNodeByFileId(fileId)
+                ?: throw RuntimeException("The file [${fileId}] is not exist")
+            if (fileNode.isEmbedded) {
+                logger.info("The file [{}] was embedded", fileId)
+                return@runBlocking
+            }
+            val textNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileId)
+            logger.debug("Embedding file [{}]", fileId)
+            val embeddingData = coroutineScope {
+                textNodeList.map { textNode ->
+                    async {
+                        textNode.copy(vector = modelClient.embedding(textNode.text))
+                    }
+                }.awaitAll()
+            }
+            embeddingData.forEach {
+                logger.debug("Insert vector field in TextNode [{}] ", it.elementId)
+                neo4jRepository.updateNodeByElementId(it.elementId!!, mapOf(Pair("vector", it.vector!!)))
+            }
+            logger.debug("Changing FileNode [{}] field isEmbedding from false to true in Neo4j", fileId);
+            neo4jRepository.updateNodeByElementId(fileNode.elementId!!, mapOf(Pair("isEmbedded", true)))
+            logger.info("Success save all nodes about file [{}] in milvus", fileId)
+        }
+    }
+
+    override fun saveTextNodeToMilvus(fileId: String, collectionName: String) {
+        val fileNode = neo4jRepository.searchNeo4jFileNodeByFileId(fileId)
+            ?: throw RuntimeException("The file [${fileId}] is not exist")
+        if (!fileNode.isEmbedded)
+            throw IllegalAccessException("The file [${fileId}] was not embedding")
+
+        val textNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileId)
+        val embeddingData = textNodeList.map { convertTextNodeToEmbeddingDatum(it) }
+        milvusRepository.batchInsert(collectionName, embeddingData)
+    }
+
+    /**
+     * 将TextNode转换为EmbeddingDatum。
+     * 注意: TextNode必须被向量化过，否则会报错，请调用此方法时做好安全检查。
+     */
+    private fun convertTextNodeToEmbeddingDatum(textNode: Neo4jTextNode): EmbeddingDatum {
+        return EmbeddingDatum(
+            vector = textNode.vector!!,
+            text = textNode.text,
+            neo4jNodeId = textNode.elementId!!,
+            type = textNode.type
+        )
     }
 }

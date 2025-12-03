@@ -79,14 +79,13 @@ class StructureExtractionMission(
     /**
      * 文本切割任务完成。
      */
-    fun success(fileNodeId: String, textNodeCount: Int) {
+    fun success(fileNodeId: String) {
         require(status == MissionStatus.RUNNING) {
             "StructureExtractionMission can only complete from RUNNING"
         }
 
         result = StructureExtractionMissionResult.Success(
-            fileNodeId = fileNodeId,
-            chunkNumber = textNodeCount
+            fileNodeId = fileNodeId
         )
         status = MissionStatus.SUCCESS
         endTime = Instant.now()
@@ -106,7 +105,7 @@ class StructureExtractionMission(
     }
 
     /**
-     * 判断任务是否完成（成功或失败）。 
+     * 判断任务是否完成（成功或失败）。
      */
     fun isCompleted(): Boolean = status == MissionStatus.SUCCESS || status == MissionStatus.ERROR
 

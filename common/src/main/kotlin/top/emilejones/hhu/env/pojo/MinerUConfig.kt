@@ -3,8 +3,7 @@ package top.emilejones.hhu.env.pojo
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MilvusConfig(
-    val database: String,
+data class MinerUConfig(
     val host: String,
     val port: Int
 )
