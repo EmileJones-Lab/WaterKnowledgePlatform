@@ -6,32 +6,26 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kotlin.Pair;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import top.emilejones.hhu.service.IRecallService;
-import top.emilejones.hhu.web.vo.retrieval.TextNodeVO;
-import top.emilejones.hhu.web.vo.retrieval.TextType;
+import org.springframework.web.bind.annotation.*;
+import top.emilejones.hhu.application.RecallApplicationService;
 
 import java.util.List;
 
 
 @RestController
-@RequestMapping("/recall")
+@RequestMapping("/knowledge-repositories/{catalogId}")
 @Tag(name = "Retrieval", description = "关于召回文本的功能接口说明")
 public class RecallController {
 
-    private final IRecallService recallService;
+    private final RecallApplicationService recallService;
 
-    public RecallController(IRecallService recallService) {
+    public RecallController(RecallApplicationService recallService) {
         this.recallService = recallService;
     }
 
     @GetMapping("/texts")
     @Operation(
-            summary = "通过问题去召回相关片段",
+            summary = "通过问题去相关的知识库中召回相关片段",
             description = "根据问题去图数据库中召回相关片段，并且基于已有策略去图数据库中查询上下文，最后返回一个片段的列表"
     )
     @ApiResponse(responseCode = "200", description = "成功召回文本",
@@ -47,38 +41,10 @@ public class RecallController {
                     )
             )
     )
-    public List<String> recallText(@RequestParam("query") @Schema(description = "用户的问题") String query) {
-        return recallService.recallText(query);
+    public List<String> recallText(
+            @RequestParam("query") @Schema(description = "用户的问题") String query,
+            @PathVariable("catalogId") @Schema(description = "知识库名称") String knowledgeDocumentId) {
+        return recallService.recallText(query, knowledgeDocumentId);
     }
 
-    @GetMapping("/nodes")
-    @Operation(
-            summary = "通过问题去召回相关片段，并且返回每一个片段的详细信息",
-            description = "根据问题去图数据库中召回相关片段，并且基于已有策略去图数据库中查询上下文，最后返回每一个片段的详细信息"
-    )
-    @ApiResponse(responseCode = "200", description = "成功召回文本")
-    public List<TextNodeVO> recallNode(@RequestParam("query") @Schema(description = "用户的问题") String query) {
-        return recallService.recallNode(query).stream()
-                .map(Pair::getSecond)
-                .map(neo4jTextNode -> {
-                    TextNodeVO textNodeVO = new TextNodeVO();
-                    textNodeVO.setText(neo4jTextNode.getText());
-                    textNodeVO.setLevel(neo4jTextNode.getLevel());
-                    textNodeVO.setSeq(neo4jTextNode.getSeq());
-                    textNodeVO.setElementId(neo4jTextNode.getElementId());
-                    textNodeVO.setType(convertTextType(neo4jTextNode.getType()));
-                    return textNodeVO;
-                }).toList();
-    }
-
-    private TextType convertTextType(top.emilejones.hhu.domain.enums.TextType domainType) {
-        if (domainType == null) {
-            return null;
-        }
-        try {
-            return TextType.valueOf(domainType.name());
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
-    }
 }
