@@ -9,7 +9,6 @@ import top.emilejones.hhu.domain.AggregateRoot
 class FileNode(
     override val id: String,
     val sourceDocumentId: String,
-    var isEmbedded: Boolean,
-    val childNodeNumber: Int
+    var isEmbedded: Boolean
 ): AggregateRoot<String>(id) {
 }

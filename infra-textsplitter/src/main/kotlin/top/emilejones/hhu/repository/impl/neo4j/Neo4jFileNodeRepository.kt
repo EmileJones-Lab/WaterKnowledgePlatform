@@ -15,7 +15,6 @@ class Neo4jFileNodeRepository(
     private val neo4jConfig: Neo4jConfig
 ) {
 
-
     fun insertNeo4jFileNode(node: Neo4jFileNode): Neo4jFileNode {
         return driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use {
             it.insertFileNode(node)
@@ -41,6 +40,48 @@ class Neo4jFileNodeRepository(
                     null
                 else
                     result.single()["n"].asNode().asNeo4jFileNode()
+            }
+        }
+    }
+
+    fun searchNeo4jFileNodeByNodeId(id: String): Neo4jFileNode? {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            return session.executeRead { tx ->
+                val query = """
+                    MATCH (n:FileNode)
+                    WHERE n.id = ${'$'}id
+                    RETURN n
+                """.trimIndent()
+
+                val result = tx.run(
+                    query, Values.parameters(
+                        "id", id
+                    )
+                )
+
+                if (!result.hasNext())
+                    null
+                else
+                    result.single()["n"].asNode().asNeo4jFileNode()
+            }
+        }
+    }
+
+    fun searchNeo4jFileNodeByTextNode(id: String): Neo4jFileNode {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            return session.executeRead { tx ->
+                val query = """
+                    MATCH (f:FileNode)-[:CONTAIN]->(t:TextNode)
+                    WHERE t.id = ${'$'}id
+                    RETURN f
+                """.trimIndent()
+
+                val result = tx.run(
+                    query, Values.parameters(
+                        "id", id
+                    )
+                )
+                result.single()["f"].asNode().asNeo4jFileNode()
             }
         }
     }

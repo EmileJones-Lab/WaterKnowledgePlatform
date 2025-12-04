@@ -1,5 +1,7 @@
 package top.emilejones.hhu.repository.impl.neo4j.extensions
 
+import top.emilejones.hhu.domain.pipeline.FileNode
+import top.emilejones.hhu.domain.pipeline.TextNode
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
 import top.emilejones.hhu.domain.po.Neo4jFileNode
@@ -22,5 +24,62 @@ fun FileNodeDTO.toNeo4jFileNode(): Neo4jFileNode {
         id = this.id,
         fileId = this.fileId!!,
         isEmbedded = false
+    )
+}
+
+fun TextNode.toNeo4jTextNode(): Neo4jTextNode {
+    return Neo4jTextNode(
+        id = this.id,
+        text = this.text,
+        seq = this.seq,
+        level = this.level,
+        type = this.type,
+        vector = this.vector
+    )
+}
+
+fun FileNode.toNeo4jFileNode(): Neo4jFileNode {
+    return Neo4jFileNode(
+        id = this.id,
+        fileId = this.sourceDocumentId,
+        isEmbedded = this.isEmbedded
+    )
+}
+
+fun Neo4jFileNode.asFileNode(): FileNode {
+    return FileNode(
+        id = this.id,
+        sourceDocumentId = this.fileId,
+        isEmbedded = this.isEmbedded
+    )
+}
+
+fun Neo4jTextNode.diff(other: Neo4jTextNode): Map<String, Any?> {
+    val diff = mutableMapOf<String, Any?>()
+    if (this.text != other.text) diff["text"] = other.text
+    if (this.seq != other.seq) diff["seq"] = other.seq
+    if (this.level != other.level) diff["level"] = other.level
+    if (this.type != other.type) diff["type"] = other.type
+    if (this.vector != other.vector) diff["vector"] = other.vector
+    return diff
+}
+
+fun Neo4jFileNode.diff(other: Neo4jFileNode): Map<String, Any?> {
+    val diff = mutableMapOf<String, Any?>()
+    if (this.fileId != other.fileId) diff["fileId"] = other.fileId
+    if (this.isEmbedded != other.isEmbedded) diff["isEmbedded"] = other.isEmbedded
+    return diff
+}
+
+fun Neo4jTextNode.asTextNode(fileNode: Neo4jFileNode): TextNode {
+    return TextNode(
+        id = this.id,
+        text = this.text,
+        seq = this.seq,
+        level = this.level,
+        type = this.type,
+        vector = this.vector,
+        fileNodeId = fileNode.id,
+        isEmbedded = this.vector != null
     )
 }

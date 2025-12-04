@@ -40,7 +40,7 @@ class Neo4jTextNodeRepository(
         }
     }
 
-    fun searchTextNodeByNodeId(id: String): Neo4jTextNode {
+    fun searchTextNodeByNodeId(id: String): Neo4jTextNode? {
         driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
             return session.executeRead { tx ->
                 val query = """
