@@ -8,5 +8,6 @@ data class ApplicationConfig(
     val neo4j: Neo4jConfig,
     val model: HttpModelClientConfig,
     val rag: RAGConfig,
-    val mysql: MysqlConfig
+    val mysql: MysqlConfig,
+    val minio: MinioConfig
 )

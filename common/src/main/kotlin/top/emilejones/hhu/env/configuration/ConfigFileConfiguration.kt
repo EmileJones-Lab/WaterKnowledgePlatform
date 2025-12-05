@@ -25,4 +25,7 @@ open class ConfigFileConfiguration {
 
     @Bean
     open fun mysqlConfig(applicationConfig: ApplicationConfig): MysqlConfig = applicationConfig.mysql
+
+    @Bean
+    open fun minioConfig(applicationConfig: ApplicationConfig): MinioConfig = applicationConfig.minio
 }
