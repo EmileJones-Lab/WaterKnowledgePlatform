@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.emilejones.hhu.knowledge.mapper.KnowledgeDocumentMapper">
+    <resultMap id="KnowledgeDocumentResultMap" type="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto">
+        <id column="id" property="id" />
+        <result column="document_id" property="documentId" />
+        <result column="document_name" property="documentName" />
+        <result column="embed_id" property="embedId" />
+        <result column="type" property="type" typeHandler="top.emilejones.hhu.knowledge.handler.KnowledgeDocumentTypeHandler"/>
+        <result column="isdelete" property="isDelete" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+    <insert id="save">
+        insert into knowledge_document (id, document_id, document_name, embed_id, type, isdelete, create_time)
+        values (#{id}, #{documentId}, #{documentName}, #{embedId}, #{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeDocumentTypeHandler}, #{isDelete}, #{createTime})
+    </insert>
+    <update id="update">
+        update knowledge_document
+        <set>
+            <if test="documentName != null and documentName != ''">document_name=#{documentName},</if>
+            <if test="embedId != null and embedId != ''">embed_id=#{embedId},</if>
+            <if test="type != null">type=#{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeDocumentTypeHandler},</if>
+            <if test="isDelete != null">isdelete=#{isDelete},</if>
+            <if test="createTime">create_time=#{createTime}</if>
+        </set>
+        where document_id=#{documentId}
+    </update>
+
+    <select id="find" resultMap="KnowledgeDocumentResultMap">
+        select * from knowledge_document where document_id=#{documentId}
+    </select>
+</mapper>

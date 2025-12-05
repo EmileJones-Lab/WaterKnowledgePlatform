@@ -1,11 +1,16 @@
-package top.emilejones.hhu.knowledge.entity;
+package top.emilejones.hhu.knowledge.pojo.dto;
 
 import lombok.Data;
+import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 
 import java.time.Instant;
 
+/**
+ * 知识库信息传输对象
+ * @author EmileNathon
+ */
 @Data
-public class KnowledgeCatalog {
+public class KnowledgeCatalogDto {
     /**
      * 主键，自增
      */
@@ -22,9 +27,14 @@ public class KnowledgeCatalog {
     private String kbName;
 
     /**
+     * milvus中collection的名称
+     */
+    private String colName;
+
+    /**
      * 知识库的类型；0：字符切割， 1：文本结构切割
      */
-    private int type;
+    private KnowledgeCatalogType type;
 
     /**
      * 创建记录的时间
@@ -32,7 +42,7 @@ public class KnowledgeCatalog {
     private Instant createTime;
 
     /**
-     * 文件权限
+     * 知识库权限
      */
     private String permission;
 }
