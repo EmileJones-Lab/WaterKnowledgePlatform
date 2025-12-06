@@ -41,6 +41,8 @@ public class MysqlConnectionConfig {
         factoryBean.setDataSource(dataSource);
         factoryBean.setMapperLocations(new PathMatchingResourcePatternResolver()
                 .getResources("classpath*:mapper/*.xml"));
+        // 注册自定义的 TypeHandler，确保枚举和数据库整数类型映射正确
+        factoryBean.setTypeHandlersPackage("top.emilejones.hhu.knowledge.handler");
         return factoryBean.getObject();
     }
 

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.knowledge.TestApplication;
-import top.emilejones.hhu.knowledge.controller.KnowledgeCatalogController;
+import top.emilejones.hhu.knowledge.service.Impl.KnowledgeCatalogServiceImpl;
 
 import java.util.List;
 
@@ -13,11 +13,11 @@ import java.util.List;
 public class FindAllTest {
 
     @Autowired
-    private KnowledgeCatalogController knowledgeCatalogController;
+    private KnowledgeCatalogServiceImpl knowledgeCatalogService;
 
     @Test
     public void FindAllTest(){
-        List<KnowledgeCatalog> all = knowledgeCatalogController.findAll();
+        List<KnowledgeCatalog> all = knowledgeCatalogService.findAll();
         for (int i = 0; i < all.size(); i++) {
             System.out.println(all.get(i));
         }

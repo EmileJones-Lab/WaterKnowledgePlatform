@@ -42,4 +42,8 @@
     <select id="find" resultMap="KnowledgeCatalogResultMap">
         select * from col_kb where kb_id=#{knowledgeCatalogId}
     </select>
+
+    <select id="selectFromCollectionDocument" resultType="java.lang.Integer">
+        select count(*) from collection_document where document_id=#{documentId} and  kb_id=#{catalogId} and isdelete=1
+    </select>
 </mapper>

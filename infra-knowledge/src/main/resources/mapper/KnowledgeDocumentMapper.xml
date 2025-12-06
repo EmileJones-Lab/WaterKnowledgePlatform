@@ -11,10 +11,12 @@
         <result column="isdelete" property="isDelete" />
         <result column="create_time" property="createTime" />
     </resultMap>
+
     <insert id="save">
         insert into knowledge_document (id, document_id, document_name, embed_id, type, isdelete, create_time)
         values (#{id}, #{documentId}, #{documentName}, #{embedId}, #{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeDocumentTypeHandler}, #{isDelete}, #{createTime})
     </insert>
+
     <update id="update">
         update knowledge_document
         <set>
@@ -24,10 +26,41 @@
             <if test="isDelete != null">isdelete=#{isDelete},</if>
             <if test="createTime">create_time=#{createTime}</if>
         </set>
-        where document_id=#{documentId}
+        where document_id=#{documentId} and isdelete=1
     </update>
 
     <select id="find" resultMap="KnowledgeDocumentResultMap">
         select * from knowledge_document where document_id=#{documentId}
     </select>
+
+    <select id="findByKnowledgeCatalogId" resultMap="KnowledgeDocumentResultMap"
+            resultType="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto">
+        select * from knowledge_document where document_id in (
+            select document_id from collection_document where kb_id=#{knowledgeCatalogId}
+        )
+        order by create_time desc
+        limit #{limit} offset #{offset}
+    </select>
+
+
+    <select id="findKnowledgeCatalogType" resultType="top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType">
+        select type from col_kb where kb_id=#{knowledgeCatalogId}
+    </select>
+
+    <select id="findCandidateDocument" resultMap="KnowledgeDocumentResultMap">
+
+        select * from knowledge_document
+        <where>
+            type in
+            <foreach collection="types" item="t" open="(" close=")" separator=",">
+                #{t}
+            </foreach>
+            and isdelete=1
+            and document_id not in (
+                select document_id from collection_document where kb_id=#{knowledgeCatalogId} and isdelete=1
+            )
+        </where>
+
+    </select>
+
 </mapper>

@@ -1,6 +1,7 @@
 package top.emilejones.hhu.knowledge.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;
 import top.emilejones.hhu.knowledge.pojo.po.CollectionDocumentPo;
 
@@ -42,5 +43,7 @@ public interface KnowledgeCatalogMapper {
      * @param collectionDocumentPo
      */
     void bind(CollectionDocumentPo collectionDocumentPo);
+
+    int selectFromCollectionDocument(@Param("documentId") String documentId, @Param("catalogId") String catalogId);
 }
 
