@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     implementation("org.jsoup:jsoup:1.16.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("org.neo4j.driver:neo4j-java-driver:5.28.9")

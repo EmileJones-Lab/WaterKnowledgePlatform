@@ -41,6 +41,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
     }
 
     override fun insert(collectionName: String, datum: EmbeddingDatum): Boolean {
+        checkCollectionExistOrCreate(collectionName)
         logger.trace("Start insert embedding node [{}] ", datum.neo4jNodeId)
         // 1. 封装向量为 FloatArray
         val vectorArray: FloatArray = datum.vector.toFloatArray()
@@ -67,6 +68,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
     }
 
     override fun batchInsert(collectionName: String, data: List<EmbeddingDatum>): Boolean {
+        checkCollectionExistOrCreate(collectionName)
         logger.trace("Start batch insert embedding nodes, nodes number: [{}]", data.size)
         val jsonObjectList = data.map { datum ->
             // 封装向量为 FloatArray

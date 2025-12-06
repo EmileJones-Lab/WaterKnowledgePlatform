@@ -1,4 +1,4 @@
-package top.emilejones.hhu.splitter
+package top.emilejones.hhu.textsplitter.splitter
 
 import top.emilejones.hhu.textsplitter.spliter.impl.HtmlTableSplitter
 import kotlin.test.Test

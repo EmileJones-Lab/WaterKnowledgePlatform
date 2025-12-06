@@ -2,6 +2,8 @@ package top.emilejones.hhu.textsplitter.service.impl
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import top.emilejones.hhu.env.pojo.RAGConfig
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
 import top.emilejones.hhu.model.ModelClient
@@ -14,11 +16,12 @@ import java.util.stream.Collectors
 /**
  * @author EmileJones
  */
+@Service
 class RecallService(
     private val milvusRepository: IMultiCollectionMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
     private val client: ModelClient,
-    private val recallNumber: Int
+    private val ragConfig: RAGConfig
 ) : IRecallService {
     override fun recallText(query: String, collectionName: String): List<String> {
         return recallNode(query, collectionName).stream()
@@ -27,7 +30,7 @@ class RecallService(
     }
 
     override fun recallNode(query: String, collectionName: String): List<Neo4jTextNode> {
-        val maxResultNumber = recallNumber
+        val maxResultNumber = ragConfig.recallNumber
 
         // 从向量数据库中召回数据
         val queryVector: List<Float> = client.embedding(query)

@@ -1,6 +1,6 @@
 package top.emilejones.hhu.domain.pipeline.infrastructure.repository
 
-import top.emilejones.hhu.domain.pipeline.MarkdownDocument
+import top.emilejones.hhu.domain.pipeline.ProcessedDocument
 import java.io.InputStream
 import java.util.Optional
 
@@ -18,10 +18,10 @@ interface MarkdownDocumentRepository {
      * - 应实现幂等/覆盖语义，确保同一标识重复写入不会产生脏数据。
      * - 内容流的打开与关闭由调用方负责；实现只消费输入流并持久化，不应尝试重置或重复读取流。
      *
-     * @param markdownDocument 文档元数据（标识、标题等）
+     * @param processedDocument 文档元数据（标识、标题等）
      * @param content Markdown 正文内容流；调用方负责在写入完成后关闭流
      */
-    fun save(markdownDocument: MarkdownDocument, content: InputStream)
+    fun save(processedDocument: ProcessedDocument, content: InputStream)
 
     /**
      * 根据标识查询文档元数据。
@@ -31,7 +31,7 @@ interface MarkdownDocumentRepository {
      * @param id 文档标识
      * @return 对应的文档元数据；未命中返回 Optional.empty
      */
-    fun findById(id: String): Optional<MarkdownDocument>
+    fun findById(id: String): Optional<ProcessedDocument>
 
     /**
      * 打开文档内容流，用于上层读取内容。

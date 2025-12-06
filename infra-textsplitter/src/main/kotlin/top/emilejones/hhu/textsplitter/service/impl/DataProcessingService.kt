@@ -3,13 +3,14 @@ package top.emilejones.hhu.textsplitter.service.impl
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
 import top.emilejones.hhu.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.textsplitter.ocr.MinerUClient
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
-import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
+import top.emilejones.hhu.textsplitter.ocr.MarkdownStructureExtractor
 import top.emilejones.hhu.textsplitter.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
@@ -32,11 +33,10 @@ class DataProcessingService(
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
 
-    override fun ocrFileToMarkdownFile(fileInputStream: InputStream): Result<InputStream> {
+    override fun ocrFileToMarkdownFile(fileInputStream: InputStream): Result<MinerUMarkdownFile> {
         return kotlin.runCatching {
-            val ocrResult = minerUClient.ocr(fileInputStream)
-            val extract = markdownStructureExtractor.extract(String(ocrResult.readAllBytes()))
-            extract.byteInputStream()
+            val markdownFile = minerUClient.ocr(fileInputStream)
+            markdownFile.copy(markdownContent = markdownStructureExtractor.extract(markdownFile.markdownContent))
         }
     }
 

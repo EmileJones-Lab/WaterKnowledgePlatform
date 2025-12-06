@@ -6,6 +6,7 @@ import top.emilejones.hhu.domain.pipeline.TextNode
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.StructureExtractionGateway
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
 import top.emilejones.hhu.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
@@ -27,7 +28,7 @@ class RagToolsAdaptor(
 ) : OcrGateway, StructureExtractionGateway, EmbeddingGateway {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun minerU(input: InputStream): InputStream {
+    override fun minerU(input: InputStream): MinerUMarkdownFile {
         return dataProcessingService.ocrFileToMarkdownFile(input).getOrThrow()
     }
 

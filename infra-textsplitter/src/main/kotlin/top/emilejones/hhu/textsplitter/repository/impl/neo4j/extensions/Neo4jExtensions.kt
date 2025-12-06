@@ -17,7 +17,7 @@ fun Node.asNeo4jTextNode(): Neo4jTextNode {
         seq = this["seq"].asInt(),
         level = this["level"].asInt(),
         type = TextType.valueOf(this["type"].asString()),
-        vector = this["vector"].asList { it.asFloat() },
+        vector = this["vector"].takeUnless { it.isNull }?.asList { it.asFloat() },
         id = this["id"].asString()
     )
 }

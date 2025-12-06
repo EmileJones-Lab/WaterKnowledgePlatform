@@ -1,5 +1,6 @@
 package top.emilejones.hhu.textsplitter.service
 
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile
 import java.io.InputStream
 
 /**
@@ -16,7 +17,7 @@ interface IDataProcessingService {
      */
     fun ocrFileToMarkdownFile(
         fileInputStream: InputStream,
-    ): Result<InputStream>
+    ): Result<MinerUMarkdownFile>
 
     /**
      * 从指定Markdown文件中提取出文本结构，并将其存入neo4j中

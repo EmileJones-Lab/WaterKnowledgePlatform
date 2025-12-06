@@ -6,7 +6,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
-import top.emilejones.hhu.domain.pipeline.MarkdownDocument;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
 import top.emilejones.hhu.domain.pipeline.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionReadyEvent;
@@ -15,6 +16,7 @@ import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGatewa
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.StructureExtractionGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO;
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.*;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
@@ -22,7 +24,9 @@ import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -86,9 +90,15 @@ public class MissionExecutor {
         try {
             SourceDocument sourceDocument = sourceDocumentOptional.get();
             InputStream content = sourceDocumentRepository.openContent(sourceDocument.getFilePath());
-            InputStream ocrFileInputStream = ocrGateway.minerU(content);
-            MarkdownDocument markdownDocument = MarkdownDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + sourceDocument.getName());
-            markdownDocumentRepository.save(markdownDocument, ocrFileInputStream);
+            MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(content);
+            ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + sourceDocument.getName(), ProcessedDocumentType.MARKDOWN);
+            minerUMarkdownFile.getImages()
+                    .forEach(minerUImage -> {
+                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + minerUImage.getRelativePath(), ProcessedDocumentType.PNG);
+                        markdownDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
+                    });
+            markdownDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));
+
             ocrMission.success(markdownDocument.getId());
         } catch (Exception ex) {
             String msg = ex.getMessage() != null ? ex.getMessage() : "未知的异常";
