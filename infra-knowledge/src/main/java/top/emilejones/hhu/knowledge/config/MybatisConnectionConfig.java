@@ -2,7 +2,9 @@ package top.emilejones.hhu.knowledge.config;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +18,15 @@ import javax.sql.DataSource;
  * Configure MySQL datasource and MyBatis session factory using shared MysqlConfig.
  */
 @Configuration
-@MapperScan("top.emilejones.hhu.knowledge.mapper")
-public class MysqlConnectionConfig {
+@MapperScan(
+        basePackages = "top.emilejones.hhu.knowledge.mapper",
+        sqlSessionFactoryRef = "knowledgeSqlSessionFactory",
+        sqlSessionTemplateRef = "knowledgeSqlSessionTemplate"
+)
+public class MybatisConnectionConfig {
 
-    @Bean
-    public DataSource dataSource(MysqlConfig mysqlConfig) {
+    @Bean(name = "knowledgeDataSource")
+    public DataSource knowledgeDataSource(MysqlConfig mysqlConfig) {
         String url = String.format(
                 "jdbc:mysql://%s:%d/%s?useSSL=false&characterEncoding=utf8&serverTimezone=UTC",
                 mysqlConfig.getHost(),
@@ -35,8 +41,9 @@ public class MysqlConnectionConfig {
                 .build();
     }
 
-    @Bean
-    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+    @Bean(name = "knowledgeSqlSessionFactory")
+    public SqlSessionFactory knowledgeSqlSessionFactory(
+            @Qualifier("knowledgeDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
         factoryBean.setMapperLocations(new PathMatchingResourcePatternResolver()
@@ -46,8 +53,15 @@ public class MysqlConnectionConfig {
         return factoryBean.getObject();
     }
 
-    @Bean
-    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+    @Bean(name = "knowledgeSqlSessionTemplate")
+    public SqlSessionTemplate knowledgeSqlSessionTemplate(
+            @Qualifier("knowledgeSqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
+        return new SqlSessionTemplate(sqlSessionFactory);
+    }
+
+    @Bean(name = "knowledgeTransactionManager")
+    public DataSourceTransactionManager knowledgeTransactionManager(
+            @Qualifier("knowledgeDataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 }
