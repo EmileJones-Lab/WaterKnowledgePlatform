@@ -1,7 +1,7 @@
 package top.emilejones.hhu.splitter
 
 import org.junit.jupiter.api.Test
-import top.emilejones.hhu.spliter.impl.HtmlTableToCsvSplitter
+import top.emilejones.hhu.textsplitter.spliter.impl.HtmlTableToCsvSplitter
 
 class HtmlTableToCsvSplitterTest {
 

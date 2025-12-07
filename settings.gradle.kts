@@ -28,11 +28,12 @@ include(":controller-web")
 include(":controller-mcp")
 
 include(":infra-model")
-include(":infra-preprocessing")
 include(":infra-qa")
 include(":infra-textsplitter")
 include(":infra-pipeline")
 include(":infra-document")
 include(":infra-knowledge")
+
+include(":markdown-corrector")
 
 rootProject.name = "mission2"

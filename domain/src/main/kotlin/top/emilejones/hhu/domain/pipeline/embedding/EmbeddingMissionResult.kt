@@ -6,10 +6,10 @@ package top.emilejones.hhu.domain.pipeline.embedding
  */
 sealed class EmbeddingMissionResult {
     /**
-     * 成功结果，包含简单标识。
+     * 成功结果，指向被向量化的FileNode节点。
      */
     data class Success(
-        val success: String = "Success"
+        val fileNodeId: String
     ) : EmbeddingMissionResult()
 
     /**

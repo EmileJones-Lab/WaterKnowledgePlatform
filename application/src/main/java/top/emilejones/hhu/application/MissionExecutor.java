@@ -6,24 +6,27 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
-import top.emilejones.hhu.domain.pipeline.FileNode;
-import top.emilejones.hhu.domain.pipeline.MarkdownDocument;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
+import top.emilejones.hhu.domain.pipeline.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionReadyEvent;
 import top.emilejones.hhu.domain.pipeline.event.StructureExtractionMissionReadyEvent;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.StructureExtractionGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.MarkdownDocumentRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO;
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile;
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.*;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,8 +43,9 @@ public class MissionExecutor {
     private final EmbeddingMissionRepository embeddingMissionRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
     private final MarkdownDocumentRepository markdownDocumentRepository;
+    private final NodeRepository nodeRepository;
 
-    public MissionExecutor(ApplicationEventPublisher publisher, StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository, SourceDocumentRepository sourceDocumentRepository, MarkdownDocumentRepository processedDocument) {
+    public MissionExecutor(ApplicationEventPublisher publisher, StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository, SourceDocumentRepository sourceDocumentRepository, MarkdownDocumentRepository markdownDocumentRepository, NodeRepository nodeRepository) {
         this.publisher = publisher;
         this.structureExtractionGateway = structureExtractionGateway;
         this.ocrMissionRepository = ocrMissionRepository;
@@ -50,7 +54,8 @@ public class MissionExecutor {
         this.embeddingGateway = embeddingGateway;
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.sourceDocumentRepository = sourceDocumentRepository;
-        this.markdownDocumentRepository = processedDocument;
+        this.markdownDocumentRepository = markdownDocumentRepository;
+        this.nodeRepository = nodeRepository;
     }
 
     @Async("domainEventExecutor")
@@ -85,9 +90,15 @@ public class MissionExecutor {
         try {
             SourceDocument sourceDocument = sourceDocumentOptional.get();
             InputStream content = sourceDocumentRepository.openContent(sourceDocument.getFilePath());
-            InputStream ocrFileInputStream = ocrGateway.minerU(content);
-            MarkdownDocument markdownDocument = MarkdownDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + sourceDocument.getName());
-            markdownDocumentRepository.save(markdownDocument, ocrFileInputStream);
+            MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(content);
+            ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + sourceDocument.getName(), ProcessedDocumentType.MARKDOWN);
+            minerUMarkdownFile.getImages()
+                    .forEach(minerUImage -> {
+                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + minerUImage.getRelativePath(), ProcessedDocumentType.PNG);
+                        markdownDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
+                    });
+            markdownDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));
+
             ocrMission.success(markdownDocument.getId());
         } catch (Exception ex) {
             String msg = ex.getMessage() != null ? ex.getMessage() : "未知的异常";
@@ -115,9 +126,17 @@ public class MissionExecutor {
         structureExtractionMission.start(markdownDocumentId);
         structureExtractionMissionRepository.save(structureExtractionMission);
         try {
+            // 获取markdown文件内容
             InputStream inputStream = markdownDocumentRepository.openContent(markdownDocumentId);
-            FileNode fileNode = structureExtractionGateway.extract(inputStream);
-            structureExtractionMission.success(fileNode.getElementId(), fileNode.getChildNodeNumber());
+            // 提取markdown文件结构
+            TextNodeDTO structure = structureExtractionGateway.extract(inputStream);
+            // 为这个树状结构和源文件绑定
+            Objects.requireNonNull(structure.getFileNode()).setFileId(structureExtractionMission.getSourceDocumentId());
+            // 保存这个树状结构
+            structureExtractionGateway.save(structure);
+            // 记录任务状态为成功
+            FileNodeDTO fileNode = structure.getFileNode();
+            structureExtractionMission.success(fileNode.getId());
         } catch (Exception ex) {
             String message = ex.getMessage() != null ? ex.getMessage() : "未知的错误";
             structureExtractionMission.failure(message);
@@ -149,8 +168,19 @@ public class MissionExecutor {
         embeddingMission.start(successResult.getFileNodeId());
         embeddingMissionRepository.save(embeddingMission);
         try {
-            embeddingGateway.embed(Objects.requireNonNull(embeddingMission.getFileNodeId()));
-            embeddingMission.success();
+            // 成功提取结构后的FileNode唯一Id
+            String fileNodeId = Objects.requireNonNull(embeddingMission.getFileNodeId());
+            // 找到所有的TextNode
+            List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
+            // 向量化所有text属性
+            List<List<Float>> vectors = embeddingGateway.embed(textNodeList.stream().map(TextNode::getText).toList());
+            // 为所有的TextNode添加vector属性
+            for (int i = 0; i < textNodeList.size(); i++) {
+                textNodeList.get(i).saveVector(vectors.get(i));
+            }
+            // 保存
+            textNodeList.forEach(nodeRepository::saveTextNode);
+            embeddingMission.success(fileNodeId);
         } catch (Exception ex) {
             String msg = ex.getMessage() != null ? ex.getMessage() : "未知的异常";
             embeddingMission.failure(msg);

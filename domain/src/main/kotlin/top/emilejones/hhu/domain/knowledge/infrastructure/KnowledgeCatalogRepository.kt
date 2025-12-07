@@ -10,7 +10,6 @@ import top.emilejones.hhu.domain.knowledge.KnowledgeDocument
 interface KnowledgeCatalogRepository {
     /**
      * 查询全部知识库目录。
-     * @param null
      * @return List<KnowledgeCatalog> 知识库目录的集合
      * @author EmileNathon
      */

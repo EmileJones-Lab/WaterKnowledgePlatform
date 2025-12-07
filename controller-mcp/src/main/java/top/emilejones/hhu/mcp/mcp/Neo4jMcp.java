@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
-import top.emilejones.hhu.domain.po.Neo4jTextNode;
-import top.emilejones.hhu.repository.INeo4jRepository;
+import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode;
+import top.emilejones.hhu.textsplitter.repository.INeo4jRepository;
 
 import java.util.List;
 
@@ -54,4 +54,3 @@ public class Neo4jMcp {
         return repository.parent(elementId);
     }
 }
-

@@ -5,6 +5,6 @@ package top.emilejones.hhu.domain.pipeline
  * @author EmileJones
  */
 enum class ProcessedDocumentType {
-    TXT,
-    MARKDOWN
+    MARKDOWN,
+    PNG
 }
