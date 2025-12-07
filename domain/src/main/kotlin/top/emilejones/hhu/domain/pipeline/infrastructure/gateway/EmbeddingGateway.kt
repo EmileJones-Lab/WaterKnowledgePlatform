@@ -29,4 +29,16 @@ interface EmbeddingGateway {
      * @param collectionName 目标向量库/集合名称，若不存在由实现决定是否创建
      */
     fun saveTextNodeToVectorDatabase(textNodeList: List<TextNode>, collectionName: String)
+
+    /**
+     * 从向量数据库中删除指定文本节点。
+     *
+     * 约定：
+     * - 由实现方负责确认集合存在与否，并处理不存在或部分删除失败的场景。
+     * - textNodeIdList 应对应向量库内部存储的节点唯一标识。
+     *
+     * @param textNodeIdList 待删除的文本节点 ID 列表
+     * @param collectionName 目标向量库/集合名称
+     */
+    fun deleteTextNodeFromVectorDatabases(textNodeIdList: List<String>, collectionName: String)
 }

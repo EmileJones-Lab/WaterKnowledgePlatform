@@ -200,7 +200,7 @@ class RagToolsAdaptorTest {
 
     @Test
     fun `saveTextNodeToVectorDatabase should forward embedded data to repository`() {
-        val embedded = TextNode(
+        val embedded1 = TextNode(
             id = "1",
             fileNodeId = "file-1",
             text = "text",
@@ -211,6 +211,22 @@ class RagToolsAdaptorTest {
             vector = List(1024) { it.toFloat() }
         )
 
-        adaptor.saveTextNodeToVectorDatabase(listOf(embedded), "test")
+        val embedded2 = TextNode(
+            id = "2",
+            fileNodeId = "file-1",
+            text = "text",
+            seq = 0,
+            level = 1,
+            type = TextType.COMMON_TEXT,
+            isEmbedded = true,
+            vector = List(1024) { it.toFloat() }
+        )
+
+        adaptor.saveTextNodeToVectorDatabase(listOf(embedded1, embedded2), "test")
+    }
+
+    @Test
+    fun `deleteTextNodeFromVectorDatabase should soft delete`() {
+        adaptor.deleteTextNodeFromVectorDatabases(listOf("1", "2"), "test")
     }
 }

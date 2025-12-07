@@ -59,4 +59,13 @@ interface NodeRepository {
      * @return 和问题相关的节点列表
      */
     fun recallTextNode(query: String, collectionName: String): List<TextNode>
+
+    /**
+     * 删除指定的文件节点以及其下的所有子节点。
+     *
+     * 约定：调用方需保证Id合法；实现应执行级联删除，确保FileNode及其所有关联的TextNode等子节点被清理。
+     *
+     * @param id FileNode唯一Id
+     */
+    fun deleteAllNodeByFileNodeId(id: String)
 }

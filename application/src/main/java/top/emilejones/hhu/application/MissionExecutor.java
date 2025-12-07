@@ -180,7 +180,7 @@ public class MissionExecutor {
             }
             // 保存
             textNodeList.forEach(nodeRepository::saveTextNode);
-            embeddingMission.success();
+            embeddingMission.success(fileNodeId);
         } catch (Exception ex) {
             String msg = ex.getMessage() != null ? ex.getMessage() : "未知的异常";
             embeddingMission.failure(msg);

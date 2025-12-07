@@ -67,9 +67,9 @@ class EmbeddingMission(
     /**
      * 任务成功，记录结果并发布完成事件。
      */
-    fun success() {
+    fun success(fileNodeId: String) {
         require(status == MissionStatus.RUNNING) { "Embedding can only complete from RUNNING state." }
-        result = EmbeddingMissionResult.Success()
+        result = EmbeddingMissionResult.Success(fileNodeId)
         status = MissionStatus.SUCCESS
         endTime = Instant.now()
         raiseEvent(EmbeddingMissionSuccessEvent(this))

@@ -10,7 +10,9 @@ import io.milvus.v2.service.collection.request.CreateCollectionReq
 import io.milvus.v2.service.collection.request.DropCollectionReq
 import io.milvus.v2.service.database.request.CreateDatabaseReq
 import io.milvus.v2.service.vector.request.InsertReq
+import io.milvus.v2.service.vector.request.QueryReq
 import io.milvus.v2.service.vector.request.SearchReq
+import io.milvus.v2.service.vector.request.UpsertReq
 import io.milvus.v2.service.vector.request.data.BaseVector
 import io.milvus.v2.service.vector.request.data.FloatVec
 import io.milvus.v2.service.vector.response.SearchResp
@@ -47,12 +49,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
         val vectorArray: FloatArray = datum.vector.toFloatArray()
 
         // 2. 构建单条数据的 JsonObject
-        val jsonData = JsonObject().apply {
-            add("vector", gson.toJsonTree(vectorArray))
-            addProperty("neo4jNodeId", datum.neo4jNodeId)
-            addProperty("text", datum.text)
-            addProperty("type", datum.type.name)
-        }
+        val jsonData = datum.toJsonObject(vectorArray)
 
         // 3. 构建 InsertReq
         val insertReq = InsertReq.builder()
@@ -75,12 +72,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
             val vectorArray: FloatArray = datum.vector.toFloatArray()
 
             // 构建单条数据的 JsonObject
-            JsonObject().apply {
-                add("vector", gson.toJsonTree(vectorArray))
-                addProperty("neo4jNodeId", datum.neo4jNodeId)
-                addProperty("text", datum.text)
-                addProperty("type", datum.type.name)
-            }
+            datum.toJsonObject(vectorArray)
         }.toMutableList()
 
         // 3. 构建 InsertReq
@@ -93,6 +85,45 @@ class MultiCollectionSingleCollectionMilvusRepository(
         // 4. 执行插入
         val resp = client.insert(insertReq)
         logger.trace("Success batch insert embedding nodes, nodes number: [{}] ", resp.insertCnt)
+        return true
+    }
+
+    override fun batchDelete(collectionName: String, ids: List<String>): Boolean {
+        if (ids.isEmpty()) {
+            logger.debug("Batch delete called with empty ids for collection [{}]", collectionName)
+            return true
+        }
+        if (!ensureCollectionExists(collectionName)) {
+            logger.warn("Collection [{}] does not exist, skip delete for ids [{}]", collectionName, ids)
+            return false
+        }
+        val queryReq = QueryReq.builder()
+            .databaseName(databaseName)
+            .collectionName(collectionName)
+            .ids(ids)
+            .outputFields(listOf("neo4jNodeId", "text", "vector", "type", "isDelete"))
+            .build()
+        val queryResults = client.query(queryReq).queryResults ?: emptyList()
+        if (queryResults.isEmpty()) {
+            logger.warn("No embedding nodes found in collection [{}] for ids [{}]", collectionName, ids)
+            return true
+        }
+
+        val tombstones = queryResults.mapNotNull { result ->
+            mapToEmbeddingDatum(result.entity, overrideIsDelete = true)
+        }
+        if (tombstones.isEmpty()) {
+            logger.warn("Unable to map any embedding nodes for soft delete in collection [{}]", collectionName)
+            return false
+        }
+
+        val upsertReq = UpsertReq.builder()
+            .databaseName(databaseName)
+            .collectionName(collectionName)
+            .data(tombstones.map { it.toJsonObject(it.vector.toFloatArray()) })
+            .build()
+        client.upsert(upsertReq)
+        logger.trace("Soft deleted [{}] embedding nodes in collection [{}]", tombstones.size, collectionName)
         return true
     }
 
@@ -109,11 +140,10 @@ class MultiCollectionSingleCollectionMilvusRepository(
         // 构建搜索请求
         val searchReq =
             SearchReq.builder().databaseName(databaseName).collectionName(collectionName).annsField("vector").topK(topK)
-                .data(mutableListOf).outputFields(listOf("text", "neo4jNodeId", "vector")).apply {
-                    if (!filter.isNullOrBlank()) {
-                        filter(filter)
-                    }
-                }.searchParams(searchParamsMap).build()
+                .data(mutableListOf).apply {
+                    filter(buildFilter(filter))
+                }.outputFields(listOf("text", "neo4jNodeId", "vector", "type", "isDelete"))
+                .searchParams(searchParamsMap).build()
 
         // 发起搜索
         val resp = client.search(searchReq)
@@ -122,18 +152,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
 
         val resultsForQuery: List<SearchResp.SearchResult> = data.firstOrNull() ?: return emptyList()
         // 6. 映射成 EmbeddingDatum
-        return resultsForQuery.map { r ->
-            val neo4jId = r.entity["neo4jNodeId"].toString()
-            val text = r.entity["text"].toString()
-            val vector = r.entity["vector"]
-            val type = r.entity["type"].toString()
-            if (vector !is List<*>) {
-                throw RuntimeException("Illegal vector type")
-            }
-            EmbeddingDatum(
-                vector = vector as List<Float>, neo4jNodeId = neo4jId, text = text, type = TextType.valueOf(type)
-            )
-        }
+        return resultsForQuery.mapNotNull { r -> mapToEmbeddingDatum(r.entity) }
     }
 
     override fun clearAllData(collectionName: String) {
@@ -187,6 +206,11 @@ class MultiCollectionSingleCollectionMilvusRepository(
         schema.addField(
             AddFieldReq.builder().fieldName("type").dataType(DataType.VarChar).maxLength(20).build()
         )
+        // 2.5 isDelete (Bool 软删除标记)
+        schema.addField(
+            AddFieldReq.builder().fieldName("isDelete").dataType(DataType.Bool).defaultValue(false)
+                .enableDefaultValue(true).build()
+        )
         // 3. 索引
         val indexParams = listOf(
             IndexParam.builder().fieldName("vector").indexType(IndexParam.IndexType.AUTOINDEX)
@@ -199,5 +223,67 @@ class MultiCollectionSingleCollectionMilvusRepository(
 
         client.createCollection(createReq)
         logger.debug("Create milvus collection named [{}]", collectionName)
+    }
+
+    private fun buildFilter(filter: String?): String {
+        val base = "isDelete == false"
+        return if (filter.isNullOrBlank()) base else "$base && ($filter)"
+    }
+
+    private fun mapToEmbeddingDatum(entity: Map<String, Any?>, overrideIsDelete: Boolean? = null): EmbeddingDatum? {
+        val vectorValue = entity["vector"] ?: return null
+        val vector = convertVector(vectorValue) ?: return null
+        val neo4jId = entity["neo4jNodeId"]?.toString() ?: return null
+        val text = entity["text"]?.toString() ?: return null
+        val typeString = entity["type"]?.toString() ?: return null
+        val isDelete = overrideIsDelete ?: (entity["isDelete"] as? Boolean ?: false)
+        return kotlin.runCatching { TextType.valueOf(typeString) }.map {
+            EmbeddingDatum(vector = vector, neo4jNodeId = neo4jId, text = text, type = it, isDelete = isDelete)
+        }.getOrElse {
+            logger.warn("Unknown text type [{}] for node [{}]", typeString, neo4jId)
+            null
+        }
+    }
+
+    private fun convertVector(vector: Any): List<Float>? {
+        val source: List<*> = when (vector) {
+            is List<*> -> vector
+            is FloatArray -> vector.toList()
+            is DoubleArray -> vector.map { it }
+            else -> {
+                logger.warn("Illegal vector type [{}]", vector::class)
+                return null
+            }
+        }
+        val converted = source.mapNotNull {
+            if (it !is Number) {
+                logger.warn("Illegal vector element type [{}]", it?.let { v -> v::class })
+                return null
+            }
+            it.toFloat()
+        }
+        return converted
+    }
+
+    private fun EmbeddingDatum.toJsonObject(vectorArray: FloatArray): JsonObject {
+        return JsonObject().apply {
+            add("vector", gson.toJsonTree(vectorArray))
+            addProperty("neo4jNodeId", neo4jNodeId)
+            addProperty("text", text)
+            addProperty("type", type.name)
+            addProperty("isDelete", isDelete)
+        }
+    }
+
+    private fun ensureCollectionExists(collectionName: String): Boolean {
+        if (existsCollection.contains(collectionName)) {
+            return true
+        }
+        val resp = client.listCollections()
+        val exists = resp.collectionNames.contains(collectionName)
+        if (exists) {
+            existsCollection.add(collectionName)
+        }
+        return exists
     }
 }

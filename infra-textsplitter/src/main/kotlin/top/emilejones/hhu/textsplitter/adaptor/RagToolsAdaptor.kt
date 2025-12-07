@@ -61,6 +61,10 @@ class RagToolsAdaptor(
         multiCollectionMilvusRepository.batchInsert(collectionName, embeddingData)
     }
 
+    override fun deleteTextNodeFromVectorDatabases(textNodeIdList: List<String>, collectionName: String) {
+        multiCollectionMilvusRepository.batchDelete(collectionName, textNodeIdList)
+    }
+
     /**
      * 将TextNode转换为EmbeddingDatum。
      * 注意: TextNode必须被向量化过，否则会报错，请调用此方法时做好安全检查。
