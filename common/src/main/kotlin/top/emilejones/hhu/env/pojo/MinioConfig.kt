@@ -8,6 +8,5 @@ data class MinioConfig(
     val host: String,
     val port: Int,
     val user: String,
-    val password: String,
-    val bucket: String
+    val password: String
 )

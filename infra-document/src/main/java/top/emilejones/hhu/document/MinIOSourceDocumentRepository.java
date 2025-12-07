@@ -39,17 +39,14 @@ import java.util.Optional;
 @Repository
 public class MinIOSourceDocumentRepository implements SourceDocumentRepository {
 
-    private final MinioConfig minioConfig;
     private final MinioClient minioClient;
     private final SourceDocumentMapper sourceDocumentMapper;
 
     @Autowired
     public MinIOSourceDocumentRepository(
-            MinioConfig minioConfig,
             MinioClient minioClient,
             SourceDocumentMapper sourceDocumentMapper
     ) {
-        this.minioConfig = minioConfig;
         this.minioClient = minioClient;
         this.sourceDocumentMapper = sourceDocumentMapper;
     }
