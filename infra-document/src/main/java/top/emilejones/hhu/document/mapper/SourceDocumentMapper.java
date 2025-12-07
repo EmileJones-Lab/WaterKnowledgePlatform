@@ -11,5 +11,5 @@ import top.emilejones.hhu.document.entity.SourceDocumentPO;
 @Mapper
 public interface SourceDocumentMapper {
 
-    SourceDocumentPO findById(@Param("id") String id);
+    SourceDocumentPO findById(@Param("file_id") String id);
 }

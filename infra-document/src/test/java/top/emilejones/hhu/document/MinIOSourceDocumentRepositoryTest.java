@@ -30,7 +30,7 @@ public class MinIOSourceDocumentRepositoryTest {
 
     @Test
     void testFindSourceDocumentById() {
-        String id = "282"; // 这里替换成数据库中实际存在的 ID
+        String id = "24b06a3f-1234-4557-8ee8-dcf78d01fef7"; // 这里替换成数据库中实际存在的 file_id
 
         Optional<SourceDocument> doc = repo.findSourceDocumentById(id);
         assertTrue(doc.isPresent());

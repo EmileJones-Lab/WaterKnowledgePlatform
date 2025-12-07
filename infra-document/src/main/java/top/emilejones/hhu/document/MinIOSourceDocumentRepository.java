@@ -97,13 +97,13 @@ public class MinIOSourceDocumentRepository implements SourceDocumentRepository {
      *      - 目录的路径（catapath）
      *      - MinIO 文件存储路径
      *      - 文件类型（pdf/doc/docx/txt/md）
-     * @param id 文件在数据库中的主键 ID
+     * @param file_id 文件在数据库中的主键文件id file_id
      * @return Optional<SourceDocument> 若存在记录则返回对应领域对象，否则返回 Optional.empty()
      */
     @NotNull
     @Override
-    public Optional<SourceDocument> findSourceDocumentById(@NotNull String id) {
-        SourceDocumentPO sourceDocumentPO = sourceDocumentMapper.findById(id);
+    public Optional<SourceDocument> findSourceDocumentById(@NotNull String file_id) {
+        SourceDocumentPO sourceDocumentPO = sourceDocumentMapper.findById(file_id);
         if (sourceDocumentPO == null) {
             return Optional.empty();
         }

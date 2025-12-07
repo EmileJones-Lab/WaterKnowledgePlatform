@@ -5,9 +5,9 @@
 <mapper namespace="top.emilejones.hhu.document.mapper.SourceDocumentMapper">
 
     <select id="findById" parameterType="string" resultType="top.emilejones.hhu.document.entity.SourceDocumentPO">
-        SELECT id, filename, catapath, filepath, filetype
+        SELECT id, file_id, filename, catapath, filepath, filetype
         FROM col_file
-        WHERE id = #{id}
+        WHERE file_id = #{file_id}
           AND isdelete = 0
           AND creator != 'OCR'
         LIMIT 1
