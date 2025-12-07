@@ -18,7 +18,8 @@ fun Node.asNeo4jTextNode(): Neo4jTextNode {
         level = this["level"].asInt(),
         type = TextType.valueOf(this["type"].asString()),
         vector = this["vector"].takeUnless { it.isNull }?.asList { it.asFloat() },
-        id = this["id"].asString()
+        id = this["id"].asString(),
+        isDelete = if (this.keys().contains("isDelete")) this["isDelete"].asBoolean() else false
     )
 }
 
@@ -27,7 +28,8 @@ fun Node.asNeo4jFileNode(): Neo4jFileNode {
         elementId = this.elementId(),
         fileId = this["fileId"].asString(),
         isEmbedded = this["isEmbedded"].asBoolean(),
-        id = this["id"].asString()
+        id = this["id"].asString(),
+        isDelete = if (this.keys().contains("isDelete")) this["isDelete"].asBoolean() else false
     )
 }
 
@@ -51,7 +53,8 @@ fun QueryRunner.insertTextNode(neo4jTextNode: Neo4jTextNode): Neo4jTextNode {
                 name: ${'$'}name,
                 length: ${'$'}length,
                 type: ${'$'}type,
-                vector: ${'$'}vector
+                vector: ${'$'}vector,
+                isDelete: ${'$'}isDelete
             })
             RETURN n
         """,
@@ -63,7 +66,8 @@ fun QueryRunner.insertTextNode(neo4jTextNode: Neo4jTextNode): Neo4jTextNode {
             "length", neo4jTextNode.length,
             "type", neo4jTextNode.type.name,
             "vector", neo4jTextNode.vector,
-            "id", neo4jTextNode.id
+            "id", neo4jTextNode.id,
+            "isDelete", neo4jTextNode.isDelete
         )
     ).single()
     return insertTextNodeResult["n"].asNode().asNeo4jTextNode()
@@ -75,14 +79,16 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
             CREATE (n:FileNode {
                 id: ${'$'}id,
                 fileId: ${'$'}fileId,
-                isEmbedded: ${'$'}isEmbedded
+                isEmbedded: ${'$'}isEmbedded,
+                isDelete: ${'$'}isDelete
             })
             RETURN n
         """,
         Values.parameters(
             "fileId", neo4jFileNode.fileId,
             "isEmbedded", neo4jFileNode.isEmbedded,
-            "id", neo4jFileNode.id
+            "id", neo4jFileNode.id,
+            "isDelete", neo4jFileNode.isDelete
         )
     ).single()
     return insertFileNodeResult["n"].asNode().asNeo4jFileNode()

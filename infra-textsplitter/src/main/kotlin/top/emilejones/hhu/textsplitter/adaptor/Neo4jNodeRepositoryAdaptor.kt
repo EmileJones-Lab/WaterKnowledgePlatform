@@ -24,7 +24,7 @@ class Neo4jNodeRepositoryAdaptor(
     override fun findTextNodeListByFileNodeId(fileNodeId: String): List<TextNode> {
         val fileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(fileNodeId)
         require(fileNode != null) { "不存在FileNode" }
-        val neo4jTextNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileNodeId)
+        val neo4jTextNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileNode.fileId)
         return neo4jTextNodeList.map { it.asTextNode(fileNode) }.toList()
     }
 
@@ -50,5 +50,13 @@ class Neo4jNodeRepositoryAdaptor(
                 val fileNode = neo4jRepository.searchNeo4jFileNodeByTextNode(it.id)
                 it.asTextNode(fileNode)
             }.toList()
+    }
+
+    override fun deleteAllNodeByFileNodeId(id: String) {
+        val fileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(id) ?: return
+        neo4jRepository.searchNeo4jTextNodeByFileId(fileNode.fileId).forEach {
+            neo4jRepository.deleteTextNodeById(it.id)
+        }
+        neo4jRepository.deleteFileNodeById(fileNode.id)
     }
 }

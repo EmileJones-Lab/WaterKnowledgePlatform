@@ -9,7 +9,8 @@ data class Neo4jTextNode(
     val seq: Int,
     val level: Int,
     val type: TextType,
-    val vector: List<Float>?
+    val vector: List<Float>?,
+    val isDelete: Boolean = false
 ) {
     val name: String = seq.toString()
     val length: Int = text.length

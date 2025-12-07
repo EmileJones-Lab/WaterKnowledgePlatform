@@ -1,5 +1,6 @@
 package top.emilejones.hhu.textsplitter.adaptor
 
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import top.emilejones.hhu.TextSplitterTestMain
@@ -7,11 +8,8 @@ import top.emilejones.hhu.domain.pipeline.TextNode
 import top.emilejones.hhu.domain.pipeline.TextType
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
-import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
-import top.emilejones.hhu.textsplitter.service.IDataProcessingService
-import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import kotlin.test.*
 
@@ -21,17 +19,18 @@ class RagToolsAdaptorTest {
     private lateinit var adaptor: RagToolsAdaptor
 
     @Autowired
-    private lateinit var dataProcessingService: IDataProcessingService
+    private lateinit var milvusRepository: IMultiCollectionMilvusRepository
 
     @Autowired
     private lateinit var neo4jRepository: INeo4jRepository
 
-    @Autowired
-    private lateinit var modelClient: ModelClient
+    private val testCollection = "test"
 
-    @Autowired
-    private lateinit var milvusRepository: IMultiCollectionMilvusRepository
-
+    @BeforeEach
+    fun setup() {
+        milvusRepository.clearAllData(testCollection)
+        neo4jRepository.clearAllData()
+    }
 
     @Test
     fun `minerU should delegate to data processing service`() {
@@ -194,7 +193,7 @@ class RagToolsAdaptorTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            adaptor.saveTextNodeToVectorDatabase(listOf(notEmbedded), "test")
+            adaptor.saveTextNodeToVectorDatabase(listOf(notEmbedded), testCollection)
         }
     }
 
@@ -222,11 +221,11 @@ class RagToolsAdaptorTest {
             vector = List(1024) { it.toFloat() }
         )
 
-        adaptor.saveTextNodeToVectorDatabase(listOf(embedded1, embedded2), "test")
+        adaptor.saveTextNodeToVectorDatabase(listOf(embedded1, embedded2), testCollection)
     }
 
     @Test
     fun `deleteTextNodeFromVectorDatabase should soft delete`() {
-        adaptor.deleteTextNodeFromVectorDatabases(listOf("1", "2"), "test")
+        adaptor.deleteTextNodeFromVectorDatabases(listOf("1", "2"), testCollection)
     }
 }

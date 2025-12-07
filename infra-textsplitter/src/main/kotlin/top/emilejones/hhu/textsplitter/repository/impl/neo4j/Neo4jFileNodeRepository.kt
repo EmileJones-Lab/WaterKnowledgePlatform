@@ -26,7 +26,7 @@ class Neo4jFileNodeRepository(
             return session.executeRead { tx ->
                 val query = """
                     MATCH (n:FileNode)
-                    WHERE n.fileId = ${'$'}fileId
+                    WHERE n.fileId = ${'$'}fileId AND coalesce(n.isDelete, false) = false
                     RETURN n
                 """.trimIndent()
 
@@ -49,7 +49,7 @@ class Neo4jFileNodeRepository(
             return session.executeRead { tx ->
                 val query = """
                     MATCH (n:FileNode)
-                    WHERE n.id = ${'$'}id
+                    WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false
                     RETURN n
                 """.trimIndent()
 
@@ -72,7 +72,7 @@ class Neo4jFileNodeRepository(
             return session.executeRead { tx ->
                 val query = """
                     MATCH (f:FileNode)-[:CONTAIN]->(t:TextNode)
-                    WHERE t.id = ${'$'}id
+                    WHERE t.id = ${'$'}id AND coalesce(f.isDelete, false) = false AND coalesce(t.isDelete, false) = false
                     RETURN f
                 """.trimIndent()
 
@@ -81,7 +81,25 @@ class Neo4jFileNodeRepository(
                         "id", id
                     )
                 )
+                if (!result.hasNext()) {
+                    throw NoSuchElementException("FileNode not found for text node [$id]")
+                }
                 result.single()["f"].asNode().asNeo4jFileNode()
+            }
+        }
+    }
+
+    fun softDeleteFileNodeById(id: String) {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            session.executeWriteWithoutResult {
+                it.run(
+                    """
+                        MATCH (n:FileNode)
+                        WHERE n.id = ${'$'}id
+                        SET n.isDelete = true
+                    """.trimIndent(),
+                    Values.parameters("id", id)
+                )
             }
         }
     }

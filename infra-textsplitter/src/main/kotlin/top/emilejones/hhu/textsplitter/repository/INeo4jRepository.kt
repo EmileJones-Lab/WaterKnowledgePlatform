@@ -36,6 +36,16 @@ interface INeo4jRepository {
     fun updateNodeByElementId(elementId: String, needUpdatedAttr: Map<String, Any?>)
 
     /**
+     * 通过节点id软删除TextNode
+     */
+    fun deleteTextNodeById(id: String)
+
+    /**
+     * 通过文件节点id软删除FileNode以及其关联关系
+     */
+    fun deleteFileNodeById(id: String)
+
+    /**
      * 获取当前节点的下一个节点
      * @param id 当前节点唯一标识
      * @return 下一个节点信息

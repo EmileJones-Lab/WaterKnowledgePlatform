@@ -14,7 +14,8 @@ fun TextNodeDTO.toNeo4jTextNode(): Neo4jTextNode {
         seq = this.seq,
         level = this.level,
         type = this.type,
-        vector = null
+        vector = null,
+        isDelete = false
     )
 }
 
@@ -23,7 +24,8 @@ fun FileNodeDTO.toNeo4jFileNode(): Neo4jFileNode {
     return Neo4jFileNode(
         id = this.id,
         fileId = this.fileId!!,
-        isEmbedded = false
+        isEmbedded = false,
+        isDelete = false
     )
 }
 
@@ -34,7 +36,8 @@ fun TextNode.toNeo4jTextNode(): Neo4jTextNode {
         seq = this.seq,
         level = this.level,
         type = this.type,
-        vector = this.vector
+        vector = this.vector,
+        isDelete = false
     )
 }
 
@@ -42,7 +45,8 @@ fun FileNode.toNeo4jFileNode(): Neo4jFileNode {
     return Neo4jFileNode(
         id = this.id,
         fileId = this.sourceDocumentId,
-        isEmbedded = this.isEmbedded
+        isEmbedded = this.isEmbedded,
+        isDelete = false
     )
 }
 
@@ -61,6 +65,7 @@ fun Neo4jTextNode.diff(other: Neo4jTextNode): Map<String, Any?> {
     if (this.level != other.level) diff["level"] = other.level
     if (this.type != other.type) diff["type"] = other.type
     if (this.vector != other.vector) diff["vector"] = other.vector
+    if (this.isDelete != other.isDelete) diff["isDelete"] = other.isDelete
     return diff
 }
 
@@ -68,6 +73,7 @@ fun Neo4jFileNode.diff(other: Neo4jFileNode): Map<String, Any?> {
     val diff = mutableMapOf<String, Any?>()
     if (this.fileId != other.fileId) diff["fileId"] = other.fileId
     if (this.isEmbedded != other.isEmbedded) diff["isEmbedded"] = other.isEmbedded
+    if (this.isDelete != other.isDelete) diff["isDelete"] = other.isDelete
     return diff
 }
 

@@ -25,7 +25,7 @@ class Neo4jTextNodeRepository(
             return session.executeRead { tx ->
                 val query = """
                     MATCH (f:FileNode)-[:CONTAIN]->(t:TextNode)
-                    WHERE f.fileId = ${'$'}fileId
+                    WHERE (f.fileId = ${'$'}fileId OR f.id = ${'$'}fileId) AND coalesce(f.isDelete, false) = false AND coalesce(t.isDelete, false) = false
                     RETURN t
                 """.trimIndent()
 
@@ -45,7 +45,7 @@ class Neo4jTextNodeRepository(
             return session.executeRead { tx ->
                 val query = """
                     MATCH (n:TextNode)
-                    WHERE n.id = ${'$'}id
+                    WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false
                     RETURN n
                 """.trimIndent()
 
@@ -54,7 +54,39 @@ class Neo4jTextNodeRepository(
                         "id", id
                     )
                 )
-                result.single()["n"].asNode().asNeo4jTextNode()
+                if (!result.hasNext()) null else result.single()["n"].asNode().asNeo4jTextNode()
+            }
+        }
+    }
+
+    fun softDeleteTextNodeById(id: String) {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            session.executeWriteWithoutResult {
+                it.run(
+                    """
+                        MATCH (n:TextNode)
+                        WHERE n.id = ${'$'}id
+                        SET n.isDelete = true
+                    """.trimIndent(),
+                    Values.parameters("id", id)
+                )
+            }
+        }
+    }
+
+    fun softDeleteTextNodesByFileId(fileId: String) {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            session.executeWriteWithoutResult {
+                it.run(
+                    """
+                        MATCH (f:FileNode)-[:CONTAIN]->(n:TextNode)
+                        WHERE (f.fileId = ${'$'}fileId OR f.id = ${'$'}fileId)
+                          AND coalesce(f.isDelete, false) = false
+                          AND coalesce(n.isDelete, false) = false
+                        SET n.isDelete = true
+                    """.trimIndent(),
+                    Values.parameters("fileId", fileId)
+                )
             }
         }
     }

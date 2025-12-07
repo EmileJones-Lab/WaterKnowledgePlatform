@@ -73,6 +73,14 @@ class Neo4jRepositoryImpl(
         }
     }
 
+    override fun deleteTextNodeById(id: String) {
+        neo4jTextNodeRepository.softDeleteTextNodeById(id)
+    }
+
+    override fun deleteFileNodeById(id: String) {
+        neo4jFileNodeRepository.softDeleteFileNodeById(id)
+    }
+
     override fun nextNode(id: String): Pair<Neo4jFileNode, Neo4jTextNode>? {
         return neo4jContextRepository.nextNode(id)
     }
