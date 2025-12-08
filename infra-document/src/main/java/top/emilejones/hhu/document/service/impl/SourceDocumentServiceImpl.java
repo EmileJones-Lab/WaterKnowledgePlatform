@@ -1,4 +1,4 @@
-package top.emilejones.hhu.document;
+package top.emilejones.hhu.document.service.impl;
 
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
@@ -10,7 +10,6 @@ import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.SourceFileType;
 import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
 import org.springframework.stereotype.Repository;
-import top.emilejones.hhu.env.pojo.MinioConfig;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -37,13 +36,13 @@ import java.util.Optional;
  * @author Yeyezhi
  */
 @Repository
-public class MinIOSourceDocumentRepository implements SourceDocumentRepository {
+public class SourceDocumentServiceImpl implements SourceDocumentRepository {
 
     private final MinioClient minioClient;
     private final SourceDocumentMapper sourceDocumentMapper;
 
     @Autowired
-    public MinIOSourceDocumentRepository(
+    public SourceDocumentServiceImpl(
             MinioClient minioClient,
             SourceDocumentMapper sourceDocumentMapper
     ) {

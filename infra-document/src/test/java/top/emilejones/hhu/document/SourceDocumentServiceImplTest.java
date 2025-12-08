@@ -4,6 +4,7 @@ package top.emilejones.hhu.document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import top.emilejones.hhu.document.service.impl.SourceDocumentServiceImpl;
 import top.emilejones.hhu.domain.document.SourceDocument;
 
 
@@ -18,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Yeyezhi
  * */
 @SpringBootTest(classes = TestApplication.class)
-public class MinIOSourceDocumentRepositoryTest {
+public class SourceDocumentServiceImplTest {
 
     @Autowired
-    private MinIOSourceDocumentRepository repo;
+    private SourceDocumentServiceImpl repo;
 
     @Test
     void testSpringInjection() {
