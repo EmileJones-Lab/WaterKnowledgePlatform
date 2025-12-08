@@ -30,6 +30,17 @@ public class SaveTest {
             knowledgeDocumentService.save(knowledgeDocument);
         }
 
+    }
+
+    @Test
+    public void updateTest(){
+            String documentId = "684f71bb-278f-4675-aa17-a14e6274b735";
+            String name = "test";
+            String embeddingMissionId = "987c57ac-2113-4b54-a4b6-fe6bd4f5d984";
+            KnowledgeDocumentType type = KnowledgeDocumentType.STRUCTURE_SPLITTER;
+            Instant createTime = LocalDateTime.now().toInstant(ZoneOffset.UTC);
+            KnowledgeDocument knowledgeDocument = new KnowledgeDocument(documentId, name, embeddingMissionId, type, createTime);
+            knowledgeDocumentService.save(knowledgeDocument);
 
     }
 }

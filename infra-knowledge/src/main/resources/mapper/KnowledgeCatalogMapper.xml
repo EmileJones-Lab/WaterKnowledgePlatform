@@ -27,7 +27,7 @@
         update col_kb
         <set>
             <if test="kbName != null and kbName != ''">kbname=#{kbName},</if>
-            <if test="colName != null and colname != ''">colname=#{colName},</if>
+            <if test="colName != null and colName != ''">colname=#{colName},</if>
             <if test="type != null">type=#{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler},</if>
             <if test="createTime != null">createtime=#{createTime},</if>
             <if test="permission != null and permission !=''">permission=#{permission}</if>
