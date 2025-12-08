@@ -15,14 +15,17 @@ public class FindCandidateKnowledgeDocumentKnowledgeCatalogIdTest {
     private KnowledgeDocumentServiceImpl knowledgeDocumentService;
 
     @Test
-    public void  findCandidateKnowledgeDocumentKnowledgeCatalogIdTest(){
-        // 测试结构
-//        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService.findCandidateKnowledgeDocumentKnowledgeCatalogId("311f8e2a-a588-11ef-9d42-6ce2d3cf236c");
-//
-//        System.out.println(knowledgeDocumentList);
+    public void findCandidateKnowledgeDocumentKnowledgeCatalogIdStructureTest() {
+        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService
+                .findCandidateKnowledgeDocumentKnowledgeCatalogId("311f8e2a-a588-11ef-9d42-6ce2d3cf236c");
 
-        // 测试字符
-        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService.findCandidateKnowledgeDocumentKnowledgeCatalogId("649b8aa0-c44d-4427-bb07-fed70a16dfd3");
+        System.out.println(knowledgeDocumentList);
+    }
+
+    @Test
+    public void findCandidateKnowledgeDocumentKnowledgeCatalogIdCharacterTest() {
+        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService
+                .findCandidateKnowledgeDocumentKnowledgeCatalogId("649b8aa0-c44d-4427-bb07-fed70a16dfd3");
 
         System.out.println(knowledgeDocumentList);
 
