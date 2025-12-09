@@ -42,10 +42,10 @@ public class MissionExecutor {
     private final EmbeddingGateway embeddingGateway;
     private final EmbeddingMissionRepository embeddingMissionRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
-    private final MarkdownDocumentRepository markdownDocumentRepository;
+    private final ProcessedDocumentRepository processedDocumentRepository;
     private final NodeRepository nodeRepository;
 
-    public MissionExecutor(ApplicationEventPublisher publisher, StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository, SourceDocumentRepository sourceDocumentRepository, MarkdownDocumentRepository markdownDocumentRepository, NodeRepository nodeRepository) {
+    public MissionExecutor(ApplicationEventPublisher publisher, StructureExtractionGateway structureExtractionGateway, OcrMissionRepository ocrMissionRepository, OcrGateway ocrGateway, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingGateway embeddingGateway, EmbeddingMissionRepository embeddingMissionRepository, SourceDocumentRepository sourceDocumentRepository, ProcessedDocumentRepository processedDocumentRepository, NodeRepository nodeRepository) {
         this.publisher = publisher;
         this.structureExtractionGateway = structureExtractionGateway;
         this.ocrMissionRepository = ocrMissionRepository;
@@ -54,7 +54,7 @@ public class MissionExecutor {
         this.embeddingGateway = embeddingGateway;
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.sourceDocumentRepository = sourceDocumentRepository;
-        this.markdownDocumentRepository = markdownDocumentRepository;
+        this.processedDocumentRepository = processedDocumentRepository;
         this.nodeRepository = nodeRepository;
     }
 
@@ -95,9 +95,9 @@ public class MissionExecutor {
             minerUMarkdownFile.getImages()
                     .forEach(minerUImage -> {
                         ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + minerUImage.getRelativePath(), ProcessedDocumentType.PNG);
-                        markdownDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
+                        processedDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
                     });
-            markdownDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));
+            processedDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));
 
             ocrMission.success(markdownDocument.getId());
         } catch (Exception ex) {
@@ -127,7 +127,7 @@ public class MissionExecutor {
         structureExtractionMissionRepository.save(structureExtractionMission);
         try {
             // 获取markdown文件内容
-            InputStream inputStream = markdownDocumentRepository.openContent(markdownDocumentId);
+            InputStream inputStream = processedDocumentRepository.openContent(markdownDocumentId);
             // 提取markdown文件结构
             TextNodeDTO structure = structureExtractionGateway.extract(inputStream);
             // 为这个树状结构和源文件绑定

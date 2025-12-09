@@ -10,7 +10,7 @@ import java.util.Optional
  * 约定：通用约束与实现细节以各方法注释为准。
  * @author EmileJones
  */
-interface MarkdownDocumentRepository {
+interface ProcessedDocumentRepository {
     /**
      * 保存文档与其内容。
      *
