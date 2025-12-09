@@ -37,4 +37,17 @@ interface KnowledgeCatalogRepository {
      * @author EmileNathon
      */
     fun bind(knowledgeDocument: KnowledgeDocument, knowledgeCatalog: KnowledgeCatalog)
+
+    /**
+     * 删除指定的知识库
+     * @param knowledgeCatalogId
+     */
+    fun delete(knowledgeCatalogId: String)
+
+    /**
+     * 批量化删除对应知识库中的向量化文件
+     * @param knowledgeCatalogId 知识库id
+     * @param knowledgeDocumentIdList 向量化文件id集合
+     */
+    fun deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalogId: String, knowledgeDocumentIdList: List<String>)
 }
