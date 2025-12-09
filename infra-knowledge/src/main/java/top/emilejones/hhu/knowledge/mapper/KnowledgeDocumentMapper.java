@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
+import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto;
 
 import java.util.List;
@@ -56,4 +57,11 @@ public interface KnowledgeDocumentMapper {
      * @return List<KnowledgeDocumentDto> 可以为empty 不能为null
      */
     List<KnowledgeDocumentDto> findCandidateDocument(@Param("knowledgeCatalogId") String knowledgeCatalogId, @Param("types") List<KnowledgeDocumentType> types);
+
+    /**
+     * 查询当前所有绑定该向量化文件的知识库信息
+     * @param knowledgeDocumentId
+     * @return
+     */
+    List<KnowledgeCatalogDto> findKnowledgeCatalogByKnowledgeDocumentId(@Param("knowledgeDocumentId") String knowledgeDocumentId);
 }

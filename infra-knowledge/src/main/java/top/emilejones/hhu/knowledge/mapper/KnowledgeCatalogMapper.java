@@ -44,6 +44,19 @@ public interface KnowledgeCatalogMapper {
      */
     void bind(CollectionDocumentPo collectionDocumentPo);
 
+    /**
+     * 判断当前绑定记录是否存在
+     * @param documentId
+     * @param catalogId
+     * @return int
+     */
     int selectFromCollectionDocument(@Param("documentId") String documentId, @Param("catalogId") String catalogId);
+
+    /**
+     * 批量删除指定知识库中绑定的向量化文件
+     * @param knowledgeCatalogId
+     * @param knowledgeDocumentIdList
+     */
+    void deleteKnowledgeDocumentFromKnowledgeCatalog(@Param("knowledgeCatalogId") String knowledgeCatalogId, @Param("knowledgeDocumentIdList") List<String> knowledgeDocumentIdList);
 }
 

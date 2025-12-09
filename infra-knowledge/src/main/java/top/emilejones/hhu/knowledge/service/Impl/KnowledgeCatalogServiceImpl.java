@@ -13,6 +13,7 @@ import top.emilejones.hhu.knowledge.constant.DeleteConstant;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;
 import top.emilejones.hhu.knowledge.mapper.KnowledgeCatalogMapper;
 import top.emilejones.hhu.knowledge.pojo.po.CollectionDocumentPo;
+import top.emilejones.hhu.knowledge.utils.DtoToDomainUtil;
 
 import java.time.*;
 import java.util.EnumSet;
@@ -35,7 +36,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         List<KnowledgeCatalogDto> knowledgeCatalogDtoList = knowledgeCatalogMapper.findAll();
 
         // 封装成KnowledgeCatalog并返回
-        List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogDtoList.stream().map(this::toDomain).toList();
+        List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogDtoList.stream().map(DtoToDomainUtil::toCatalogDomain).toList();
         return knowledgeCatalogList;
     }
 
@@ -50,7 +51,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         KnowledgeCatalogDto knowledgeCatalogDto = knowledgeCatalogMapper.find(knowledgeCatalogId);
 
         // 封装成KnowledgeCatalog并返回
-        KnowledgeCatalog knowledgeCatalog = toDomain(knowledgeCatalogDto);
+        KnowledgeCatalog knowledgeCatalog = DtoToDomainUtil.toCatalogDomain(knowledgeCatalogDto);
         return knowledgeCatalog;
     }
 
@@ -120,19 +121,6 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         return false;
     }
 
-    /**
-     * 将knowledgeCatalogDto封装成KnowledgeCatalog
-     * @param knowledgeCatalogDto
-     * @return KnowledgeCatalog
-     */
-    private KnowledgeCatalog toDomain(KnowledgeCatalogDto knowledgeCatalogDto){
-        return new KnowledgeCatalog(
-                knowledgeCatalogDto.getKbId(),
-                knowledgeCatalogDto.getKbName(),
-                knowledgeCatalogDto.getColName(),
-                knowledgeCatalogDto.getType()
-        );
-    }
 
     /**
      * 根据知识文档切割方式绑定到对应的知识库中，需要配对绑定
@@ -162,5 +150,34 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         if (!charTypes.contains(documentType) && documentType != KnowledgeDocumentType.STRUCTURE_SPLITTER) {
             throw new IllegalArgumentException("未知的知识文档类型，无法绑定");
         }
+    }
+
+    /**
+     * 删除指定的知识库，这里采用软删除，其实就是更新isdelete字段为0
+     * @param knowledgeCatalogId
+     */
+    public void delete(@NotNull String knowledgeCatalogId) {
+        // 将信息封装成KnowledgeCatalogDto对象
+        KnowledgeCatalogDto knowledgeCatalogDto = new KnowledgeCatalogDto();
+        knowledgeCatalogDto.setKbId(knowledgeCatalogId);
+        knowledgeCatalogDto.setIsDelete(DeleteConstant.DELETE);
+
+        // 删除当前知识库，这里是软删除所以就是更新数据库的isdelete字段的值
+        knowledgeCatalogMapper.update(knowledgeCatalogDto);
+    }
+
+    /**
+     * 批量删除指定知识库的向量化文件,实质就是unbind操作
+     * @param knowledgeCatalogId
+     * @param knowledgeDocumentIdList
+     */
+    public void deleteKnowledgeDocumentFromKnowledgeCatalog(@NotNull String knowledgeCatalogId, @NotNull List<String> knowledgeDocumentIdList) {
+        // 做非法判断
+        if (knowledgeDocumentIdList == null || knowledgeDocumentIdList.isEmpty()){
+            throw new IllegalArgumentException("清选择你要删除的向量化文件");
+        }
+
+        // 进行解绑，软删除操作，实质就是更新collection_document的isdelete字段
+        knowledgeCatalogMapper.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalogId, knowledgeDocumentIdList);
     }
 }

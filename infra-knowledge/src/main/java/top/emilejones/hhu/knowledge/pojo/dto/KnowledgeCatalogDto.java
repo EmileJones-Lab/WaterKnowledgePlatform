@@ -37,6 +37,11 @@ public class KnowledgeCatalogDto {
     private KnowledgeCatalogType type;
 
     /**
+     * 删除的标记，0：删除；1：存在
+     */
+    private int isDelete;
+
+    /**
      * 创建记录的时间
      */
     private Instant createTime;

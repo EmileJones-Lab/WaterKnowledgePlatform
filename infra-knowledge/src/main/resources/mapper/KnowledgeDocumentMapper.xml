@@ -63,4 +63,12 @@
 
     </select>
 
+    <select id="findKnowledgeCatalogByKnowledgeDocumentId"
+            resultType="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto"
+            resultMap="top.emilejones.hhu.knowledge.mapper.KnowledgeCatalogMapper.KnowledgeCatalogResultMap">
+        select * from col_kb where kb_id
+        in
+        (select kb_id from collection_document where document_id=#{knowledgeDocumentId} and isdelete=1)
+    </select>
+
 </mapper>

@@ -29,10 +29,22 @@
             <if test="kbName != null and kbName != ''">kbname=#{kbName},</if>
             <if test="colName != null and colName != ''">colname=#{colName},</if>
             <if test="type != null">type=#{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler},</if>
+            <if test="isDelete != null">isdelete=#{isDelete}</if>
             <if test="createTime != null">createtime=#{createTime},</if>
             <if test="permission != null and permission !=''">permission=#{permission}</if>
         </set>
         where kb_id=#{kbId}
+    </update>
+
+    <update id="deleteKnowledgeDocumentFromKnowledgeCatalog">
+        update collection_document set isdelete=0
+        <where>
+            kb_id=#{knowledgeCatalogId} and
+            document_id in
+            <foreach collection="knowledgeDocumentIdList" item="knowledgeDocument" open="(" close=")" separator=",">
+                #{knowledgeDocument}
+            </foreach>
+        </where>
     </update>
 
     <select id="findAll" resultMap="KnowledgeCatalogResultMap">

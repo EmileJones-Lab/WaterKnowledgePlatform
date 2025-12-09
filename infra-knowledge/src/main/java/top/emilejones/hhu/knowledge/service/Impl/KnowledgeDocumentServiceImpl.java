@@ -3,13 +3,16 @@ package top.emilejones.hhu.knowledge.service.Impl;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
 import top.emilejones.hhu.knowledge.constant.DeleteConstant;
 import top.emilejones.hhu.knowledge.mapper.KnowledgeDocumentMapper;
+import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto;
+import top.emilejones.hhu.knowledge.utils.DtoToDomainUtil;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -31,7 +34,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         List<KnowledgeDocumentDto> knowledgeDocumentDtoList =  knowledgeDocumentMapper.findByKnowledgeCatalogId(knowledgeCatalogId, limit, offset);
 
         //将查询到的所有KnowledgeDocumentDto封装成KnowledgeDocument并返回
-        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentDtoList.stream().map(this::toDomain).toList();
+        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentDtoList.stream().map(DtoToDomainUtil::toDocumentDomain).toList();
         return knowledgeDocumentList;
     }
 
@@ -52,7 +55,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         List<KnowledgeDocumentDto> candidateDocumentList = knowledgeDocumentMapper.findCandidateDocument(knowledgeCatalogId, types);
 
         // 封装成KnowledgeDocument并返回
-        List<KnowledgeDocument> knowledgeDocumentList = candidateDocumentList.stream().map(this::toDomain).toList();
+        List<KnowledgeDocument> knowledgeDocumentList = candidateDocumentList.stream().map(DtoToDomainUtil::toDocumentDomain).toList();
 
         return knowledgeDocumentList;
     }
@@ -93,26 +96,26 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         // 对需要删除的信息封装成KnowledgeDocumentDto对象
         knowledgeDocumentDto.setDocumentId(knowledgeDocumentId);
         knowledgeDocumentDto.setIsDelete(DeleteConstant.DELETE);
-        knowledgeDocumentDto.setCreateTime(LocalDateTime.now().toInstant(ZoneOffset.UTC));
 
         //删除对应的向量化文件，因为这里是软删除所以调用的是uodate方法
         knowledgeDocumentMapper.update(knowledgeDocumentDto);
     }
 
     /**
-     * 将knowledgeDocumentDto封装成KnowledgeDocument
-     * @param knowledgeDocumentDto
-     * @return KnowledgeDocument
+     * 根据documentId查询所有绑定该向量化文件的知识库
+     * @param knowledgeDocumentId
+     * @return List<KnowledgeCatalog> 可以为empty 不能是null
      */
-    private KnowledgeDocument toDomain(KnowledgeDocumentDto knowledgeDocumentDto) {
-        return new KnowledgeDocument(
-                knowledgeDocumentDto.getDocumentId(),
-                knowledgeDocumentDto.getDocumentName(),
-                knowledgeDocumentDto.getEmbedId(),
-                knowledgeDocumentDto.getType(),
-                knowledgeDocumentDto.getCreateTime()
-        );
+    @NotNull
+    public List<KnowledgeCatalog> findKnowledgeCatalogByKnowledgeDocumentId(@NotNull String knowledgeDocumentId) {
+        // 查询所有的KnowledgeCatalogDto
+        List<KnowledgeCatalogDto> knowledgeCatalogDtoList = knowledgeDocumentMapper.findKnowledgeCatalogByKnowledgeDocumentId(knowledgeDocumentId);
+
+        // 封装成KnowledgeCatalog对象返回
+        List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogDtoList.stream().map(DtoToDomainUtil::toCatalogDomain).toList();
+        return knowledgeCatalogList;
     }
+
 
     /**
      * 将catalogType映射为documentType
