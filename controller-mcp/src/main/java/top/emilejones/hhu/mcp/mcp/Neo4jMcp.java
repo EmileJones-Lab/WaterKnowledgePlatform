@@ -54,3 +54,4 @@ public class Neo4jMcp {
         return repository.parent(elementId);
     }
 }
+

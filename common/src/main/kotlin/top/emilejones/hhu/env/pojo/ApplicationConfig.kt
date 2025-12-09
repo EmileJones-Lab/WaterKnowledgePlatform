@@ -9,5 +9,6 @@ data class ApplicationConfig(
     val model: HttpModelClientConfig,
     val rag: RAGConfig,
     val mysql: MysqlConfig,
-    val minerU: MinerUConfig
+    val minerU: MinerUConfig,
+    val minio: MinioConfig
 )

@@ -28,4 +28,7 @@ class ConfigFileConfiguration {
 
     @Bean
     fun minerUConfig(applicationConfig: ApplicationConfig): MinerUConfig = applicationConfig.minerU
+    
+    @Bean
+    open fun minioConfig(applicationConfig: ApplicationConfig): MinioConfig = applicationConfig.minio
 }
