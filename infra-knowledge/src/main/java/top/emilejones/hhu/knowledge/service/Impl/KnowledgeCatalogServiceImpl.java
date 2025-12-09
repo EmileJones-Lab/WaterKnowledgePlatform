@@ -20,7 +20,9 @@ import java.util.EnumSet;
 import java.util.List;
 
 /**
- * KnowLedgeCatalog业务层，完成业务上的逻辑
+ * KnowledgeCatalogServiceImpl 是 KnowledgeCatalogRepository 接口的实现类，
+ * 负责处理知识库目录相关的业务逻辑操作。
+ * 它通过与 KnowledgeCatalogMapper 交互来持久化和检索知识库目录数据。
  * @author EmileNathon
  */
 @Service
@@ -28,8 +30,8 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     @Autowired
     private KnowledgeCatalogMapper knowledgeCatalogMapper;
     /**
-     * 查询所有的知识库信息
-     * @return List<KnowledgeCatalog> 不能为null，可以是空
+     * 查询所有的知识库信息。
+     * @return List<KnowledgeCatalog> 知识库目录的集合，可以是空列表但不会为null。
      */
     public @NotNull List<KnowledgeCatalog> findAll() {
         // 从数据库中查询所有的知识库信息
@@ -41,9 +43,9 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     }
 
     /**
-     * 根据id查询知识库信息
-     * @param knowledgeCatalogId
-     * @return KnowledgeCatalog
+     * 根据id查询知识库信息。
+     * @param knowledgeCatalogId 知识库目录的唯一标识符。
+     * @return KnowledgeCatalog 知识库目录，如果不存在则返回null。
      */
     @Nullable
     public KnowledgeCatalog find(@NotNull String knowledgeCatalogId) {
@@ -56,8 +58,8 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     }
 
     /**
-     * 新增一个知识库，如果存在就更新记录
-     * @param knowledgeCatalog
+     * 新增一个知识库；如果已存在相同标识的记录，则更新旧内容（upsert 操作）。
+     * @param knowledgeCatalog 待保存的知识库目录实例。
      */
     public void save(@NotNull KnowledgeCatalog knowledgeCatalog) {
         // 将KnoledgeCatalog封装成Dto
@@ -83,9 +85,10 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     }
 
     /**
-     * 将向量化后的文件与知识库绑定
-     * @param knowledgeDocument
-     * @param knowledgeCatalog
+     * 将一个向量化后的文件与指定的知识库绑定。
+     * 如果已经绑定，则不进行任何操作。
+     * @param knowledgeDocument 待绑定的知识文档。
+     * @param knowledgeCatalog 目标知识库。
      */
     public void bind(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog) {
         // 获取知识库id和向量化文件id
@@ -114,6 +117,12 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         knowledgeCatalogMapper.bind(collectionDocumentPo);
     }
 
+    /**
+     * 判断指定的知识文档是否已经绑定到知识库。
+     * @param documentId 知识文档的ID。
+     * @param catalogId 知识库的ID。
+     * @return boolean 如果已绑定则返回true，否则返回false。
+     */
     private boolean isBind(String documentId, String catalogId) {
         if (knowledgeCatalogMapper.selectFromCollectionDocument(documentId, catalogId) > 0){
             return true;
@@ -123,9 +132,11 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
 
 
     /**
-     * 根据知识文档切割方式绑定到对应的知识库中，需要配对绑定
-     * @param knowledgeDocument 知识文档
-     * @param knowledgeCatalog 知识库
+     * 验证知识文档的切割方式与目标知识库的类型是否匹配。
+     * 如果类型不匹配，则抛出 IllegalArgumentException。
+     * @param knowledgeDocument 待验证的知识文档。
+     * @param knowledgeCatalog 待验证的目标知识库。
+     * @throws IllegalArgumentException 如果文档类型和知识库类型不兼容。
      */
     private void validateDocumentAndCatalogType(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog) {
         KnowledgeDocumentType documentType = knowledgeDocument.getType();
@@ -153,8 +164,9 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     }
 
     /**
-     * 删除指定的知识库，这里采用软删除，其实就是更新isdelete字段为0
-     * @param knowledgeCatalogId
+     * 软删除指定的知识库。
+     * 该操作通过更新知识库的isDelete字段为指定删除状态来标记删除，而非物理删除。
+     * @param knowledgeCatalogId 待删除知识库的ID。
      */
     public void delete(@NotNull String knowledgeCatalogId) {
         // 将信息封装成KnowledgeCatalogDto对象
@@ -167,9 +179,11 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     }
 
     /**
-     * 批量删除指定知识库的向量化文件,实质就是unbind操作
-     * @param knowledgeCatalogId
-     * @param knowledgeDocumentIdList
+     * 批量解绑指定知识库中的向量化文件。
+     * 这实质上是一个“unbind”操作，通过软删除（更新collection_document的isDelete字段）来解除绑定。
+     * @param knowledgeCatalogId 知识库的ID。
+     * @param knowledgeDocumentIdList 待解绑的向量化文件ID列表。
+     * @throws IllegalArgumentException 如果知识文档ID列表为null或为空。
      */
     public void deleteKnowledgeDocumentFromKnowledgeCatalog(@NotNull String knowledgeCatalogId, @NotNull List<String> knowledgeDocumentIdList) {
         // 做非法判断

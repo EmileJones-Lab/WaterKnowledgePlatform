@@ -14,24 +14,28 @@ import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto;
 import top.emilejones.hhu.knowledge.utils.DtoToDomainUtil;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
+/**
+ * KnowledgeDocumentServiceImpl 是 KnowledgeDocumentRepository 接口的实现类，
+ * 负责处理知识文档相关的业务逻辑操作。
+ * 它通过与 KnowledgeDocumentMapper 交互来持久化和检索知识文档数据。
+ */
 @Service
 public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository {
     @Autowired
     private KnowledgeDocumentMapper knowledgeDocumentMapper;
 
     /**
-     * 根据知识库id查询所有绑定的向量化文件
-     * @param knowledgeCatalogId
-     * @param limit
-     * @param offset
-     * @return List<KnowledgeDocument> 可以是empty，但不能为空
+     * 根据知识库ID分页查询所有绑定的向量化文件。
+     *
+     * @param knowledgeCatalogId 知识库目录的ID。
+     * @param limit 每页查询的数量限制。
+     * @param offset 查询的起始偏移量。
+     * @return List<KnowledgeDocument> 绑定的向量化文件列表，可能为空但不会为null。
      */
     public @NotNull List<KnowledgeDocument> findByKnowledgeCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset) {
-        List<KnowledgeDocumentDto> knowledgeDocumentDtoList =  knowledgeDocumentMapper.findByKnowledgeCatalogId(knowledgeCatalogId, limit, offset);
+        List<KnowledgeDocumentDto> knowledgeDocumentDtoList = knowledgeDocumentMapper.findByKnowledgeCatalogId(knowledgeCatalogId, limit, offset);
 
         //将查询到的所有KnowledgeDocumentDto封装成KnowledgeDocument并返回
         List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentDtoList.stream().map(DtoToDomainUtil::toDocumentDomain).toList();
@@ -39,9 +43,10 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
     }
 
     /**
+     * 根据知识库ID查询可用于构建该知识库的候选文档列表。
      *
-     * @param knowledgeCatalogId
-     * @return List<KnowledgeDocument> 可以为empty 不能为null
+     * @param knowledgeCatalogId 知识库目录的ID。
+     * @return List<KnowledgeDocument> 候选向量化文件的集合，可能为空但不会为null，需要考虑去重。
      */
     @NotNull
     public List<KnowledgeDocument> findCandidateKnowledgeDocumentKnowledgeCatalogId(@NotNull String knowledgeCatalogId) {
@@ -62,8 +67,10 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
 
 
     /**
-     * 新增向量化文件，如果已存在就更新
-     * @param knowledgeDocument
+     * 新增或更新向量化文件。
+     * 如果已存在相同标识的记录，则更新旧内容（upsert 操作）。
+     *
+     * @param knowledgeDocument 待保存的向量化文件实例。
      */
     public void save(@NotNull KnowledgeDocument knowledgeDocument) {
         // 封装KnowledgeDocument对象到Dto中
@@ -78,18 +85,20 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         knowledgeDocumentDto.setIsDelete(DeleteConstant.EXIST);
 
         // 判断当前向量化文件是否已经存在数据库
-        if (knowledgeDocumentMapper.find(knowledgeDocument.getId()) == null){
+        if (knowledgeDocumentMapper.find(knowledgeDocument.getId()) == null) {
             // 不存在,就保存
             knowledgeDocumentMapper.save(knowledgeDocumentDto);
-        }else {
+        } else {
             // 存在，就更新
             knowledgeDocumentMapper.update(knowledgeDocumentDto);
         }
     }
 
     /**
-     * 根据documentId删除对应的向量化文件，这里使用的是软删除，就是更新isdelete字段
-     * @param knowledgeDocumentId
+     * 软删除指定的向量化文件。
+     * 该操作通过更新文档的isDelete字段来标记删除，而非物理删除。
+     *
+     * @param knowledgeDocumentId 待删除向量化文件的ID。
      */
     public void delete(@NotNull String knowledgeDocumentId) {
         KnowledgeDocumentDto knowledgeDocumentDto = new KnowledgeDocumentDto();
@@ -102,9 +111,10 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
     }
 
     /**
-     * 根据documentId查询所有绑定该向量化文件的知识库
-     * @param knowledgeDocumentId
-     * @return List<KnowledgeCatalog> 可以为empty 不能是null
+     * 根据向量化文件的ID查询所有绑定了该文件的知识库。
+     *
+     * @param knowledgeDocumentId 向量化文件的ID。
+     * @return List<KnowledgeCatalog> 绑定了该向量化文件的知识库集合，可能为空但不会为null。
      */
     @NotNull
     public List<KnowledgeCatalog> findKnowledgeCatalogByKnowledgeDocumentId(@NotNull String knowledgeDocumentId) {
@@ -118,9 +128,11 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
 
 
     /**
-     * 将catalogType映射为documentType
-     * @param catalogType
-     * @return List<KnowledgeDocumentType>
+     * 将KnowledgeCatalogType映射为对应的KnowledgeDocumentType列表。
+     * 用于确定给定知识库类型所支持的文档类型。
+     *
+     * @param catalogType 知识库目录的类型。
+     * @return List<KnowledgeDocumentType> 与知识库类型兼容的知识文档类型列表。
      */
     private List<KnowledgeDocumentType> catalogTypeConvertToDocumentType(KnowledgeCatalogType catalogType) {
         return (catalogType == KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR) ?

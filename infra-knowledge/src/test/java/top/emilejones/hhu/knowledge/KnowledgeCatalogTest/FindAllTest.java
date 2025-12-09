@@ -18,8 +18,8 @@ public class FindAllTest {
     @Test
     public void FindAllTest(){
         List<KnowledgeCatalog> all = knowledgeCatalogService.findAll();
-        for (int i = 0; i < all.size(); i++) {
-            System.out.println(all.get(i));
+        for (KnowledgeCatalog knowledgeCatalog : all) {
+            System.out.println(knowledgeCatalog);
         }
     }
 }

@@ -21,8 +21,8 @@ public class FindKnowledgeCatalogByKnowledgeDocumentIdTest {
     public void findKnowledgeCatalogByCharKnowledgeDocumentIdTest(){
         List<KnowledgeCatalog> knowledgeCatalogList = knowledgeDocumentService.findKnowledgeCatalogByKnowledgeDocumentId("82323976-0a04-475d-a505-e26b629d4f31");
 
-        for (int i = 0; i <knowledgeCatalogList.size(); i++) {
-            System.out.println(knowledgeCatalogList.get(i));
+        for (KnowledgeCatalog knowledgeCatalog : knowledgeCatalogList) {
+            System.out.println(knowledgeCatalog);
         }
     }
 
@@ -33,8 +33,8 @@ public class FindKnowledgeCatalogByKnowledgeDocumentIdTest {
     public void findKnowledgeCatalogByStructureKnowledgeDocumentIdTest(){
         List<KnowledgeCatalog> knowledgeCatalogList = knowledgeDocumentService.findKnowledgeCatalogByKnowledgeDocumentId("1e81b016-e564-493b-953c-56e80389e998");
 
-        for (int i = 0; i <knowledgeCatalogList.size(); i++) {
-            System.out.println(knowledgeCatalogList.get(i));
+        for (KnowledgeCatalog knowledgeCatalog : knowledgeCatalogList) {
+            System.out.println(knowledgeCatalog);
         }
     }
 }
