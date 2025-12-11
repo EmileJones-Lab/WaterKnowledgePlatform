@@ -10,6 +10,7 @@ import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
 import top.emilejones.hhu.knowledge.constant.DeleteConstant;
+import top.emilejones.hhu.knowledge.mapper.CollectionDocumentMapper;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;
 import top.emilejones.hhu.knowledge.mapper.KnowledgeCatalogMapper;
 import top.emilejones.hhu.knowledge.pojo.po.CollectionDocumentPo;
@@ -29,6 +30,8 @@ import java.util.List;
 public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     @Autowired
     private KnowledgeCatalogMapper knowledgeCatalogMapper;
+    @Autowired
+    private CollectionDocumentMapper collectionDocumentMapper;
     /**
      * 查询所有的知识库信息。
      * @return List<KnowledgeCatalog> 知识库目录的集合，可以是空列表但不会为null。
@@ -114,7 +117,41 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         collectionDocumentPo.setIsDelete(DeleteConstant.EXIST);
 
         // 存入数据库
-        knowledgeCatalogMapper.bind(collectionDocumentPo);
+        collectionDocumentMapper.bind(collectionDocumentPo);
+    }
+
+    /**
+     * 将一个向量化后的文件与指定的知识库绑定。
+     * 如果已经绑定，则不进行任何操作。
+     * @param knowledgeDocument 待绑定的知识文档。
+     * @param knowledgeCatalog 目标知识库。
+     * @param bindTime 绑定的时间。
+     */
+    public void bind(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog, @NotNull Instant bindTime) {
+        // 获取知识库id和向量化文件id
+        String catalogId = knowledgeCatalog.getId();
+        String documentId = knowledgeDocument.getId();
+
+        // 判断向量化文件的type和知识库的type是否一致
+        validateDocumentAndCatalogType(knowledgeDocument, knowledgeCatalog);
+
+        // 判断是否已经绑定
+        if (isBind(documentId, catalogId)){
+            // 已经绑定就报错
+            return;
+        }
+
+        // 将相关信息封装成collectionDocumentPo对象
+        CollectionDocumentPo collectionDocumentPo = new CollectionDocumentPo();
+        collectionDocumentPo.setKbId(catalogId);
+        collectionDocumentPo.setDocumentId(documentId);
+
+        // 设置创建的时间和删除的标识，默认未删除
+        collectionDocumentPo.setCreateTime(bindTime);
+        collectionDocumentPo.setIsDelete(DeleteConstant.EXIST);
+
+        // 存入数据库
+        collectionDocumentMapper.bind(collectionDocumentPo);
     }
 
     /**
@@ -124,7 +161,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * @return boolean 如果已绑定则返回true，否则返回false。
      */
     private boolean isBind(String documentId, String catalogId) {
-        if (knowledgeCatalogMapper.selectFromCollectionDocument(documentId, catalogId) > 0){
+        if (collectionDocumentMapper.selectFromCollectionDocument(documentId, catalogId) > 0){
             return true;
         }
         return false;
@@ -192,6 +229,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         }
 
         // 进行解绑，软删除操作，实质就是更新collection_document的isdelete字段
-        knowledgeCatalogMapper.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalogId, knowledgeDocumentIdList);
+        collectionDocumentMapper.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalogId, knowledgeDocumentIdList);
     }
+
 }

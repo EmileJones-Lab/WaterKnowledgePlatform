@@ -3,17 +3,17 @@ package top.emilejones.hhu.knowledge.service.Impl;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
-import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
-import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
-import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
+import top.emilejones.hhu.domain.knowledge.*;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
 import top.emilejones.hhu.knowledge.constant.DeleteConstant;
+import top.emilejones.hhu.knowledge.mapper.CollectionDocumentMapper;
 import top.emilejones.hhu.knowledge.mapper.KnowledgeDocumentMapper;
+import top.emilejones.hhu.knowledge.pojo.dto.CollectionDocumentDto;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto;
 import top.emilejones.hhu.knowledge.utils.DtoToDomainUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,10 +25,11 @@ import java.util.List;
 public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository {
     @Autowired
     private KnowledgeDocumentMapper knowledgeDocumentMapper;
+    @Autowired
+    private CollectionDocumentMapper collectionDocumentMapper;
 
     /**
      * 根据知识库ID分页查询所有绑定的向量化文件。
-     *
      * @param knowledgeCatalogId 知识库目录的ID。
      * @param limit 每页查询的数量限制。
      * @param offset 查询的起始偏移量。
@@ -40,6 +41,34 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         //将查询到的所有KnowledgeDocumentDto封装成KnowledgeDocument并返回
         List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentDtoList.stream().map(DtoToDomainUtil::toDocumentDomain).toList();
         return knowledgeDocumentList;
+    }
+
+    /**
+     *
+     * @param knowledgeCatalogId 知识库目录的ID。
+     * @param limit 每页查询的数量限制。
+     * @param offset 查询的起始偏移量。
+     * @return List<KnowledgeDocumentWithBindTime> 绑定的向量化文件列表，可能为空但不会为null。
+     */
+    @NotNull
+    public List<KnowledgeDocumentWithBindTime> findDocumentsWithBindInfoByCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset) {
+        // 根据 catalogId 在collection_document中查询所有相关的绑定记录
+        List<CollectionDocumentDto> collectionDocumentDtoList = collectionDocumentMapper.selectByCatalogId(knowledgeCatalogId);
+
+        // 根据documentId查询对应的document信息并将Dto封装成KnowledgeDocumentWithBindTime
+        List<KnowledgeDocumentWithBindTime> knowledgeDocumentWithBindTimeList = new ArrayList<>();
+        for (int i = 0; i < collectionDocumentDtoList.size(); i++) {
+            KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.find(collectionDocumentDtoList.get(i).getDocumentId());
+            knowledgeDocumentWithBindTimeList.add(
+                    new KnowledgeDocumentWithBindTime(
+                            DtoToDomainUtil.toDocumentDomain(knowledgeDocumentDto),
+                            collectionDocumentDtoList.get(i).getCreateTime()
+                    )
+            );
+        }
+
+        // 返回结果
+        return knowledgeDocumentWithBindTimeList;
     }
 
     /**
@@ -143,4 +172,5 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
                         KnowledgeDocumentType.CHAR_LENGTH_SPLITTER_600
                 );
     }
+
 }
