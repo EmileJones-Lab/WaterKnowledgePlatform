@@ -14,37 +14,43 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 @SpringBootTest(classes = TestApplication.class)
-public class BindTest {
+public class BindWithTimeTest {
     @Autowired
     private KnowledgeCatalogServiceImpl knowledgeCatalogService;
 
-    @Test()
-    public void bindStructureToStructureTest(){
-
+    /**
+     * 结构文档绑定结构库，携带自定义绑定时间
+     */
+    @Test
+    public void bindStructureToStructureWithTimeTest() {
         KnowledgeDocument knowledgeDocumentStructure = new KnowledgeDocument(
                 "684f71bb-278f-4675-aa17-a14e6274b735",
-                "test19",
-                "8a033c81-4121-431a-87b0-39f4508e45aa",
+                "test",
+                "987c57ac-2113-4b54-a4b6-fe6bd4f5d984",
                 KnowledgeDocumentType.STRUCTURE_SPLITTER,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC)
         );
 
         KnowledgeCatalog knowledgeCatalogStructure = new KnowledgeCatalog(
                 "311f8e2a-a588-11ef-9d42-6ce2d3cf236c",
-                "test4",
+                "test3",
                 "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
                 KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR
         );
 
-        // 结构绑结构
-        knowledgeCatalogService.bind(knowledgeDocumentStructure, knowledgeCatalogStructure);
+        Instant bindTime = Instant.now();
 
+        knowledgeCatalogService.bind(knowledgeDocumentStructure, knowledgeCatalogStructure, bindTime);
     }
 
-    @Test()
-    public void bindCharToStructureTest(){
-
+    /**
+     * 字符文档绑定结构库（类型不匹配，预期抛异常）
+     */
+    @Test
+    public void bindCharToStructureWithTimeTest() {
         KnowledgeDocument knowledgeDocumentChar = new KnowledgeDocument(
                 "12061c96-3527-4141-91b1-25bd9cf3ce80",
                 "test19",
@@ -55,47 +61,50 @@ public class BindTest {
 
         KnowledgeCatalog knowledgeCatalogStructure = new KnowledgeCatalog(
                 "311f8e2a-a588-11ef-9d42-6ce2d3cf236c",
-                "test4",
+                "test3",
                 "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
                 KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR
         );
 
-        // 字符绑结构
-        knowledgeCatalogService.bind(knowledgeDocumentChar, knowledgeCatalogStructure);
-
+        Instant bindTime = Instant.now();
+        knowledgeCatalogService.bind(knowledgeDocumentChar, knowledgeCatalogStructure, bindTime);
     }
 
-    @Test()
-    public void bindStructureToCharTest(){
-
-        KnowledgeCatalog knowledgeCatalogChar = new KnowledgeCatalog(
-                "649b8aa0-c44d-4427-bb07-fed70a16dfd3",
-                "test4",
-                "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
-                KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR
-        );
-
+    /**
+     * 结构文档绑定字符库（类型不匹配，预期抛异常）
+     */
+    @Test
+    public void bindStructureToCharWithTimeTest() {
         KnowledgeDocument knowledgeDocumentStructure = new KnowledgeDocument(
                 "684f71bb-278f-4675-aa17-a14e6274b735",
-                "test19",
-                "8a033c81-4121-431a-87b0-39f4508e45aa",
+                "test",
+                "987c57ac-2113-4b54-a4b6-fe6bd4f5d984",
                 KnowledgeDocumentType.STRUCTURE_SPLITTER,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC)
         );
 
-        // 结构绑字符
-        knowledgeCatalogService.bind(knowledgeDocumentStructure, knowledgeCatalogChar);
+        KnowledgeCatalog knowledgeCatalogChar = new KnowledgeCatalog(
+                "649b8aa0-c44d-4427-bb07-fed70a16dfd3",
+                "test4",
+                "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
+                KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR
+        );
 
+        Instant bindTime = Instant.now();
+
+        knowledgeCatalogService.bind(knowledgeDocumentStructure, knowledgeCatalogChar, bindTime);
     }
 
-    @Test()
-    public void bindCharToCharTest(){
-
+    /**
+     * 字符文档绑定字符库，携带自定义绑定时间
+     */
+    @Test
+    public void bindCharToCharWithTimeTest() {
         KnowledgeDocument knowledgeDocumentChar = new KnowledgeDocument(
-                "12061c96-3527-4141-91b1-25bd9cf3ce80",
-                "test19",
-                "8a033c81-4121-431a-87b0-39f4508e45aa",
-                KnowledgeDocumentType.CHAR_LENGTH_SPLITTER_200,
+                "419ddefd-04b1-485f-a5c4-15b25ef0f7d0",
+                "test12",
+                "262e5349-f2fd-4d7b-b2a5-982d9d437dc9",
+                KnowledgeDocumentType.CHAR_LENGTH_SPLITTER_600,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC)
         );
 
@@ -106,8 +115,33 @@ public class BindTest {
                 KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR
         );
 
-        // 字符绑字符
-        knowledgeCatalogService.bind(knowledgeDocumentChar, knowledgeCatalogChar);
+        Instant bindTime = Instant.now();
 
+        knowledgeCatalogService.bind(knowledgeDocumentChar, knowledgeCatalogChar, bindTime);
+    }
+
+    /**
+     * 已经绑定不做任何操作
+     */
+    @Test
+    public void hadBindTest() {
+        KnowledgeDocument knowledgeDocumentChar = new KnowledgeDocument(
+                "419ddefd-04b1-485f-a5c4-15b25ef0f7d0",
+                "test12",
+                "262e5349-f2fd-4d7b-b2a5-982d9d437dc9",
+                KnowledgeDocumentType.CHAR_LENGTH_SPLITTER_600,
+                LocalDateTime.now().toInstant(ZoneOffset.UTC)
+        );
+
+        KnowledgeCatalog knowledgeCatalogChar = new KnowledgeCatalog(
+                "649b8aa0-c44d-4427-bb07-fed70a16dfd3",
+                "test4",
+                "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
+                KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR
+        );
+
+        Instant bindTime = Instant.now();
+
+        knowledgeCatalogService.bind(knowledgeDocumentChar, knowledgeCatalogChar, bindTime);
     }
 }

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.emilejones.hhu.knowledge.mapper.CollectionDocumentMapper">
+    <resultMap id="CollectionDocumentResultMap" type="top.emilejones.hhu.knowledge.pojo.dto.CollectionDocumentDto">
+        <id column="id" property="id" />
+        <result column="kb_id" property="kbId" />
+        <result column="document_id" property="documentId" />
+        <result column="isdelete" property="isDelete" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <insert id="bind">
+        insert into collection_document (id, kb_id, document_id, create_time, isdelete)
+        values (#{id}, #{kbId}, #{documentId}, #{createTime}, #{isDelete})
+    </insert>
+
+    <update id="deleteKnowledgeDocumentFromKnowledgeCatalog">
+        update collection_document set isdelete=0
+        <where>
+            kb_id=#{knowledgeCatalogId} and
+            document_id in
+            <foreach collection="knowledgeDocumentIdList" item="knowledgeDocument" open="(" close=")" separator=",">
+                #{knowledgeDocument}
+            </foreach>
+        </where>
+    </update>
+
+    <select id="selectFromCollectionDocument" resultType="java.lang.Integer">
+        select count(*) from collection_document where document_id=#{documentId} and  kb_id=#{catalogId} and isdelete=1
+    </select>
+
+    <select id="selectByCatalogId"
+            resultType="top.emilejones.hhu.knowledge.pojo.dto.CollectionDocumentDto"
+            resultMap="CollectionDocumentResultMap">
+        select * from collection_document where kb_id=#{knowledgeCatalogId}
+    </select>
+
+</mapper>

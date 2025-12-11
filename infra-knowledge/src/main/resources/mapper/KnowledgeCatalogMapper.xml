@@ -13,10 +13,6 @@
         <result column="permission" property="permission" />
     </resultMap>
 
-    <insert id="bind">
-        insert into collection_document (id, kb_id, document_id, create_time, isdelete)
-        values (#{id}, #{kbId}, #{documentId}, #{createTime}, #{isDelete})
-    </insert>
 
     <insert id="save">
         insert into col_kb (kb_id, kbname, colname, type, createtime, permission)
@@ -36,16 +32,6 @@
         where kb_id=#{kbId}
     </update>
 
-    <update id="deleteKnowledgeDocumentFromKnowledgeCatalog">
-        update collection_document set isdelete=0
-        <where>
-            kb_id=#{knowledgeCatalogId} and
-            document_id in
-            <foreach collection="knowledgeDocumentIdList" item="knowledgeDocument" open="(" close=")" separator=",">
-                #{knowledgeDocument}
-            </foreach>
-        </where>
-    </update>
 
     <select id="findAll" resultMap="KnowledgeCatalogResultMap">
         select * from col_kb
@@ -55,7 +41,4 @@
         select * from col_kb where kb_id=#{knowledgeCatalogId}
     </select>
 
-    <select id="selectFromCollectionDocument" resultType="java.lang.Integer">
-        select count(*) from collection_document where document_id=#{documentId} and  kb_id=#{catalogId} and isdelete=1
-    </select>
 </mapper>

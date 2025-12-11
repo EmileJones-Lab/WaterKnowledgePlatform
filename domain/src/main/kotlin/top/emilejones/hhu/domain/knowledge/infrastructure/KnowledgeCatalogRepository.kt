@@ -2,6 +2,7 @@ package top.emilejones.hhu.domain.knowledge.infrastructure
 
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument
+import java.time.Instant
 
 /**
  * 知识库目录的存储接口。
@@ -34,9 +35,10 @@ interface KnowledgeCatalogRepository {
      * 将一个知识文件添加到知识库中；已存在则不操作。
      * @param knowledgeDocument 知识库文档
      * @param knowledgeCatalog 知识库目录
+     * @param bindTime 绑定时间（业务发生时间）
      * @author EmileNathon
      */
-    fun bind(knowledgeDocument: KnowledgeDocument, knowledgeCatalog: KnowledgeCatalog)
+    fun bind(knowledgeDocument: KnowledgeDocument, knowledgeCatalog: KnowledgeCatalog, bindTime: Instant)
 
     /**
      * 删除指定的知识库
