@@ -2,6 +2,7 @@ package top.emilejones.hhu.application;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.utils.DtoConverter;
@@ -15,6 +16,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class MissionApplicationService {
     private final ApplicationEventPublisher publisher;
     private final StructureExtractionMissionRepository structureExtractionMissionRepository;

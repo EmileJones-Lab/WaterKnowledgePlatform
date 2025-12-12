@@ -1,6 +1,7 @@
 package top.emilejones.hhu.application;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.pipeline.TextNode;
@@ -9,6 +10,7 @@ import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeReposito
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class RecallApplicationService {
     private final NodeRepository nodeRepository;
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;

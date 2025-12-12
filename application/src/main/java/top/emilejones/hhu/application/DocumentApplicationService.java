@@ -1,6 +1,7 @@
 package top.emilejones.hhu.application;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.LazyPageDTO;
 import top.emilejones.hhu.application.dto.mission.MissionsDTO;
 import top.emilejones.hhu.application.dto.retrieval.TextNodeDTO;
@@ -8,6 +9,7 @@ import top.emilejones.hhu.application.dto.retrieval.TextNodeDTO;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class DocumentApplicationService {
 
     /**

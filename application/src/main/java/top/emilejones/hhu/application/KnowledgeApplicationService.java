@@ -2,6 +2,7 @@ package top.emilejones.hhu.application;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.LazyPageDTO;
 import top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryDTO;
 import top.emilejones.hhu.application.dto.knowledge.KnowledgeFileDTO;
@@ -13,6 +14,7 @@ import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class KnowledgeApplicationService {
 
     /**
@@ -30,6 +32,7 @@ public class KnowledgeApplicationService {
      * @param request 新增请求
      * @return 新增的知识库元数据
      */
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeDirectoryDTO addKnowledgeDirectory(AddKnowledgeDirectoryDTO request) {
         return null;
     }
@@ -41,6 +44,7 @@ public class KnowledgeApplicationService {
      * @param request 修改请求
      * @return 修改后的文件夹元信息
      */
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeDirectoryDTO updateKnowledgeDirectory(String id, UpdateKnowledgeDirectoryDTO request) {
         return null;
     }
@@ -50,6 +54,7 @@ public class KnowledgeApplicationService {
      *
      * @param id 知识库唯一Id
      */
+    @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeDirectory(String id) {
 
     }
@@ -74,6 +79,7 @@ public class KnowledgeApplicationService {
      * @param request 添加请求
      * @return 知识文件的元信息
      */
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeFileDTO addKnowledgeFileByDirId(String dirId, AddKnowledgeFileDTO request) {
         return null;
     }
@@ -84,6 +90,7 @@ public class KnowledgeApplicationService {
      * @param dirId       知识库唯一Id
      * @param embeddingId 知识文件唯一Id
      */
+    @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeFileByDirId(String dirId, String embeddingId) {
 
     }
@@ -104,6 +111,7 @@ public class KnowledgeApplicationService {
      * @param event 向量化任务成功事件
      */
     @EventListener
+    @Transactional(rollbackFor = Exception.class)
     public void addAKnowledgeDocumentFromSuccessfulEmbeddingMission(EmbeddingMissionSuccessEvent event) {
 
     }

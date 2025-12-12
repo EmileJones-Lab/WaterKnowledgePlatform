@@ -9,6 +9,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import top.emilejones.hhu.env.pojo.MysqlConfig;
 
 import javax.sql.DataSource;
@@ -40,7 +41,7 @@ public class MybatisConfig {
     }
 
     @Bean(name = "infra-document-SqlSessionFactory")
-    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+    public SqlSessionFactory sqlSessionFactory(@Qualifier("infra-document-DataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
         factory.setDataSource(dataSource);
         factory.setMapperLocations(
@@ -52,5 +53,10 @@ public class MybatisConfig {
     @Bean
     public SqlSessionTemplate sqlSessionTemplate(@Qualifier("infra-document-SqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
         return new SqlSessionTemplate(sqlSessionFactory);
+    }
+
+    @Bean(name = "documentTransactionManager")
+    public DataSourceTransactionManager documentTransactionManager(@Qualifier("infra-document-DataSource") DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 }
