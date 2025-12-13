@@ -2,7 +2,7 @@ package top.emilejones.hhu.domain.knowledge.infrastructure
 
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument
-import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentWithBindTime
+import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime
 import kotlin.ReplaceWith
 
 /**

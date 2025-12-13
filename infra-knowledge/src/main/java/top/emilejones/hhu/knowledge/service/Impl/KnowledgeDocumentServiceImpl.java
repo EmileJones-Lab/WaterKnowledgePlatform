@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.domain.knowledge.*;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
+import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.knowledge.constant.DeleteConstant;
 import top.emilejones.hhu.knowledge.mapper.CollectionDocumentMapper;
 import top.emilejones.hhu.knowledge.mapper.KnowledgeDocumentMapper;
