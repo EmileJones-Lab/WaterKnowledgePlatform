@@ -2,7 +2,6 @@ package top.emilejones.hhu.domain.pipeline.ocr
 
 import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
-import top.emilejones.hhu.domain.pipeline.event.OcrMissionReadyEvent
 import java.time.Instant
 
 /**
@@ -51,7 +50,6 @@ class OcrMission(
     fun preparedToExecution() {
         require(status == MissionStatus.CREATED) { "OcrMission can only ready from CREATED" }
         status = MissionStatus.PENDING
-        raiseEvent(OcrMissionReadyEvent(this))
     }
 
     /**

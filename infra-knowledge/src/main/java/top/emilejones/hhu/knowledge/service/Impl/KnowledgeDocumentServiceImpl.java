@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.domain.knowledge.*;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
+import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.knowledge.constant.DeleteConstant;
 import top.emilejones.hhu.knowledge.mapper.CollectionDocumentMapper;
 import top.emilejones.hhu.knowledge.mapper.KnowledgeDocumentMapper;
@@ -35,6 +36,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @param offset 查询的起始偏移量。
      * @return List<KnowledgeDocument> 绑定的向量化文件列表，可能为空但不会为null。
      */
+    @Override
     public @NotNull List<KnowledgeDocument> findByKnowledgeCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset) {
         List<KnowledgeDocumentDto> knowledgeDocumentDtoList = knowledgeDocumentMapper.findByKnowledgeCatalogId(knowledgeCatalogId, limit, offset);
 
@@ -51,6 +53,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @return List<KnowledgeDocumentWithBindTime> 绑定的向量化文件列表，可能为空但不会为null。
      */
     @NotNull
+    @Override
     public List<KnowledgeDocumentWithBindTime> findDocumentsWithBindInfoByCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset) {
         // 根据 catalogId 在collection_document中查询所有相关的绑定记录
         List<CollectionDocumentDto> collectionDocumentDtoList = collectionDocumentMapper.selectByCatalogId(knowledgeCatalogId);
@@ -78,6 +81,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @return List<KnowledgeDocument> 候选向量化文件的集合，可能为空但不会为null，需要考虑去重。
      */
     @NotNull
+    @Override
     public List<KnowledgeDocument> findCandidateKnowledgeDocumentKnowledgeCatalogId(@NotNull String knowledgeCatalogId) {
         // 根据catalogId去查询知识库类型
         KnowledgeCatalogType catalogType = knowledgeDocumentMapper.findKnowledgeCatalogType(knowledgeCatalogId);
@@ -101,6 +105,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      *
      * @param knowledgeDocument 待保存的向量化文件实例。
      */
+    @Override
     public void save(@NotNull KnowledgeDocument knowledgeDocument) {
         // 封装KnowledgeDocument对象到Dto中
         KnowledgeDocumentDto knowledgeDocumentDto = new KnowledgeDocumentDto();
@@ -129,6 +134,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      *
      * @param knowledgeDocumentId 待删除向量化文件的ID。
      */
+    @Override
     public void delete(@NotNull String knowledgeDocumentId) {
         KnowledgeDocumentDto knowledgeDocumentDto = new KnowledgeDocumentDto();
         // 对需要删除的信息封装成KnowledgeDocumentDto对象
@@ -146,6 +152,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @return List<KnowledgeCatalog> 绑定了该向量化文件的知识库集合，可能为空但不会为null。
      */
     @NotNull
+    @Override
     public List<KnowledgeCatalog> findKnowledgeCatalogByKnowledgeDocumentId(@NotNull String knowledgeDocumentId) {
         // 查询所有的KnowledgeCatalogDto
         List<KnowledgeCatalogDto> knowledgeCatalogDtoList = knowledgeDocumentMapper.findKnowledgeCatalogByKnowledgeDocumentId(knowledgeDocumentId);

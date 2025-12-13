@@ -24,6 +24,14 @@ interface EmbeddingMissionRepository {
     fun delete(embeddingMissionId: String)
 
     /**
+     * 根据ID查找任务。
+     *
+     * @param embeddingMissionId 任务标识
+     * @return 任务对象，不存在返回 null
+     */
+    fun findById(embeddingMissionId: String): EmbeddingMission?
+
+    /**
      * 根据源文档查询任务列表。
      *
      * 约定：返回该文档关联的全部向量化任务；未命中时返回空列表，返回顺序按任务创建时间倒序。

@@ -36,6 +36,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * 查询所有的知识库信息。
      * @return List<KnowledgeCatalog> 知识库目录的集合，可以是空列表但不会为null。
      */
+    @Override
     public @NotNull List<KnowledgeCatalog> findAll() {
         // 从数据库中查询所有的知识库信息
         List<KnowledgeCatalogDto> knowledgeCatalogDtoList = knowledgeCatalogMapper.findAll();
@@ -51,6 +52,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * @return KnowledgeCatalog 知识库目录，如果不存在则返回null。
      */
     @Nullable
+    @Override
     public KnowledgeCatalog find(@NotNull String knowledgeCatalogId) {
         // 根据id查询知识库信息
         KnowledgeCatalogDto knowledgeCatalogDto = knowledgeCatalogMapper.find(knowledgeCatalogId);
@@ -64,6 +66,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * 新增一个知识库；如果已存在相同标识的记录，则更新旧内容（upsert 操作）。
      * @param knowledgeCatalog 待保存的知识库目录实例。
      */
+    @Override
     public void save(@NotNull KnowledgeCatalog knowledgeCatalog) {
         // 将KnoledgeCatalog封装成Dto
         KnowledgeCatalogDto knowledgeCatalogDto = new KnowledgeCatalogDto();
@@ -93,6 +96,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * @param knowledgeDocument 待绑定的知识文档。
      * @param knowledgeCatalog 目标知识库。
      */
+    @Override
     public void bind(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog) {
         // 获取知识库id和向量化文件id
         String catalogId = knowledgeCatalog.getId();
@@ -127,6 +131,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * @param knowledgeCatalog 目标知识库。
      * @param bindTime 绑定的时间。
      */
+    @Override
     public void bind(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog, @NotNull Instant bindTime) {
         // 获取知识库id和向量化文件id
         String catalogId = knowledgeCatalog.getId();
@@ -205,6 +210,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * 该操作通过更新知识库的isDelete字段为指定删除状态来标记删除，而非物理删除。
      * @param knowledgeCatalogId 待删除知识库的ID。
      */
+    @Override
     public void delete(@NotNull String knowledgeCatalogId) {
         // 将信息封装成KnowledgeCatalogDto对象
         KnowledgeCatalogDto knowledgeCatalogDto = new KnowledgeCatalogDto();
@@ -222,6 +228,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * @param knowledgeDocumentIdList 待解绑的向量化文件ID列表。
      * @throws IllegalArgumentException 如果知识文档ID列表为null或为空。
      */
+    @Override
     public void deleteKnowledgeDocumentFromKnowledgeCatalog(@NotNull String knowledgeCatalogId, @NotNull List<String> knowledgeDocumentIdList) {
         // 做非法判断
         if (knowledgeDocumentIdList == null || knowledgeDocumentIdList.isEmpty()){

@@ -23,7 +23,7 @@ public class KnowledgeDirectoryController {
     @Operation(summary = "获取知识库列表",
             description = "此接口会返回知识库列表，如果没有数据，则会返回空列表")
     @ApiResponse(responseCode = "200", description = "成功获取知识库列表")
-    public List<KnowledgeDirectoryVO> getAllStructuredKnowledgeDirectory() {
+    public List<KnowledgeDirectoryVO> getAllKnowledgeDirectories() {
         return null;
     }
 
@@ -31,7 +31,7 @@ public class KnowledgeDirectoryController {
     @Operation(summary = "新增一个知识库",
             description = "此接口会新增一个知识库，并且自动生成一个milvusCollection")
     @ApiResponse(responseCode = "200", description = "新增的知识库元数据")
-    public KnowledgeDirectoryVO addStructuredKnowledgeDirectory(
+    public KnowledgeDirectoryVO addKnowledgeDirectory(
             @RequestBody AddKnowledgeDirectoryRequest request
     ) {
         return null;
@@ -41,7 +41,7 @@ public class KnowledgeDirectoryController {
     @Operation(summary = "修改一个知识库元信息",
             description = "此接口目前只支持修改文件夹名称，当修改成功后，会返回修改后的文件夹元信息")
     @ApiResponse(responseCode = "200", description = "成功修改文件夹属性，返回修改后的文件夹元信息")
-    public KnowledgeDirectoryVO updateStructuredKnowledgeDirectory(
+    public KnowledgeDirectoryVO updateKnowledgeDirectory(
             @RequestBody UpdateKnowledgeDirectoryRequest request,
             @PathVariable("dirId") @Schema(description = "知识库唯一Id") String id
     ) {
@@ -61,7 +61,7 @@ public class KnowledgeDirectoryController {
                     )
             )
     })
-    public void deleteStructuredKnowledgeDirectory(
+    public void deleteKnowledgeDirectory(
             @PathVariable("dirId") @Schema(description = "知识库唯一Id") String id
     ) {
 
