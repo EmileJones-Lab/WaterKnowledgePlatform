@@ -11,7 +11,6 @@ import top.emilejones.hhu.application.dto.knowledge.request.AddKnowledgeFileDTO;
 import top.emilejones.hhu.application.dto.knowledge.request.UpdateKnowledgeDirectoryDTO;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
-import top.emilejones.hhu.domain.pipeline.event.VectorIndexFailedEvent;
 
 import java.util.List;
 
@@ -127,17 +126,6 @@ public class KnowledgeApplicationService {
     @EventListener
     @Transactional(rollbackFor = Exception.class)
     public void addAKnowledgeDocumentFromSuccessfulEmbeddingMission(EmbeddingMissionSuccessEvent event) {
-
-    }
-
-    /**
-     * 监听 VectorIndexFailedEvent 事件，执行补偿逻辑（解绑）。
-     *
-     * @param event 向量入库失败事件。
-     */
-    @EventListener
-    @Transactional(rollbackFor = Exception.class)
-    public void handleVectorIndexFailedEvent(VectorIndexFailedEvent event) {
 
     }
 }

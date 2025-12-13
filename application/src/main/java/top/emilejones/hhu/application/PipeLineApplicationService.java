@@ -15,8 +15,6 @@ import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMis
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.TextNode;
-import top.emilejones.hhu.domain.pipeline.event.VectorIndexFailedEvent;
-import top.emilejones.hhu.domain.pipeline.service.VectorIndexDomainService;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
 import java.util.List;
@@ -31,7 +29,6 @@ public class PipeLineApplicationService {
     private final EmbeddingMissionRepository embeddingMissionRepository;
     private final EmbeddingGateway embeddingGateway;
     private final NodeRepository nodeRepository;
-    private final VectorIndexDomainService vectorIndexDomainService;
 
     /**
      * 构造函数。
@@ -41,22 +38,19 @@ public class PipeLineApplicationService {
      * @param embeddingMissionRepository           向量化任务仓储。
      * @param embeddingGateway                     向量化网关。
      * @param nodeRepository                       节点仓储。
-     * @param vectorIndexDomainService             向量索引领域服务。
      */
     public PipeLineApplicationService(
             ApplicationEventPublisher publisher,
             StructureExtractionMissionRepository structureExtractionMissionRepository,
             EmbeddingMissionRepository embeddingMissionRepository,
             EmbeddingGateway embeddingGateway,
-            NodeRepository nodeRepository,
-            VectorIndexDomainService vectorIndexDomainService
+            NodeRepository nodeRepository
     ) {
         this.publisher = publisher;
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.embeddingGateway = embeddingGateway;
         this.nodeRepository = nodeRepository;
-        this.vectorIndexDomainService = vectorIndexDomainService;
     }
 
     /**
@@ -164,13 +158,8 @@ public class PipeLineApplicationService {
             embeddingGateway.saveTextNodeToVectorDatabase(textNodes, milvusCollectionName);
 
         } catch (Exception e) {
-            // 5. 如果失败，调用 vectorIndexDomainService.createIndexFailedEvent 生产事件，并通过 publisher 发布
-            VectorIndexFailedEvent failedEvent = vectorIndexDomainService.createIndexFailedEvent(
-                    embeddingMissionId,
-                    milvusCollectionName,
-                    e
-            );
-            publisher.publishEvent(failedEvent);
+            // 5. 如果失败，仅打印日志
+            e.printStackTrace();
         }
     }
 }
