@@ -64,4 +64,12 @@ interface OcrMissionRepository {
      * @param ocrMissionId 任务标识
      */
     fun delete(ocrMissionId: String)
+
+    /**
+     * 根据ID查找任务。
+     *
+     * @param ocrMissionId 任务标识
+     * @return 任务对象，不存在返回 null
+     */
+    fun findById(ocrMissionId: String): OcrMission?
 }

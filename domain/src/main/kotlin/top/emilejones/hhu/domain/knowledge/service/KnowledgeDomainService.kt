@@ -1,6 +1,10 @@
-package top.emilejones.hhu.domain.knowledge
+package top.emilejones.hhu.domain.knowledge.service
 
 
+import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog
+import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType
+import top.emilejones.hhu.domain.knowledge.KnowledgeDocument
+import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType
 import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent
 import java.time.Instant
 
