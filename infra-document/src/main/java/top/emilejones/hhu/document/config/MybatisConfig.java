@@ -19,7 +19,8 @@ import javax.sql.DataSource;
 @Configuration
 @MapperScan(
         basePackages = "top.emilejones.hhu.document.mapper",
-        sqlSessionFactoryRef = "infra-document-SqlSessionFactory"
+        sqlSessionFactoryRef = "infra-document-SqlSessionFactory",
+        sqlSessionTemplateRef = "infra-document-SqlSessionTemplate"
 )
 public class MybatisConfig {
 
@@ -49,7 +50,7 @@ public class MybatisConfig {
         return factory.getObject();
     }
 
-    @Bean
+    @Bean("infra-document-SqlSessionTemplate")
     public SqlSessionTemplate sqlSessionTemplate(@Qualifier("infra-document-SqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
