@@ -3,7 +3,7 @@ package top.emilejones.hhu.document.config;
 import io.minio.MinioClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import top.emilejones.hhu.env.pojo.MinioConfig;
+import top.emilejones.hhu.common.env.pojo.MinioConfig;
 
 
 @Configuration

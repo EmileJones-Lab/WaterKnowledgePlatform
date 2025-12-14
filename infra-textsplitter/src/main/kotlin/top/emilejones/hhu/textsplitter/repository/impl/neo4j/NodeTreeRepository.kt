@@ -9,7 +9,7 @@ import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationship
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationshipType
-import top.emilejones.hhu.env.pojo.Neo4jConfig
+import top.emilejones.hhu.common.env.pojo.Neo4jConfig
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.delegates.elementId
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.*
 

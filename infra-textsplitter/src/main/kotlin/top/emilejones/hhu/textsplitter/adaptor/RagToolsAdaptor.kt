@@ -8,7 +8,7 @@ import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.StructureExtractionGateway
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
-import top.emilejones.hhu.env.pojo.RAGConfig
+import top.emilejones.hhu.common.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser

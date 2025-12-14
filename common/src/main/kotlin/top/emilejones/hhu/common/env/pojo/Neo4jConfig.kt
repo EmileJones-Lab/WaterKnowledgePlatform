@@ -1,12 +1,12 @@
-package top.emilejones.hhu.env.pojo
+package top.emilejones.hhu.common.env.pojo
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
-data class MinioConfig(
+data class Neo4jConfig(
     val host: String,
     val port: Int,
     val user: String,
-    val password: String
+    val password: String,
+    val database: String
 )

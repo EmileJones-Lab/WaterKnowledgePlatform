@@ -7,7 +7,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.stereotype.Service
-import top.emilejones.hhu.env.pojo.HttpModelClientConfig
+import top.emilejones.hhu.common.env.pojo.HttpModelClientConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.model.pojo.RerankResult
 

@@ -1,7 +1,7 @@
-package top.emilejones.hhu.env
+package top.emilejones.hhu.common.env
 
 import net.mamoe.yamlkt.Yaml
-import top.emilejones.hhu.env.pojo.ApplicationConfig
+import top.emilejones.hhu.common.env.pojo.ApplicationConfig
 import java.io.File
 import java.io.IOException
 

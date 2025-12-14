@@ -7,7 +7,7 @@ import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.types.choice
 import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl
 import top.emilejones.hhu.repository.INeo4jRepository
-import top.emilejones.hhu.env.AutoFindConfigFile
+import top.emilejones.hhu.common.env.AutoFindConfigFile
 
 /**
  * 清空数据库的命令

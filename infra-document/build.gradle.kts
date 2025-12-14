@@ -2,18 +2,10 @@ plugins {
     alias(libs.plugins.kotlinPluginSerialization)
 }
 
-group = "top.emilejones"
-version = "unspecified"
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
     implementation("io.minio:minio:8.6.0")
-    implementation("com.mysql:mysql-connector-j:9.5.0")
     implementation("org.springframework.boot:spring-boot-starter")
 
     testImplementation(platform("org.junit:junit-bom:5.10.2"))
@@ -22,8 +14,7 @@ dependencies {
     }
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    //加入mybatis依赖
-    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3")
+
 
 
     // 加入Lombok依赖

@@ -5,6 +5,11 @@ plugins {
 }
 
 allprojects {
+    group = "top.emilejones"
+    version = "unspecified" // Or specify a central version here
+    repositories {
+        mavenCentral()
+    }
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.dokka")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")

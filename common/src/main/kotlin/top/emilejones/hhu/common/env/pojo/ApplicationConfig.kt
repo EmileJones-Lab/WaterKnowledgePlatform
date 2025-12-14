@@ -1,4 +1,4 @@
-package top.emilejones.hhu.env.pojo
+package top.emilejones.hhu.common.env.pojo
 
 import kotlinx.serialization.Serializable
 

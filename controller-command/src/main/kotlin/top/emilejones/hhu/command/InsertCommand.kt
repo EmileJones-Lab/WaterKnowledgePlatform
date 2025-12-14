@@ -10,8 +10,8 @@ import top.emilejones.hhu.model.impl.ModelClientByHttp
 import top.emilejones.hhu.repository.impl.neo4j.Neo4jRepositoryImpl
 import top.emilejones.hhu.repository.INeo4jRepository
 import top.emilejones.hhu.service.impl.DataProcessingService
-import top.emilejones.hhu.env.AutoFindConfigFile
-import top.emilejones.hhu.env.pojo.ApplicationConfig
+import top.emilejones.hhu.common.env.AutoFindConfigFile
+import top.emilejones.hhu.common.env.pojo.ApplicationConfig
 import java.io.File
 
 /**

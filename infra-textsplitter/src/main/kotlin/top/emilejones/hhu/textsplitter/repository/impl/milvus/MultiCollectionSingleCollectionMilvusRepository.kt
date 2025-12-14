@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import top.emilejones.hhu.domain.pipeline.TextType
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
-import top.emilejones.hhu.env.pojo.HttpModelClientConfig
-import top.emilejones.hhu.env.pojo.MilvusConfig
+import top.emilejones.hhu.common.env.pojo.HttpModelClientConfig
+import top.emilejones.hhu.common.env.pojo.MilvusConfig
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 
 

@@ -13,7 +13,7 @@ import okio.BufferedSink
 import okio.source
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import top.emilejones.hhu.env.pojo.MinerUConfig
+import top.emilejones.hhu.common.env.pojo.MinerUConfig
 import java.io.IOException
 import java.io.InputStream
 import java.util.Base64
