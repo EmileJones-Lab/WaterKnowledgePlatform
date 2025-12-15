@@ -30,7 +30,11 @@
     </update>
 
     <select id="find" resultMap="KnowledgeDocumentResultMap">
-        select * from knowledge_document where document_id=#{documentId}
+        select * from knowledge_document
+        <where>
+            document_id=#{documentId}
+            <if test="keyWord != null and keyWord != ''">and document_name like concat('%', #{keyWord}, '%')</if>
+        </where>
     </select>
 
     <select id="findByKnowledgeCatalogId" resultMap="KnowledgeDocumentResultMap"
@@ -59,6 +63,7 @@
             and document_id not in (
                 select document_id from collection_document where kb_id=#{knowledgeCatalogId} and isdelete=1
             )
+            <if test="keyWord != null and keyWord != ''">and document_name like concat('%', #{keyWord}, '%')</if>
         </where>
 
     </select>

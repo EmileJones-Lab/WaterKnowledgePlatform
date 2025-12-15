@@ -48,17 +48,23 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @param knowledgeCatalogId 知识库目录的ID。
      * @param limit 每页查询的数量限制。
      * @param offset 查询的起始偏移量。
+     * @param keyWord 根据向量化文件名模糊查询
      * @return List<KnowledgeDocumentWithBindTime> 绑定的向量化文件列表，可能为空但不会为null。
      */
     @NotNull
-    public List<KnowledgeDocumentWithBindTime> findDocumentsWithBindInfoByCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset) {
+    public List<KnowledgeDocumentWithBindTime> findDocumentsWithBindInfoByCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset, String keyWord) {
         // 根据 catalogId 在collection_document中查询所有相关的绑定记录
         List<CollectionDocumentDto> collectionDocumentDtoList = collectionDocumentMapper.selectByCatalogId(knowledgeCatalogId);
+
 
         // 根据documentId查询对应的document信息并将Dto封装成KnowledgeDocumentWithBindTime
         List<KnowledgeDocumentWithBindTime> knowledgeDocumentWithBindTimeList = new ArrayList<>();
         for (int i = 0; i < collectionDocumentDtoList.size(); i++) {
-            KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.find(collectionDocumentDtoList.get(i).getDocumentId());
+            KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.find(collectionDocumentDtoList.get(i).getDocumentId(), keyWord);
+            // 如果当前查出来的对象是null，就直接跳过
+            if (knowledgeDocumentDto == null){
+                continue;
+            }
             knowledgeDocumentWithBindTimeList.add(
                     new KnowledgeDocumentWithBindTime(
                             DtoToDomainUtil.toDocumentDomain(knowledgeDocumentDto),
@@ -75,10 +81,11 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * 根据知识库ID查询可用于构建该知识库的候选文档列表。
      *
      * @param knowledgeCatalogId 知识库目录的ID。
+     * @param keyWord 根据向量化文件名模糊查询
      * @return List<KnowledgeDocument> 候选向量化文件的集合，可能为空但不会为null，需要考虑去重。
      */
     @NotNull
-    public List<KnowledgeDocument> findCandidateKnowledgeDocumentKnowledgeCatalogId(@NotNull String knowledgeCatalogId) {
+    public List<KnowledgeDocument> findCandidateKnowledgeDocumentKnowledgeCatalogId(@NotNull String knowledgeCatalogId, String keyWord) {
         // 根据catalogId去查询知识库类型
         KnowledgeCatalogType catalogType = knowledgeDocumentMapper.findKnowledgeCatalogType(knowledgeCatalogId);
 
@@ -86,7 +93,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         List<KnowledgeDocumentType> types = catalogTypeConvertToDocumentType(catalogType);
 
         // 查询当前知识库所有候选向量化文件
-        List<KnowledgeDocumentDto> candidateDocumentList = knowledgeDocumentMapper.findCandidateDocument(knowledgeCatalogId, types);
+        List<KnowledgeDocumentDto> candidateDocumentList = knowledgeDocumentMapper.findCandidateDocument(knowledgeCatalogId, types, keyWord);
 
         // 封装成KnowledgeDocument并返回
         List<KnowledgeDocument> knowledgeDocumentList = candidateDocumentList.stream().map(DtoToDomainUtil::toDocumentDomain).toList();
@@ -114,7 +121,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         knowledgeDocumentDto.setIsDelete(DeleteConstant.EXIST);
 
         // 判断当前向量化文件是否已经存在数据库
-        if (knowledgeDocumentMapper.find(knowledgeDocument.getId()) == null) {
+        if (knowledgeDocumentMapper.find(knowledgeDocument.getId(), null) == null) {
             // 不存在,就保存
             knowledgeDocumentMapper.save(knowledgeDocumentDto);
         } else {

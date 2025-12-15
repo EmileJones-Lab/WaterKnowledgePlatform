@@ -27,9 +27,9 @@ public class BindWithTimeTest {
     @Test
     public void bindStructureToStructureWithTimeTest() {
         KnowledgeDocument knowledgeDocumentStructure = new KnowledgeDocument(
-                "684f71bb-278f-4675-aa17-a14e6274b735",
-                "test",
-                "987c57ac-2113-4b54-a4b6-fe6bd4f5d984",
+                "beeae76e-22e9-48e5-921d-34f59c3700dc",
+                "abcd",
+                "f66ed2f6-a923-4d18-a392-47f5cd588e0c",
                 KnowledgeDocumentType.STRUCTURE_SPLITTER,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC)
         );
@@ -76,9 +76,9 @@ public class BindWithTimeTest {
     @Test
     public void bindStructureToCharWithTimeTest() {
         KnowledgeDocument knowledgeDocumentStructure = new KnowledgeDocument(
-                "684f71bb-278f-4675-aa17-a14e6274b735",
-                "test",
-                "987c57ac-2113-4b54-a4b6-fe6bd4f5d984",
+                "beeae76e-22e9-48e5-921d-34f59c3700dc",
+                "abcd",
+                "f66ed2f6-a923-4d18-a392-47f5cd588e0c",
                 KnowledgeDocumentType.STRUCTURE_SPLITTER,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC)
         );
@@ -101,9 +101,9 @@ public class BindWithTimeTest {
     @Test
     public void bindCharToCharWithTimeTest() {
         KnowledgeDocument knowledgeDocumentChar = new KnowledgeDocument(
-                "419ddefd-04b1-485f-a5c4-15b25ef0f7d0",
-                "test12",
-                "262e5349-f2fd-4d7b-b2a5-982d9d437dc9",
+                "82323976-0a04-475d-a505-e26b629d4f31",
+                "badc",
+                "df304f2f-2092-4b95-b7fc-dd40270c5762",
                 KnowledgeDocumentType.CHAR_LENGTH_SPLITTER_600,
                 LocalDateTime.now().toInstant(ZoneOffset.UTC)
         );

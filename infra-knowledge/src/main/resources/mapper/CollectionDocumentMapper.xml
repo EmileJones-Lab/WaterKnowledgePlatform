@@ -33,7 +33,7 @@
     <select id="selectByCatalogId"
             resultType="top.emilejones.hhu.knowledge.pojo.dto.CollectionDocumentDto"
             resultMap="CollectionDocumentResultMap">
-        select * from collection_document where kb_id=#{knowledgeCatalogId}
+        select * from collection_document where kb_id=#{knowledgeCatalogId} and isdelete=1
     </select>
 
 </mapper>

@@ -17,7 +17,7 @@ public class FindCandidateKnowledgeDocumentKnowledgeCatalogIdTest {
     @Test
     public void findCandidateKnowledgeDocumentKnowledgeCatalogIdStructureTest() {
         List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService
-                .findCandidateKnowledgeDocumentKnowledgeCatalogId("311f8e2a-a588-11ef-9d42-6ce2d3cf236c");
+                .findCandidateKnowledgeDocumentKnowledgeCatalogId("311f8e2a-a588-11ef-9d42-6ce2d3cf236c", null);
 
         System.out.println(knowledgeDocumentList);
     }
@@ -25,9 +25,26 @@ public class FindCandidateKnowledgeDocumentKnowledgeCatalogIdTest {
     @Test
     public void findCandidateKnowledgeDocumentKnowledgeCatalogIdCharacterTest() {
         List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService
-                .findCandidateKnowledgeDocumentKnowledgeCatalogId("649b8aa0-c44d-4427-bb07-fed70a16dfd3");
+                .findCandidateKnowledgeDocumentKnowledgeCatalogId("649b8aa0-c44d-4427-bb07-fed70a16dfd3", null);
 
         System.out.println(knowledgeDocumentList);
 
+    }
+
+    @Test
+    public void findCandidateKnowledgeDocumentWithNameKnowledgeCatalogIdCharacterTest() {
+        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService
+                .findCandidateKnowledgeDocumentKnowledgeCatalogId("649b8aa0-c44d-4427-bb07-fed70a16dfd3", "ba");
+
+        System.out.println(knowledgeDocumentList);
+
+    }
+
+    @Test
+    public void findCandidateKnowledgeDocumentWithNameKnowledgeCatalogIdStructureTest() {
+        List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentService
+                .findCandidateKnowledgeDocumentKnowledgeCatalogId("311f8e2a-a588-11ef-9d42-6ce2d3cf236c", "ab");
+
+        System.out.println(knowledgeDocumentList);
     }
 }

@@ -27,17 +27,19 @@ interface KnowledgeDocumentRepository {
      * @param knowledgeCatalogId 知识库目录id
      * @param limit 每页数量
      * @param offset 偏移量，从哪里开始查
+     * @param keyWord 根据向量化文件名模糊查询
      * @return List<KnowledgeDocumentWithBindTime> 带有绑定时间的文档集合
      */
-    fun findDocumentsWithBindInfoByCatalogId(knowledgeCatalogId: String, limit: Int, offset: Int): List<KnowledgeDocumentWithBindTime>
+    fun findDocumentsWithBindInfoByCatalogId(knowledgeCatalogId: String, limit: Int, offset: Int, keyWord: String?): List<KnowledgeDocumentWithBindTime>
 
     /**
      * 查询可用于构建知识库的候选文档列表。
      * @param knowledgeCatalogId 知识库目录id
+     * @param keyWord 根据向量化文件名模糊查询
      * @return List<KnowledgeDocument> 向量化文件的集合，这里需考虑去重
      * @author EmileNathon
      */
-    fun findCandidateKnowledgeDocumentKnowledgeCatalogId(knowledgeCatalogId: String): List<KnowledgeDocument>
+    fun findCandidateKnowledgeDocumentKnowledgeCatalogId(knowledgeCatalogId: String, keyWord: String?): List<KnowledgeDocument>
 
     /**
      * 保存或更新知识文档；若已存在相同标识的记录，将覆盖旧内容（等同于 upsert）。
@@ -59,4 +61,5 @@ interface KnowledgeDocumentRepository {
      * @return List<KnowledgeCatalog> 知识库集合，可以为empty 但不能为null，需要考虑去重
      */
     fun findKnowledgeCatalogByKnowledgeDocumentId(knowledgeDocumentId: String): List<KnowledgeCatalog>
+
 }
