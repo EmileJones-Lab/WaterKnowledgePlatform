@@ -17,10 +17,10 @@ public interface KnowledgeDocumentMapper {
 
     /**
      * 根据id查询向量化文件
-     * @param document_id
+     * @param documentId
      * @return KnowledgeDocumentDto
      */
-    KnowledgeDocumentDto find(@NotNull String document_id);
+    KnowledgeDocumentDto find(@Param("documentId") String documentId, @Param("keyWord") String keyWord);
 
     /**
      * 新增向量化文件
@@ -56,7 +56,7 @@ public interface KnowledgeDocumentMapper {
      * @param types
      * @return List<KnowledgeDocumentDto> 可以为empty 不能为null
      */
-    List<KnowledgeDocumentDto> findCandidateDocument(@Param("knowledgeCatalogId") String knowledgeCatalogId, @Param("types") List<KnowledgeDocumentType> types);
+    List<KnowledgeDocumentDto> findCandidateDocument(@Param("knowledgeCatalogId") String knowledgeCatalogId, @Param("types") List<KnowledgeDocumentType> types, @Param("keyWord") String keyWord);
 
     /**
      * 查询当前所有绑定该向量化文件的知识库信息
