@@ -52,7 +52,7 @@ public class KnowledgeFileController {
         return null;
     }
 
-    @DeleteMapping("/files/{embeddingId}")
+    @DeleteMapping("/files/{knowledgeFileId}")
     @Operation(summary = "删除知识库中的一个知识文件",
             description = "将知识文件从此知识库中删除")
     @ApiResponses({
@@ -67,7 +67,7 @@ public class KnowledgeFileController {
     })
     public void deleteKnowledgeFileByDirId(
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId,
-            @PathVariable("embeddingId") @Schema(name = "embeddingId", description = "知识文件唯一Id") String embeddingId
+            @PathVariable("knowledgeFileId") @Schema(name = "knowledgeFileId", description = "知识文件唯一Id") String knowledgeFileId
     ) {
     }
 

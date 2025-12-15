@@ -3,9 +3,8 @@ package top.emilejones.hhu.common.env.configuration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import top.emilejones.hhu.common.env.AutoFindConfigFile
-import top.emilejones.hhu.common.config.env.pojo.*
 import top.emilejones.hhu.common.env.pojo.*
-import top.emilejones.hhu.env.pojo.*
+
 
 @Configuration
 class ConfigFileConfiguration {

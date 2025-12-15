@@ -11,8 +11,8 @@ import java.util.List;
 
 @Schema(description = "知识库中的文件的元信息")
 public class KnowledgeFileVO {
-    @Schema(description = "向量化任务唯一Id")
-    private String embeddingMissionId;
+    @Schema(description = "知识文件唯一Id")
+    private String knowledgeFileId;
     @Schema(description = "文本切割任务类型")
     private DocumentSplittingMissionType type;
     @Schema(description = "文件名称")
@@ -26,12 +26,12 @@ public class KnowledgeFileVO {
     @Schema(description = "向量化任务列表（按照时间倒序排列），如果没有向量化任务，则返回空列表")
     private List<EmbeddingMissionVO> embeddingMission;
 
-    public String getEmbeddingMissionId() {
-        return embeddingMissionId;
+    public String getKnowledgeFileId() {
+        return knowledgeFileId;
     }
 
-    public void setEmbeddingMissionId(String embeddingMissionId) {
-        this.embeddingMissionId = embeddingMissionId;
+    public void setKnowledgeFileId(String knowledgeFileId) {
+        this.knowledgeFileId = knowledgeFileId;
     }
 
     public List<OcrMissionVO> getOcrMission() {

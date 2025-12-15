@@ -6,14 +6,14 @@ import jakarta.validation.constraints.NotNull;
 @Schema(description = "向一个知识库中添加一个知识文件的请求参数")
 public class AddKnowledgeFileRequest {
     @NotNull
-    @Schema(description = "向量化任务唯一标识")
-    private String embeddingMissionId;
+    @Schema(description = "知识文件唯一Id")
+    private String knowledgeFileId;
 
-    public String getEmbeddingMissionId() {
-        return embeddingMissionId;
+    public String getKnowledgeFileId() {
+        return knowledgeFileId;
     }
 
-    public void setEmbeddingMissionId(String embeddingMissionId) {
-        this.embeddingMissionId = embeddingMissionId;
+    public void setKnowledgeFileId(String knowledgeFileId) {
+        this.knowledgeFileId = knowledgeFileId;
     }
 }
