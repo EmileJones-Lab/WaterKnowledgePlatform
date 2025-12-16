@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import top.emilejones.hhu.web.vo.FailureVO;
 import top.emilejones.hhu.web.vo.LazyPageInfoVO;
 import top.emilejones.hhu.web.vo.knowledge.KnowledgeFileVO;
+import top.emilejones.hhu.web.vo.knowledge.CandidateKnowledgeFileVO;
 import top.emilejones.hhu.web.vo.knowledge.request.AddKnowledgeFileRequest;
 
 @RestController
@@ -45,7 +46,7 @@ public class KnowledgeFileController {
                     )
             )
     })
-    public KnowledgeFileVO addKnowledgeFileByDirId(
+    public CandidateKnowledgeFileVO addKnowledgeFileByDirId(
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId,
             @RequestBody AddKnowledgeFileRequest request
     ) {
@@ -74,7 +75,7 @@ public class KnowledgeFileController {
     @GetMapping("/candidate-files")
     @Operation(summary = "获取可以加入到这个知识库中的文件列表",
             description = "这个接口会分页的返回可以加入到这个知识库中的所有文件文件信息")
-    public LazyPageInfoVO<KnowledgeFileVO> getAllCandidateFiles(
+    public LazyPageInfoVO<CandidateKnowledgeFileVO> getAllCandidateFiles(
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId
     ) {
         return null;

@@ -10,15 +10,15 @@ import java.time.Instant;
 import java.util.List;
 
 @Schema(description = "知识库中的文件的元信息")
-public class KnowledgeFileVO {
+public class CandidateKnowledgeFileVO {
     @Schema(description = "知识文件唯一Id")
     private String knowledgeFileId;
     @Schema(description = "文本切割任务类型")
     private DocumentSplittingMissionType type;
     @Schema(description = "文件名称")
     private String fileName;
-    @Schema(description = "加入知识库时间")
-    private Instant bindTime;
+    @Schema(description = "创建时间")
+    private Instant createTime;
     @Schema(description = "OCR任务列表（按照时间倒序排列），如果没有OCR任务，则返回空列表")
     private List<OcrMissionVO> ocrMission;
     @Schema(description = "结构提取任务列表（按照时间倒序排列），如果没有结构提取任务，则返回空列表")
@@ -75,10 +75,10 @@ public class KnowledgeFileVO {
     }
 
     public Instant getCreateTime() {
-        return bindTime;
+        return createTime;
     }
 
-    public void setCreateTime(Instant bindTime) {
-        this.bindTime = bindTime;
+    public void setCreateTime(Instant createTime) {
+        this.createTime = createTime;
     }
 }

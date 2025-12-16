@@ -96,7 +96,6 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * @param knowledgeDocument 待绑定的知识文档。
      * @param knowledgeCatalog 目标知识库。
      */
-    @Override
     public void bind(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog) {
         // 获取知识库id和向量化文件id
         String catalogId = knowledgeCatalog.getId();
