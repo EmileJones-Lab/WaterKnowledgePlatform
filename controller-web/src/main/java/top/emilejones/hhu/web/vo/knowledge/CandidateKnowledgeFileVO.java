@@ -9,7 +9,7 @@ import top.emilejones.hhu.web.vo.mission.enums.DocumentSplittingMissionType;
 import java.time.Instant;
 import java.util.List;
 
-@Schema(description = "知识库中的文件的元信息")
+@Schema(description = "候选知识文件的信息")
 public class CandidateKnowledgeFileVO {
     @Schema(description = "知识文件唯一Id")
     private String knowledgeFileId;
@@ -34,30 +34,6 @@ public class CandidateKnowledgeFileVO {
         this.knowledgeFileId = knowledgeFileId;
     }
 
-    public List<OcrMissionVO> getOcrMission() {
-        return ocrMission;
-    }
-
-    public void setOcrMission(List<OcrMissionVO> ocrMission) {
-        this.ocrMission = ocrMission;
-    }
-
-    public List<DocumentSplittingMissionVO> getExtractStructureMission() {
-        return extractStructureMission;
-    }
-
-    public void setExtractStructureMission(List<DocumentSplittingMissionVO> extractStructureMission) {
-        this.extractStructureMission = extractStructureMission;
-    }
-
-    public List<EmbeddingMissionVO> getEmbeddingMission() {
-        return embeddingMission;
-    }
-
-    public void setEmbeddingMission(List<EmbeddingMissionVO> embeddingMission) {
-        this.embeddingMission = embeddingMission;
-    }
-
     public DocumentSplittingMissionType getType() {
         return type;
     }
@@ -80,5 +56,29 @@ public class CandidateKnowledgeFileVO {
 
     public void setCreateTime(Instant createTime) {
         this.createTime = createTime;
+    }
+
+    public List<OcrMissionVO> getOcrMission() {
+        return ocrMission;
+    }
+
+    public void setOcrMission(List<OcrMissionVO> ocrMission) {
+        this.ocrMission = ocrMission;
+    }
+
+    public List<DocumentSplittingMissionVO> getExtractStructureMission() {
+        return extractStructureMission;
+    }
+
+    public void setExtractStructureMission(List<DocumentSplittingMissionVO> extractStructureMission) {
+        this.extractStructureMission = extractStructureMission;
+    }
+
+    public List<EmbeddingMissionVO> getEmbeddingMission() {
+        return embeddingMission;
+    }
+
+    public void setEmbeddingMission(List<EmbeddingMissionVO> embeddingMission) {
+        this.embeddingMission = embeddingMission;
     }
 }

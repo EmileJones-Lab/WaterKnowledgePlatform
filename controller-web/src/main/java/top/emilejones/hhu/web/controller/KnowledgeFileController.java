@@ -46,7 +46,7 @@ public class KnowledgeFileController {
                     )
             )
     })
-    public CandidateKnowledgeFileVO addKnowledgeFileByDirId(
+    public KnowledgeFileVO addKnowledgeFileByDirId(
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId,
             @RequestBody AddKnowledgeFileRequest request
     ) {

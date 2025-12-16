@@ -74,11 +74,11 @@ public class KnowledgeFileVO {
         this.fileName = fileName;
     }
 
-    public Instant getCreateTime() {
+    public Instant getBindTime() {
         return bindTime;
     }
 
-    public void setCreateTime(Instant bindTime) {
+    public void setBindTime(Instant bindTime) {
         this.bindTime = bindTime;
     }
 }
