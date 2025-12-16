@@ -72,9 +72,7 @@ class RagToolsAdaptor(
     private fun convertTextNodeToEmbeddingDatum(textNode: TextNode): EmbeddingDatum {
         return EmbeddingDatum(
             vector = textNode.vector!!,
-            text = textNode.text,
-            neo4jNodeId = textNode.id,
-            type = textNode.type
+            neo4jNodeId = textNode.id
         )
     }
 }

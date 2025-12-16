@@ -36,9 +36,7 @@ class RagToolsAdaptorTest {
     fun `minerU should delegate to data processing service`() {
         val input = javaClass.classLoader.getResourceAsStream("pdf/test.pdf")
         val result = adaptor.minerU(input!!)
-        println("===========================")
-        print(result.markdownContent)
-        println("===========================")
+        assertEquals(result.images.size, 3)
     }
 
     @Test
