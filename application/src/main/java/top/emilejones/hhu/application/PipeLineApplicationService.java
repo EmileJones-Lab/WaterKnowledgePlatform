@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.utils.DtoConverter;
+import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
@@ -131,7 +132,6 @@ public class PipeLineApplicationService {
      */
     @Async("domainEventExecutor")
     @EventListener
-    @Transactional(rollbackFor = Exception.class)
     public void handleKnowledgeDocumentAddedToCatalogEvent(KnowledgeDocumentAddedToCatalogEvent event) {
         String embeddingMissionId = event.getKnowledgeDocument().getEmbeddingMissionId();
         String milvusCollectionName = event.getKnowledgeCatalog().getMilvusCollectionName();
@@ -161,6 +161,12 @@ public class PipeLineApplicationService {
             // 5. 如果失败，仅打印日志
             e.printStackTrace();
         }
+    }
+
+    @Async("domainEventExecutor")
+    @EventListener
+    public void handleCreatedKnowledgeCatalogEvent(CreatedKnowledgeCatalogEvent event){
+        embeddingGateway.createCollection(event.getNewKnowledgeCatalog().getMilvusCollectionName());
     }
 }
 

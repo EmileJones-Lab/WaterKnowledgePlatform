@@ -18,7 +18,6 @@ import io.milvus.v2.service.vector.request.data.FloatVec
 import io.milvus.v2.service.vector.response.SearchResp
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import top.emilejones.hhu.domain.pipeline.TextType
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.common.env.pojo.HttpModelClientConfig
 import top.emilejones.hhu.common.env.pojo.MilvusConfig
@@ -101,7 +100,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
             .databaseName(databaseName)
             .collectionName(collectionName)
             .ids(ids)
-            .outputFields(listOf("neo4jNodeId", "text", "vector", "type", "isDelete"))
+            .outputFields(listOf("neo4jNodeId", "vector", "isDelete"))
             .build()
         val queryResults = client.query(queryReq).queryResults ?: emptyList()
         if (queryResults.isEmpty()) {
@@ -142,7 +141,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
             SearchReq.builder().databaseName(databaseName).collectionName(collectionName).annsField("vector").topK(topK)
                 .data(mutableListOf).apply {
                     filter(buildFilter(filter))
-                }.outputFields(listOf("text", "neo4jNodeId", "vector", "type", "isDelete"))
+                }.outputFields(listOf("neo4jNodeId", "vector", "isDelete"))
                 .searchParams(searchParamsMap).build()
 
         // 发起搜索
@@ -155,7 +154,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
         return resultsForQuery.mapNotNull { r -> mapToEmbeddingDatum(r.entity) }
     }
 
-    override fun clearAllData(collectionName: String) {
+    override fun dropCollection(collectionName: String) {
         val dropQuickSetupParam = DropCollectionReq.builder()
             .collectionName(collectionName)
             .databaseName(databaseName)
@@ -181,7 +180,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
         logger.debug("Create milvus database named [{}]", databaseName)
     }
 
-    private fun createCollection(collectionName: String) {
+    override fun createCollection(collectionName: String) {
         // 1. 创建schema
         val schema = MilvusClientV2.CreateSchema()
         // 2. 创建字段
@@ -192,20 +191,11 @@ class MultiCollectionSingleCollectionMilvusRepository(
                 .build()
         )
 
-        // 2.2 text (VarChar 存储原始文本)
-        schema.addField(
-            AddFieldReq.builder().fieldName("text").dataType(DataType.VarChar).maxLength(4096).build()
-        )
-
         // 2.3 vector (FloatVector，存储向量)
         schema.addField(
             AddFieldReq.builder().fieldName("vector").dataType(DataType.FloatVector).dimension(dimension).build()
         )
 
-        // 2.4 type (VarChar 存储原始文本)
-        schema.addField(
-            AddFieldReq.builder().fieldName("type").dataType(DataType.VarChar).maxLength(20).build()
-        )
         // 2.5 isDelete (Bool 软删除标记)
         schema.addField(
             AddFieldReq.builder().fieldName("isDelete").dataType(DataType.Bool).defaultValue(false)
@@ -234,15 +224,8 @@ class MultiCollectionSingleCollectionMilvusRepository(
         val vectorValue = entity["vector"] ?: return null
         val vector = convertVector(vectorValue) ?: return null
         val neo4jId = entity["neo4jNodeId"]?.toString() ?: return null
-        val text = entity["text"]?.toString() ?: return null
-        val typeString = entity["type"]?.toString() ?: return null
         val isDelete = overrideIsDelete ?: (entity["isDelete"] as? Boolean ?: false)
-        return kotlin.runCatching { TextType.valueOf(typeString) }.map {
-            EmbeddingDatum(vector = vector, neo4jNodeId = neo4jId, text = text, type = it, isDelete = isDelete)
-        }.getOrElse {
-            logger.warn("Unknown text type [{}] for node [{}]", typeString, neo4jId)
-            null
-        }
+        return EmbeddingDatum(vector = vector, neo4jNodeId = neo4jId, isDelete = isDelete)
     }
 
     private fun convertVector(vector: Any): List<Float>? {
@@ -269,8 +252,6 @@ class MultiCollectionSingleCollectionMilvusRepository(
         return JsonObject().apply {
             add("vector", gson.toJsonTree(vectorArray))
             addProperty("neo4jNodeId", neo4jNodeId)
-            addProperty("text", text)
-            addProperty("type", type.name)
             addProperty("isDelete", isDelete)
         }
     }

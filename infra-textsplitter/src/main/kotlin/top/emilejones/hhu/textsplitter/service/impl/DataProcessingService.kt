@@ -104,9 +104,7 @@ class DataProcessingService(
     private fun convertTextNodeToEmbeddingDatum(textNode: Neo4jTextNode): EmbeddingDatum {
         return EmbeddingDatum(
             vector = textNode.vector!!,
-            text = textNode.text,
             neo4jNodeId = textNode.elementId!!,
-            type = textNode.type
         )
     }
 }

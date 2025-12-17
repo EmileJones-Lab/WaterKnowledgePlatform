@@ -20,7 +20,7 @@ fun TextNodeDTO.toNeo4jTextNode(): Neo4jTextNode {
 }
 
 fun FileNodeDTO.toNeo4jFileNode(): Neo4jFileNode {
-    require(this.fileId != null) { "FileNodeDTO没有设置fileId" }
+    require(this.fileId.isNotBlank()) { "FileNodeDTO没有设置fileId" }
     return Neo4jFileNode(
         id = this.id,
         fileId = this.fileId!!,
