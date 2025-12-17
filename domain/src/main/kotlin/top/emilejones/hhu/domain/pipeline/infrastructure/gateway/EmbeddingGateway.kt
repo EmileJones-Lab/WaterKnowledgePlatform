@@ -31,6 +31,15 @@ interface EmbeddingGateway {
     fun saveTextNodeToVectorDatabase(textNodeList: List<TextNode>, collectionName: String)
 
     /**
+     * 创建一个新的向量集合。
+     *
+     * 该方法用于在向量数据库中创建一个具有指定名称的新 collection。
+     * 如果 collection 已存在，具体实现可能会选择忽略、抛出异常或进行其他处理。
+     *
+     * @param collectionName 要创建的 collection 的名称。
+     */
+    fun createCollection(collectionName: String)
+    /**
      * 从向量数据库中删除指定文本节点。
      *
      * 约定：

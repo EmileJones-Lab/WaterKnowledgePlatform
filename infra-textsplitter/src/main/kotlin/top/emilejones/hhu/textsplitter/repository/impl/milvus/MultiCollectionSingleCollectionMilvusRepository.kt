@@ -154,7 +154,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
         return resultsForQuery.mapNotNull { r -> mapToEmbeddingDatum(r.entity) }
     }
 
-    override fun clearAllData(collectionName: String) {
+    override fun dropCollection(collectionName: String) {
         val dropQuickSetupParam = DropCollectionReq.builder()
             .collectionName(collectionName)
             .databaseName(databaseName)
@@ -180,7 +180,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
         logger.debug("Create milvus database named [{}]", databaseName)
     }
 
-    private fun createCollection(collectionName: String) {
+    override fun createCollection(collectionName: String) {
         // 1. 创建schema
         val schema = MilvusClientV2.CreateSchema()
         // 2. 创建字段
