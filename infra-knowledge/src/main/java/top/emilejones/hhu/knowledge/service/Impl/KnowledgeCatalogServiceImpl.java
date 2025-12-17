@@ -73,10 +73,10 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         knowledgeCatalogDto.setKbId(knowledgeCatalog.getId());
         knowledgeCatalogDto.setKbName(knowledgeCatalog.getName());
         knowledgeCatalogDto.setColName(knowledgeCatalog.getMilvusCollectionName());
+        knowledgeCatalogDto.setCreateTime(knowledgeCatalog.getCreateTime());
         knowledgeCatalogDto.setType(knowledgeCatalog.getType());
 
-        // 设置创建的时间和知识库权限(默认就是public)
-        knowledgeCatalogDto.setCreateTime(LocalDateTime.now().toInstant(ZoneOffset.UTC));
+        // 设置知识库权限(默认就是public)
         knowledgeCatalogDto.setPermission("public");
 
         // 判断在数据库中是否存在
@@ -159,6 +159,40 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     }
 
     /**
+     * 软删除指定的知识库。
+     * 该操作通过更新知识库的isDelete字段为指定删除状态来标记删除，而非物理删除。
+     * @param knowledgeCatalogId 待删除知识库的ID。
+     */
+    @Override
+    public void delete(@NotNull String knowledgeCatalogId) {
+        // 将信息封装成KnowledgeCatalogDto对象
+        KnowledgeCatalogDto knowledgeCatalogDto = new KnowledgeCatalogDto();
+        knowledgeCatalogDto.setKbId(knowledgeCatalogId);
+        knowledgeCatalogDto.setIsDelete(DeleteConstant.DELETE);
+
+        // 删除当前知识库，这里是软删除所以就是更新数据库的isdelete字段的值
+        knowledgeCatalogMapper.update(knowledgeCatalogDto);
+    }
+
+    /**
+     * 批量解绑指定知识库中的向量化文件。
+     * 这实质上是一个“unbind”操作，通过软删除（更新collection_document的isDelete字段）来解除绑定。
+     * @param knowledgeCatalogId 知识库的ID。
+     * @param knowledgeDocumentIdList 待解绑的向量化文件ID列表。
+     * @throws IllegalArgumentException 如果知识文档ID列表为null或为空。
+     */
+    @Override
+    public void deleteKnowledgeDocumentFromKnowledgeCatalog(@NotNull String knowledgeCatalogId, @NotNull List<String> knowledgeDocumentIdList) {
+        // 做非法判断
+        if (knowledgeDocumentIdList == null || knowledgeDocumentIdList.isEmpty()){
+            throw new IllegalArgumentException("清选择你要删除的向量化文件");
+        }
+
+        // 进行解绑，软删除操作，实质就是更新collection_document的isdelete字段
+        collectionDocumentMapper.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalogId, knowledgeDocumentIdList);
+    }
+
+    /**
      * 判断指定的知识文档是否已经绑定到知识库。
      * @param documentId 知识文档的ID。
      * @param catalogId 知识库的ID。
@@ -204,38 +238,5 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         }
     }
 
-    /**
-     * 软删除指定的知识库。
-     * 该操作通过更新知识库的isDelete字段为指定删除状态来标记删除，而非物理删除。
-     * @param knowledgeCatalogId 待删除知识库的ID。
-     */
-    @Override
-    public void delete(@NotNull String knowledgeCatalogId) {
-        // 将信息封装成KnowledgeCatalogDto对象
-        KnowledgeCatalogDto knowledgeCatalogDto = new KnowledgeCatalogDto();
-        knowledgeCatalogDto.setKbId(knowledgeCatalogId);
-        knowledgeCatalogDto.setIsDelete(DeleteConstant.DELETE);
-
-        // 删除当前知识库，这里是软删除所以就是更新数据库的isdelete字段的值
-        knowledgeCatalogMapper.update(knowledgeCatalogDto);
-    }
-
-    /**
-     * 批量解绑指定知识库中的向量化文件。
-     * 这实质上是一个“unbind”操作，通过软删除（更新collection_document的isDelete字段）来解除绑定。
-     * @param knowledgeCatalogId 知识库的ID。
-     * @param knowledgeDocumentIdList 待解绑的向量化文件ID列表。
-     * @throws IllegalArgumentException 如果知识文档ID列表为null或为空。
-     */
-    @Override
-    public void deleteKnowledgeDocumentFromKnowledgeCatalog(@NotNull String knowledgeCatalogId, @NotNull List<String> knowledgeDocumentIdList) {
-        // 做非法判断
-        if (knowledgeDocumentIdList == null || knowledgeDocumentIdList.isEmpty()){
-            throw new IllegalArgumentException("清选择你要删除的向量化文件");
-        }
-
-        // 进行解绑，软删除操作，实质就是更新collection_document的isdelete字段
-        collectionDocumentMapper.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalogId, knowledgeDocumentIdList);
-    }
 
 }

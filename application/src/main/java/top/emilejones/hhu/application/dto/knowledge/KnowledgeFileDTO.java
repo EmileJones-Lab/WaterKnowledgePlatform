@@ -9,20 +9,41 @@ import java.time.Instant;
 import java.util.List;
 
 public class KnowledgeFileDTO {
-    private String embeddingMissionId;
+    /**
+     * 向量化文件id
+     */
+    private String id;
+    /**
+     * 向量化文件类型
+     */
     private DocumentSplittingMissionType type;
+    /**
+     * 源文件名称
+     */
     private String fileName;
-    private Instant createTime;
+    /**
+     * 加入知识库的时间
+     */
+    private Instant bindTime;
+    /**
+     * ocr任务
+     */
     private List<OcrMissionDTO> ocrMission;
+    /**
+     * 结构化提取任务
+     */
     private List<DocumentSplittingMissionDTO> extractStructureMission;
+    /**
+     * 向量化任务
+     */
     private List<EmbeddingMissionDTO> embeddingMission;
 
-    public String getEmbeddingMissionId() {
-        return embeddingMissionId;
+    public String getId() {
+        return id;
     }
 
-    public void setEmbeddingMissionId(String embeddingMissionId) {
-        this.embeddingMissionId = embeddingMissionId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public DocumentSplittingMissionType getType() {
@@ -41,12 +62,12 @@ public class KnowledgeFileDTO {
         this.fileName = fileName;
     }
 
-    public Instant getCreateTime() {
-        return createTime;
+    public Instant getBindTime() {
+        return bindTime;
     }
 
-    public void setCreateTime(Instant createTime) {
-        this.createTime = createTime;
+    public void setBindTime(Instant bindTime) {
+        this.bindTime = bindTime;
     }
 
     public List<OcrMissionDTO> getOcrMission() {
