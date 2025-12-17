@@ -5,40 +5,135 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
+import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
+import top.emilejones.hhu.pipeline.entity.StructureExtractionMissionPo;
+import top.emilejones.hhu.pipeline.mapper.StructureExtractionMissionMapper;
+import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
 
 import java.util.List;
 
+/**
+ * 结构化抽取任务服务实现类，负责结构化任务的持久化与查询协调。
+ * @author Yeyezhi
+ */
 @Service
 public class StructureExtractionMissionService {
 
+    private final StructureExtractionMissionMapper structureExtractionMissionMapper;
 
+    public StructureExtractionMissionService(StructureExtractionMissionMapper structureExtractionMissionMapper) {
+        this.structureExtractionMissionMapper = structureExtractionMissionMapper;
+    }
+
+
+    /**
+     * 保存单个结构化抽取任务，具备 upsert 语义。
+     * @param structureExtractionMission 任务领域对象
+     */
     public void save(@NotNull StructureExtractionMission structureExtractionMission) {
-
+        StructureExtractionMissionPo po = convertToPo(structureExtractionMission);
+        structureExtractionMissionMapper.upsertStructureExtractionMission(po);
     }
 
 
+    /**
+     * 批量保存结构化抽取任务；重复主键覆盖。
+     * @param structureExtractionMissionList 待保存任务列表
+     */
     public void saveBatch(@NotNull List<StructureExtractionMission> structureExtractionMissionList) {
+        if (structureExtractionMissionList.isEmpty()) {
+            return;
+        }
 
+        List<StructureExtractionMissionPo> poList = structureExtractionMissionList.stream()
+                .map(this::convertToPo)
+                .toList();
+        structureExtractionMissionMapper.upsertStructureExtractionMissionBatch(poList);
     }
 
+    /**
+     * 根据源文档ID查询任务，按创建时间倒序返回。
+     * @param sourceDocumentId 源文档标识
+     * @return 任务列表，未命中返回空列表
+     */
     @NotNull
-    public List<StructureExtractionMission> findBySourceDocumentId(@NotNull String sourceDocumentId) {
-        return List.of();
+    public List<StructureExtractionMission> findBySourceDocumentId(String sourceDocumentId) {
+        if (sourceDocumentId == null ||sourceDocumentId.isBlank()) {
+            throw new IllegalArgumentException("Source document ID cannot be blank");
+        }
+
+        List<StructureExtractionMissionPo> poList = structureExtractionMissionMapper.findBySourceDocumentId(sourceDocumentId);
+        return poList.stream()
+                .map(PoToDomainUtil::toStructureExtractionDomain)
+                .toList();
     }
 
 
+    /**
+     * 批量按源文档ID查询任务，结果顺序与入参一致。
+     * @param sourceDocumentIdList 源文档ID列表
+     * @return 每个源文档对应的任务列表集合
+     */
     @NotNull
     public List<List<StructureExtractionMission>> findBySourceDocumentIdList(@NotNull List<String> sourceDocumentIdList) {
-        return List.of();
+        if (sourceDocumentIdList.isEmpty()) {
+            return List.of();
+        }
+
+        return sourceDocumentIdList.stream()
+                .map(this::findBySourceDocumentId)
+                .toList();
     }
 
 
+    /**
+     * 删除结构化抽取任务；幂等删除。
+     * @param structureExtractionMissionId 任务标识
+     */
     public void delete(@NotNull String structureExtractionMissionId) {
+        if (structureExtractionMissionId.isBlank()) {
+            throw new IllegalArgumentException("Structure extraction mission ID cannot be blank");
+        }
 
+        structureExtractionMissionMapper.delete(structureExtractionMissionId);
     }
 
+    /**
+     * 根据ID查找结构化抽取任务。
+     * @param structureExtractionMissionId 任务标识
+     * @return 任务对象，不存在返回 null
+     */
     @Nullable
-    public StructureExtractionMission findById(@NotNull String structureExtractionMissionId) {
-        return null;
+    public StructureExtractionMission findById(String structureExtractionMissionId) {
+        if (structureExtractionMissionId == null || structureExtractionMissionId.isBlank()) {
+            throw new IllegalArgumentException("Structure extraction mission ID cannot be blank");
+        }
+
+        StructureExtractionMissionPo po = structureExtractionMissionMapper.findById(structureExtractionMissionId);
+        return po != null ? PoToDomainUtil.toStructureExtractionDomain(po) : null;
+    }
+
+    private StructureExtractionMissionPo convertToPo(StructureExtractionMission structureExtractionMission) {
+        StructureExtractionMissionPo po = new StructureExtractionMissionPo();
+        po.setStructureExtractionMissionId(structureExtractionMission.getId());
+        po.setSourceDocumentId(structureExtractionMission.getSourceDocumentId());
+        po.setProcessedDocumentId(structureExtractionMission.getProcessedDocumentId());
+        po.setStatusType(structureExtractionMission.getStatus());
+        po.setCreateTime(structureExtractionMission.getCreateTime());
+        po.setStartTime(structureExtractionMission.getStartTime());
+        po.setEndTime(structureExtractionMission.getEndTime());
+
+        StructureExtractionMissionResult result = structureExtractionMission.getResult();
+        if (result instanceof StructureExtractionMissionResult.Success success) {
+            po.setFileNodeElementId(success.getFileNodeId());
+            po.setErrorMessage(null);
+        } else if (result instanceof StructureExtractionMissionResult.Failure failure) {
+            po.setFileNodeElementId(null);
+            po.setErrorMessage(failure.getErrorMessage());
+        } else {
+            po.setFileNodeElementId(null);
+            po.setErrorMessage(null);
+        }
+        return po;
     }
 }

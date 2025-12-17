@@ -9,6 +9,11 @@ import top.emilejones.hhu.pipeline.services.EmbeddingMissionService;
 
 import java.util.List;
 
+/**
+ * 向量化任务仓库实现，衔接领域仓储与服务逻辑。
+ * 它实现了EmbeddingMissionRepository接口，通过调用EmbeddingMissionService来完成具体的业务处理。
+ * @author Yeyezhi
+ */
 @Component
 public class EmbeddingMissionController implements EmbeddingMissionRepository {
 

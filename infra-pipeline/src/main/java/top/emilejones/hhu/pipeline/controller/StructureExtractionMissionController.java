@@ -9,6 +9,11 @@ import top.emilejones.hhu.pipeline.services.StructureExtractionMissionService;
 
 import java.util.List;
 
+/**
+ * 结构化抽取任务仓库实现，衔接领域仓储与服务逻辑。
+ * 它实现了StructureExtractionMissionRepository接口，通过调用StructureExtractionMissionService来完成具体的业务处理。
+ * @author Yeyezhi
+ */
 @Component
 public class StructureExtractionMissionController implements StructureExtractionMissionRepository {
 

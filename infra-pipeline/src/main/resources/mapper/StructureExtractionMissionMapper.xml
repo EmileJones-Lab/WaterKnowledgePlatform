@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.emilejones.hhu.pipeline.mapper.StructureExtractionMissionMapper">
+    <resultMap id="StructureExtractionMissionResultMap" type="top.emilejones.hhu.pipeline.entity.StructureExtractionMissionPo">
+        <id column="extract_mission_id" property="structureExtractionMissionId" jdbcType="VARCHAR"/>
+        <result column="file_id" property="sourceDocumentId" jdbcType="VARCHAR"/>
+        <result column="processed_doc_id" property="processedDocumentId" jdbcType="VARCHAR"/>
+        <result column="status_type" property="statusType" jdbcType="INTEGER" typeHandler="top.emilejones.hhu.pipeline.handler.MissionStatusHandler"/>
+        <result column="file_node_id" property="fileNodeElementId" jdbcType="VARCHAR"/>
+        <result column="error_message" property="errorMessage" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
+        <result column="end_time" property="endTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+
+    <insert id="upsertStructureExtractionMission" parameterType="top.emilejones.hhu.pipeline.entity.StructureExtractionMissionPo">
+        INSERT INTO gen_file_extract (
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+        ) VALUES (
+            #{structureExtractionMission.structureExtractionMissionId,jdbcType=VARCHAR},
+            #{structureExtractionMission.sourceDocumentId,jdbcType=VARCHAR},
+            #{structureExtractionMission.processedDocumentId,jdbcType=VARCHAR},
+            #{structureExtractionMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
+            #{structureExtractionMission.fileNodeElementId,jdbcType=VARCHAR},
+            #{structureExtractionMission.errorMessage,jdbcType=VARCHAR},
+            #{structureExtractionMission.createTime,jdbcType=TIMESTAMP},
+            #{structureExtractionMission.startTime,jdbcType=TIMESTAMP},
+            #{structureExtractionMission.endTime,jdbcType=TIMESTAMP}
+        )
+        ON DUPLICATE KEY UPDATE
+            file_id = #{structureExtractionMission.sourceDocumentId,jdbcType=VARCHAR},
+            processed_doc_id = #{structureExtractionMission.processedDocumentId,jdbcType=VARCHAR},
+            status_type = #{structureExtractionMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
+            file_node_id = #{structureExtractionMission.fileNodeElementId,jdbcType=VARCHAR},
+            error_message = #{structureExtractionMission.errorMessage,jdbcType=VARCHAR},
+            start_time = #{structureExtractionMission.startTime,jdbcType=TIMESTAMP},
+            end_time = #{structureExtractionMission.endTime,jdbcType=TIMESTAMP}
+    </insert>
+
+
+    <insert id="upsertStructureExtractionMissionBatch" parameterType="java.util.List">
+        INSERT INTO gen_file_extract (
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+        ) VALUES
+        <foreach collection="structureExtractionMissionList" item="item" separator=",">
+            (
+                #{item.structureExtractionMissionId,jdbcType=VARCHAR},
+                #{item.sourceDocumentId,jdbcType=VARCHAR},
+                #{item.processedDocumentId,jdbcType=VARCHAR},
+                #{item.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
+                #{item.fileNodeElementId,jdbcType=VARCHAR},
+                #{item.errorMessage,jdbcType=VARCHAR},
+                #{item.createTime,jdbcType=TIMESTAMP},
+                #{item.startTime,jdbcType=TIMESTAMP},
+                #{item.endTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            file_id = VALUES(file_id),
+            processed_doc_id = VALUES(processed_doc_id),
+            status_type = VALUES(status_type),
+            file_node_id = VALUES(file_node_id),
+            error_message = VALUES(error_message),
+            start_time = VALUES(start_time),
+            end_time = VALUES(end_time)
+    </insert>
+
+
+    <select id="findBySourceDocumentId" resultMap="StructureExtractionMissionResultMap">
+        SELECT
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+        FROM gen_file_extract
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
+        ORDER BY create_time DESC
+    </select>
+
+
+    <select id="findById" resultMap="StructureExtractionMissionResultMap">
+        SELECT
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+        FROM gen_file_extract
+        WHERE extract_mission_id = #{structureExtractionMissionId,jdbcType=VARCHAR}
+    </select>
+
+
+    <delete id="delete">
+        DELETE FROM gen_file_extract
+        WHERE extract_mission_id = #{structureExtractionMissionId,jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

@@ -7,7 +7,7 @@ import top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo;
 import java.util.List;
 
 /**
- * 处理后文档数据库访问层
+ * Ocr处理后文档数据库访问层
  * @author Yeyezhi
  */
 @Mapper

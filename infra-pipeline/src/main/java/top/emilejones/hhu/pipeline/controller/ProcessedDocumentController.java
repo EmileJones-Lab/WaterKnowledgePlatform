@@ -10,6 +10,11 @@ import java.io.InputStream;
 import java.util.Optional;
 
 
+/**
+ * Ocr处理后文档仓库实现，负责接入领域仓储接口并委派服务层。
+ * 它实现了ProcessedDocumentRepository接口，通过调用ProcessedDocumentService来完成具体的业务处理。
+ * @author Yeyezhi
+ */
 @Component
 public class ProcessedDocumentController implements ProcessedDocumentRepository {
 
