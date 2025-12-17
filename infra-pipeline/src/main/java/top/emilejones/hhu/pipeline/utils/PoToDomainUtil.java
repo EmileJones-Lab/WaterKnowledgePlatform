@@ -2,10 +2,13 @@ package top.emilejones.hhu.pipeline.utils;
 
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
+import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
+import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
 import top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo;
 import top.emilejones.hhu.pipeline.entity.OcrMissionPo;
 import top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo;
@@ -53,16 +56,21 @@ public class PoToDomainUtil {
                 ocrMissionPo.getEndTime()
         );
     }
+
     /**
      * 将持久化对象ProcessedDocumentPo转换为领域对象ProcessedDocument
      *
      * @param processedDocumentPo 待转换的Ocr后的持久化对象
      * @return 封装后的 ProcessedDocument 领域模型对象。
      */
-
     public static ProcessedDocument toProcessedDocumentDomain(ProcessedDocumentPo processedDocumentPo) {
-
-        return null;
+        return new ProcessedDocument(
+                processedDocumentPo.getProcessedDocumentId(),
+                processedDocumentPo.getSourceDocumentId(),
+                processedDocumentPo.getFilePath(),
+                processedDocumentPo.getCreateTime(),
+                processedDocumentPo.getType()
+        );
     }
 
 
@@ -74,7 +82,31 @@ public class PoToDomainUtil {
      */
     public static StructureExtractionMission toStructureExtractionDomain(StructureExtractionMissionPo structureExtractionMissionPo) {
 
-        return null;
+        MissionStatus status = structureExtractionMissionPo.getStatusType();
+
+        StructureExtractionMissionResult result = null;
+        if (status == MissionStatus.SUCCESS) {
+            String fileNodeId = structureExtractionMissionPo.getFileNodeElementId();
+            if (fileNodeId != null && !fileNodeId.isBlank()) {
+                result = new StructureExtractionMissionResult.Success(fileNodeId);
+            }
+        } else if (status == MissionStatus.ERROR) {
+            String msg = structureExtractionMissionPo.getErrorMessage();
+            if (msg != null && !msg.isBlank()) {
+                result = new StructureExtractionMissionResult.Failure(msg);
+            }
+        }
+
+        return new StructureExtractionMission(
+                structureExtractionMissionPo.getStructureExtractionMissionId(),
+                structureExtractionMissionPo.getSourceDocumentId(),
+                structureExtractionMissionPo.getProcessedDocumentId(),
+                status,
+                result,
+                structureExtractionMissionPo.getCreateTime(),
+                structureExtractionMissionPo.getStartTime(),
+                structureExtractionMissionPo.getEndTime()
+        );
     }
 
 
@@ -86,7 +118,31 @@ public class PoToDomainUtil {
      */
     public static EmbeddingMission toEmbeddingDomain(EmbeddingMissionPo embeddingMissionPo) {
 
-        return null;
+        MissionStatus status = embeddingMissionPo.getStatusType();
+
+        EmbeddingMissionResult result = null;
+        if (status == MissionStatus.SUCCESS) {
+            String fileNodeId = embeddingMissionPo.getFileNodeElementId();
+            if (fileNodeId != null && !fileNodeId.isBlank()) {
+                result = new EmbeddingMissionResult.Success(fileNodeId);
+            }
+        } else if (status == MissionStatus.ERROR) {
+            String msg = embeddingMissionPo.getErrorMessage();
+            if (msg != null && !msg.isBlank()) {
+                result = new EmbeddingMissionResult.Failure(msg);
+            }
+        }
+
+        return new EmbeddingMission(
+                embeddingMissionPo.getEmbeddingMissionId(),
+                embeddingMissionPo.getSourceDocumentId(),
+                embeddingMissionPo.getFileNodeElementId(),
+                status,
+                result,
+                embeddingMissionPo.getCreateTime(),
+                embeddingMissionPo.getStartTime(),
+                embeddingMissionPo.getEndTime()
+        );
     }
 
 }

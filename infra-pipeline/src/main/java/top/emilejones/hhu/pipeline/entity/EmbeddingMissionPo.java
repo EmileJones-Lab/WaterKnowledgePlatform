@@ -1,6 +1,7 @@
 package top.emilejones.hhu.pipeline.entity;
 
 import lombok.Data;
+import top.emilejones.hhu.domain.pipeline.MissionStatus;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -29,8 +30,8 @@ public class EmbeddingMissionPo {
     /** 输入的 Neo4j FileNode elementId */
     private String FileNodeElementId;
 
-    /** 任务状态（0=待执行，1=执行中，2=成功，3=失败） */
-    private Integer statusType;
+    /** 任务状态（0=创建成功，1=等待中，2=运行中，3=任务失败，4=任务成功） */
+    private MissionStatus statusType;
 
     /** 失败原因 */
     private String errorMessage;

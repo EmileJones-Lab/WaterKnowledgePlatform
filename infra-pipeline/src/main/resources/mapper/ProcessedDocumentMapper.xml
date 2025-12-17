@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper">
+    <resultMap id="ProcessedDocumentResultMap" type="top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo">
+        <id column="processed_doc_id" property="processedDocumentId" jdbcType="VARCHAR"/>
+        <result column="file_id" property="sourceDocumentId" jdbcType="VARCHAR"/>
+        <result column="file_name" property="fileName" jdbcType="VARCHAR"/>
+        <result column="file_path" property="filePath" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="INTEGER" typeHandler="top.emilejones.hhu.pipeline.handler.ProcessedDocumentTypeHandler"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <insert id="upsertProcessedDocument" parameterType="top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo">
+        INSERT INTO processed_document (
+            processed_doc_id, file_id, file_name, file_path, type, create_time
+        ) VALUES (
+            #{processedDocument.processedDocumentId,jdbcType=VARCHAR},
+            #{processedDocument.sourceDocumentId,jdbcType=VARCHAR},
+            #{processedDocument.fileName,jdbcType=VARCHAR},
+            #{processedDocument.filePath,jdbcType=VARCHAR},
+            #{processedDocument.type,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.ProcessedDocumentTypeHandler},
+            #{processedDocument.createTime,jdbcType=TIMESTAMP}
+        )
+        ON DUPLICATE KEY UPDATE
+            file_id = #{processedDocument.sourceDocumentId,jdbcType=VARCHAR},
+            file_name = #{processedDocument.fileName,jdbcType=VARCHAR},
+            file_path = #{processedDocument.filePath,jdbcType=VARCHAR},
+            type = #{processedDocument.type,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.ProcessedDocumentTypeHandler},
+            create_time = #{processedDocument.createTime,jdbcType=TIMESTAMP}
+    </insert>
+
+    <select id="findById" resultMap="ProcessedDocumentResultMap">
+        SELECT
+            processed_doc_id, file_id, file_name, file_path, type, create_time
+        FROM processed_document
+        WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findBySourceDocumentId" resultMap="ProcessedDocumentResultMap">
+        SELECT
+            processed_doc_id, file_id, file_name, file_path, type, create_time
+        FROM processed_document
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
+        ORDER BY create_time DESC
+    </select>
+
+    <delete id="delete">
+        DELETE FROM processed_document
+        WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

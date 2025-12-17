@@ -1,6 +1,8 @@
 package top.emilejones.hhu.pipeline.entity;
 
 import lombok.Data;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -33,7 +35,7 @@ public class ProcessedDocumentPo {
     private String filePath;
 
     /** 文档类型（0=MARKDOWN，1=IMAGE） */
-    private Integer type;
+    private ProcessedDocumentType type;
 
     /** 创建时间 */
     private Instant createTime;

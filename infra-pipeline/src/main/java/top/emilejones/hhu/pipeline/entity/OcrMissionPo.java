@@ -26,7 +26,7 @@ public class OcrMissionPo {
     /** 源文档 ID */
     private String sourceDocumentId;
 
-    /** 任务状态（0=创建成功，1=运行中，2=任务失败，3=任务成功，4=等待中） */
+    /** 任务状态（0=创建成功，1=等待中，2=运行中，3=任务失败，4=任务成功） */
     private MissionStatus statusType;
 
     /** OCR 成功后生成的 ProcessedDocument ID */

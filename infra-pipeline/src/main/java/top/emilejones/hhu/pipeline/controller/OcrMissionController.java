@@ -4,7 +4,6 @@ package top.emilejones.hhu.pipeline.controller;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.pipeline.services.OcrMissionService;
