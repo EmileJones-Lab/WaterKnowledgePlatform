@@ -1,5 +1,6 @@
 package top.emilejones.hhu.textsplitter.adaptor
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -28,7 +29,13 @@ class RagToolsAdaptorTest {
 
     @BeforeEach
     fun setup() {
-        milvusRepository.clearAllData(testCollection)
+        milvusRepository.dropCollection(testCollection)
+        neo4jRepository.clearAllData()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        milvusRepository.dropCollection(testCollection)
         neo4jRepository.clearAllData()
     }
 
@@ -36,9 +43,7 @@ class RagToolsAdaptorTest {
     fun `minerU should delegate to data processing service`() {
         val input = javaClass.classLoader.getResourceAsStream("pdf/test.pdf")
         val result = adaptor.minerU(input!!)
-        println("===========================")
-        print(result.markdownContent)
-        println("===========================")
+        assertEquals(4, result.images.size)
     }
 
     @Test
@@ -227,5 +232,17 @@ class RagToolsAdaptorTest {
     @Test
     fun `deleteTextNodeFromVectorDatabase should soft delete`() {
         adaptor.deleteTextNodeFromVectorDatabases(listOf("1", "2"), testCollection)
+    }
+
+    @Test
+    fun `createCollection should delegate to repository`() {
+        val newCollection = "new_collection"
+        // Ensure collection doesn't exist or is clean
+        milvusRepository.dropCollection(newCollection)
+        
+        adaptor.createCollection(newCollection)
+        
+        // Clean up
+        milvusRepository.dropCollection(newCollection)
     }
 }

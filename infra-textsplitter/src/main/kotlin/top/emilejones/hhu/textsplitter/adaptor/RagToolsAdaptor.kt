@@ -65,6 +65,10 @@ class RagToolsAdaptor(
         multiCollectionMilvusRepository.batchDelete(collectionName, textNodeIdList)
     }
 
+    override fun createCollection(collectionName: String) {
+        multiCollectionMilvusRepository.createCollection(collectionName)
+    }
+
     /**
      * 将TextNode转换为EmbeddingDatum。
      * 注意: TextNode必须被向量化过，否则会报错，请调用此方法时做好安全检查。
@@ -72,9 +76,7 @@ class RagToolsAdaptor(
     private fun convertTextNodeToEmbeddingDatum(textNode: TextNode): EmbeddingDatum {
         return EmbeddingDatum(
             vector = textNode.vector!!,
-            text = textNode.text,
-            neo4jNodeId = textNode.id,
-            type = textNode.type
+            neo4jNodeId = textNode.id
         )
     }
 }

@@ -1,5 +1,6 @@
 package top.emilejones.hhu.textsplitter.adaptor
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -30,6 +31,12 @@ class Neo4jNodeRepositoryAdaptorTest {
     fun setup() {
         neo4jRepository.clearAllData()
     }
+
+    @AfterEach
+    fun tearDown() {
+        neo4jRepository.clearAllData()
+    }
+
 
     @Test
     fun `find methods should map stored nodes to domain objects`() {
