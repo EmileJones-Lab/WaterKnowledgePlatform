@@ -34,7 +34,7 @@ public class StructureExtractionMissionPo {
     private MissionStatus statusType;
 
     /** 生成的 Neo4j FileNode elementId */
-    private String FileNodeElementId;
+    private String FileNodeId;
 
     /** 失败原因 */
     private String errorMessage;

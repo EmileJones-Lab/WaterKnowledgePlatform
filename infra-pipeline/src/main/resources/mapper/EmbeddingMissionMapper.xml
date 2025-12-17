@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.emilejones.hhu.pipeline.mapper.EmbeddingMissionMapper">
+    <resultMap id="EmbeddingMissionResultMap" type="top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo">
+        <id column="embed_mission_id" property="embeddingMissionId" jdbcType="VARCHAR"/>
+        <result column="file_id" property="sourceDocumentId" jdbcType="VARCHAR"/>
+        <result column="file_node_id" property="fileNodeId" jdbcType="VARCHAR"/>
+        <result column="status_type" property="statusType" jdbcType="INTEGER" typeHandler="top.emilejones.hhu.pipeline.handler.MissionStatusHandler"/>
+        <result column="error_message" property="errorMessage" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
+        <result column="end_time" property="endTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 插入或更新向量化任务 -->
+    <insert id="upsertEmbeddingMission" parameterType="top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo">
+        INSERT INTO gen_file_embed (
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+        ) VALUES (
+            #{embeddingMission.embeddingMissionId,jdbcType=VARCHAR},
+            #{embeddingMission.sourceDocumentId,jdbcType=VARCHAR},
+            #{embeddingMission.FileNodeId,jdbcType=VARCHAR},
+            #{embeddingMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
+            #{embeddingMission.errorMessage,jdbcType=VARCHAR},
+            #{embeddingMission.createTime,jdbcType=TIMESTAMP},
+            #{embeddingMission.startTime,jdbcType=TIMESTAMP},
+            #{embeddingMission.endTime,jdbcType=TIMESTAMP}
+        )
+        ON DUPLICATE KEY UPDATE
+            file_id = #{embeddingMission.sourceDocumentId,jdbcType=VARCHAR},
+            file_node_id = #{embeddingMission.FileNodeId,jdbcType=VARCHAR},
+            status_type = #{embeddingMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
+            error_message = #{embeddingMission.errorMessage,jdbcType=VARCHAR},
+            start_time = #{embeddingMission.startTime,jdbcType=TIMESTAMP},
+            end_time = #{embeddingMission.endTime,jdbcType=TIMESTAMP}
+    </insert>
+
+    <!-- 批量插入或更新向量化任务 -->
+    <insert id="upsertEmbeddingMissionBatch" parameterType="java.util.List">
+        INSERT INTO gen_file_embed (
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+        ) VALUES
+        <foreach collection="embeddingMissionList" item="item" separator=",">
+            (
+                #{item.embeddingMissionId,jdbcType=VARCHAR},
+                #{item.sourceDocumentId,jdbcType=VARCHAR},
+                #{item.FileNodeId,jdbcType=VARCHAR},
+                #{item.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
+                #{item.errorMessage,jdbcType=VARCHAR},
+                #{item.createTime,jdbcType=TIMESTAMP},
+                #{item.startTime,jdbcType=TIMESTAMP},
+                #{item.endTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            file_id = VALUES(file_id),
+            file_node_id = VALUES(file_node_id),
+            status_type = VALUES(status_type),
+            error_message = VALUES(error_message),
+            start_time = VALUES(start_time),
+            end_time = VALUES(end_time)
+    </insert>
+
+    <!-- 根据源文档ID查询向量化任务列表 -->
+    <select id="findBySourceDocumentId" resultMap="EmbeddingMissionResultMap">
+        SELECT
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+        FROM gen_file_embed
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据向量化任务ID查询任务 -->
+    <select id="findById" resultMap="EmbeddingMissionResultMap">
+        SELECT
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+        FROM gen_file_embed
+        WHERE embed_mission_id = #{embeddingMissionId,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 删除向量化任务 -->
+    <delete id="delete">
+        DELETE FROM gen_file_embed
+        WHERE embed_mission_id = #{embeddingMissionId,jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

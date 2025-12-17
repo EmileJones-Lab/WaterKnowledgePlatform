@@ -86,7 +86,7 @@ public class PoToDomainUtil {
 
         StructureExtractionMissionResult result = null;
         if (status == MissionStatus.SUCCESS) {
-            String fileNodeId = structureExtractionMissionPo.getFileNodeElementId();
+            String fileNodeId = structureExtractionMissionPo.getFileNodeId();
             if (fileNodeId != null && !fileNodeId.isBlank()) {
                 result = new StructureExtractionMissionResult.Success(fileNodeId);
             }
@@ -122,7 +122,7 @@ public class PoToDomainUtil {
 
         EmbeddingMissionResult result = null;
         if (status == MissionStatus.SUCCESS) {
-            String fileNodeId = embeddingMissionPo.getFileNodeElementId();
+            String fileNodeId = embeddingMissionPo.getFileNodeId();
             if (fileNodeId != null && !fileNodeId.isBlank()) {
                 result = new EmbeddingMissionResult.Success(fileNodeId);
             }
@@ -136,7 +136,7 @@ public class PoToDomainUtil {
         return new EmbeddingMission(
                 embeddingMissionPo.getEmbeddingMissionId(),
                 embeddingMissionPo.getSourceDocumentId(),
-                embeddingMissionPo.getFileNodeElementId(),
+                embeddingMissionPo.getFileNodeId(),
                 status,
                 result,
                 embeddingMissionPo.getCreateTime(),

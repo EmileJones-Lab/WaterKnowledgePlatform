@@ -28,7 +28,7 @@ public class EmbeddingMissionPo {
     private String sourceDocumentId;
 
     /** 输入的 Neo4j FileNode elementId */
-    private String FileNodeElementId;
+    private String FileNodeId;
 
     /** 任务状态（0=创建成功，1=等待中，2=运行中，3=任务失败，4=任务成功） */
     private MissionStatus statusType;

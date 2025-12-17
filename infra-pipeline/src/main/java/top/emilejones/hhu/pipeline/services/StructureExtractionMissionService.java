@@ -125,13 +125,13 @@ public class StructureExtractionMissionService {
 
         StructureExtractionMissionResult result = structureExtractionMission.getResult();
         if (result instanceof StructureExtractionMissionResult.Success success) {
-            po.setFileNodeElementId(success.getFileNodeId());
+            po.setFileNodeId(success.getFileNodeId());
             po.setErrorMessage(null);
         } else if (result instanceof StructureExtractionMissionResult.Failure failure) {
-            po.setFileNodeElementId(null);
+            po.setFileNodeId(null);
             po.setErrorMessage(failure.getErrorMessage());
         } else {
-            po.setFileNodeElementId(null);
+            po.setFileNodeId(null);
             po.setErrorMessage(null);
         }
         return po;
