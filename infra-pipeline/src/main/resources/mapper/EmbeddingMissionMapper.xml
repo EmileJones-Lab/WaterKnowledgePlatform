@@ -91,10 +91,16 @@
     </select>
 
     <!-- 软删除向量化任务 -->
-    <update id="update">
+    <update id="softDelete">
         UPDATE gen_file_embed
         SET isdelete = #{isDelete,jdbcType=INTEGER}
         WHERE embed_mission_id = #{embeddingMissionId,jdbcType=VARCHAR}
     </update>
+
+    <!-- 物理删除向量化任务 -->
+    <delete id="hardDelete">
+        DELETE FROM gen_file_embed
+        WHERE embed_mission_id = #{embeddingMissionId,jdbcType=VARCHAR}
+    </delete>
 
 </mapper>

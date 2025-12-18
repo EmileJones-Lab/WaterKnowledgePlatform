@@ -1,17 +1,19 @@
 package top.emilejones.hhu.pipeline.handler;
 
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
 
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 /**
  * 将数据库中任务状态类型转换为enum类
+ *
  * @author Yeyezhi
  */
 @MappedTypes(MissionStatus.class)

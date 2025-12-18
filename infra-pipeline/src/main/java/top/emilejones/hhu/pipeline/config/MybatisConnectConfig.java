@@ -21,7 +21,6 @@ import javax.sql.DataSource;
 @MapperScan(
         basePackages = "top.emilejones.hhu.pipeline.mapper",
         sqlSessionFactoryRef = "infra-pipeline-SqlSessionFactory"
-        //sqlSessionTemplateRef = "infra-pipeline-SqlSessionTemplate"
 )
 public class MybatisConnectConfig {
 

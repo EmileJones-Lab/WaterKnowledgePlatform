@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
 import top.emilejones.hhu.pipeline.constant.DeleteConstant;
-import top.emilejones.hhu.pipeline.entity.OcrMissionPo;
 import top.emilejones.hhu.pipeline.entity.StructureExtractionMissionPo;
 import top.emilejones.hhu.pipeline.mapper.StructureExtractionMissionMapper;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
@@ -105,7 +104,7 @@ public class StructureExtractionMissionService {
         structureExtractionMissionPo.setIsDelete(DeleteConstant.DELETE);
 
         //删除对应的向量化文件，因为这里是软删除所以调用的是update方法
-        structureExtractionMissionMapper.update(structureExtractionMissionPo);
+        structureExtractionMissionMapper.softDelete(structureExtractionMissionPo);
     }
 
     /**

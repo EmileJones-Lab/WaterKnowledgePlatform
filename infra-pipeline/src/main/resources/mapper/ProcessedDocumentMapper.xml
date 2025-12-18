@@ -54,10 +54,16 @@
     </select>
 
     <!-- 软删除向量化任务 -->
-    <update id="update">
+    <update id="softDelete">
         UPDATE processed_document
         SET isdelete = #{isDelete,jdbcType=INTEGER}
         WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR}
     </update>
+
+    <!-- 物理删除处理后文档 -->
+    <delete id="hardDelete">
+        DELETE FROM processed_document
+        WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR}
+    </delete>
 
 </mapper>

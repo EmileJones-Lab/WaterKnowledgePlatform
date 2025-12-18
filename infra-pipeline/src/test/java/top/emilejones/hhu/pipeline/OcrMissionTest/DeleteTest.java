@@ -33,14 +33,13 @@ public class DeleteTest {
 
     @BeforeEach
     void setUp() {
-        ocrMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
         // 测试结束后也可以执行一次，保持数据库清洁
-        ocrMissionMapper.truncateTable();
+        createdMissionIds.forEach(id -> ocrMissionMapper.hardDelete(id));
     }
 
     /**
@@ -62,8 +61,6 @@ public class DeleteTest {
 
         // 删除任务
         ocrMissionService.delete(missionId);
-        // 手动从清理列表中移除，因为我们已经在测试中删除了它
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         OcrMission deletedMission = ocrMissionService.findById(missionId);
@@ -112,7 +109,6 @@ public class DeleteTest {
 
         // 删除任务
         ocrMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         OcrMission deletedMission = ocrMissionService.findById(missionId);
@@ -145,7 +141,6 @@ public class DeleteTest {
 
         // 删除任务
         ocrMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         OcrMission deletedMission = ocrMissionService.findById(missionId);
@@ -177,7 +172,6 @@ public class DeleteTest {
 
         // 删除任务
         ocrMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         OcrMission deletedMission = ocrMissionService.findById(missionId);
@@ -205,7 +199,6 @@ public class DeleteTest {
         assertDoesNotThrow(() -> {
             ocrMissionService.delete(missionId);
         });
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         OcrMission deletedOnce = ocrMissionService.findById(missionId);
@@ -260,7 +253,6 @@ public class DeleteTest {
 
         // 删除中间的任务
         ocrMissionService.delete(missionId2);
-        createdMissionIds.remove(missionId2);
 
         // 验证删除后的状态
         OcrMission deletedMission = ocrMissionService.findById(missionId2);
@@ -340,7 +332,6 @@ public class DeleteTest {
             if (!missions.isEmpty()) {
                 String missionToDelete = missions.get(0).getId();
                 ocrMissionService.delete(missionToDelete);
-                createdMissionIds.remove(missionToDelete);
             }
         }
 

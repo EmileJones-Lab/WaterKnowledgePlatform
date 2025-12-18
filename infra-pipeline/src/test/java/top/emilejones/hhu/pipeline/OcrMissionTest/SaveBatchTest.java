@@ -33,14 +33,13 @@ public class SaveBatchTest {
 
     @BeforeEach
     void setUp() {
-        ocrMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
         // 测试结束后也可以执行一次，保持数据库清洁
-        ocrMissionMapper.truncateTable();
+        createdMissionIds.forEach(id -> ocrMissionMapper.hardDelete(id));
     }
 
 

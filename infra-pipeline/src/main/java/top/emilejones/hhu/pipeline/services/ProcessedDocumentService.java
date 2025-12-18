@@ -20,6 +20,7 @@ import java.util.Optional;
 
 /**
  * Ocr处理后文档服务实现类
+ *
  * @author Yeyezhi
  */
 @Service
@@ -33,13 +34,12 @@ public class ProcessedDocumentService {
 
     /**
      * 保存文档与其内容。
-     *
      * 约定：
      * - 实现幂等/覆盖语义，确保同一标识重复写入不会产生脏数据。
      * - 内容流的打开与关闭由调用方负责；实现只消费输入流并持久化，不应尝试重置或重复读取流。
      *
      * @param processedDocument 文档元数据（标识、标题等）
-     * @param content Markdown 正文内容流；调用方负责在写入完成后关闭流
+     * @param content           Markdown 正文内容流；调用方负责在写入完成后关闭流
      */
     public void save(@NotNull ProcessedDocument processedDocument, @NotNull InputStream content) {
         ProcessedDocumentPo po = convertToPo(processedDocument);
@@ -61,7 +61,6 @@ public class ProcessedDocumentService {
 
     /**
      * 根据标识查询文档元数据。
-     *
      * 约定：未找到记录时返回 `Optional.empty()`；调用方需处理未命中分支。
      *
      * @param id 文档标识
@@ -78,7 +77,6 @@ public class ProcessedDocumentService {
 
     /**
      * 打开文档内容流，用于上层读取内容。
-     *
      * 约定：
      * - 返回的流需由调用方关闭；未找到内容时应抛出可定位的异常。
      *

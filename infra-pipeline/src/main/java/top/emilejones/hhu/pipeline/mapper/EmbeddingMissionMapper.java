@@ -2,7 +2,6 @@ package top.emilejones.hhu.pipeline.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Update;
 import top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo;
 
 import java.util.List;
@@ -41,14 +40,14 @@ public interface EmbeddingMissionMapper {
     EmbeddingMissionPo findById(@Param("embeddingMissionId") String embeddingMissionId);
 
     /**
-     * 更新向量化任务
-     * @param embeddingMissionPo
+     * 软删除向量化任务
+     * @param embeddingMissionPo 向量化任务持久化对象
      */
-    void update(EmbeddingMissionPo embeddingMissionPo);
+    void softDelete(EmbeddingMissionPo embeddingMissionPo);
 
     /**
-     * 仅供测试使用：物理清空表数据
+     * 物理删除向量化任务
+     * @param embeddingMissionId 向量化任务ID
      */
-    @Update("DELETE FROM gen_file_embed")
-    void truncateTable();
+    void hardDelete(@Param("embeddingMissionId") String embeddingMissionId);
 }

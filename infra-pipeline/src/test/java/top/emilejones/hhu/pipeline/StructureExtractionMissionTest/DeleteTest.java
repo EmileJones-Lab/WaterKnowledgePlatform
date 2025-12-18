@@ -33,13 +33,12 @@ public class DeleteTest {
 
     @BeforeEach
     void setUp() {
-        structureExtractionMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        structureExtractionMissionMapper.truncateTable();
+        createdMissionIds.forEach(id -> structureExtractionMissionMapper.hardDelete(id));
     }
 
     /**
@@ -58,7 +57,6 @@ public class DeleteTest {
         assertNotNull(saved);
 
         structureExtractionMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         StructureExtractionMission deleted = structureExtractionMissionService.findById(missionId);
         assertNull(deleted, "删除后任务应该不存在");
@@ -97,7 +95,6 @@ public class DeleteTest {
         assertTrue(saved.isSuccess());
 
         structureExtractionMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         StructureExtractionMission deleted = structureExtractionMissionService.findById(missionId);
         assertNull(deleted);
@@ -124,7 +121,6 @@ public class DeleteTest {
         assertEquals(MissionStatus.ERROR, saved.getStatus());
 
         structureExtractionMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         StructureExtractionMission deleted = structureExtractionMissionService.findById(missionId);
         assertNull(deleted);
@@ -143,7 +139,6 @@ public class DeleteTest {
         createdMissionIds.add(missionId);
 
         assertDoesNotThrow(() -> structureExtractionMissionService.delete(missionId));
-        createdMissionIds.remove(missionId);
 
         StructureExtractionMission deletedOnce = structureExtractionMissionService.findById(missionId);
         assertNull(deletedOnce);

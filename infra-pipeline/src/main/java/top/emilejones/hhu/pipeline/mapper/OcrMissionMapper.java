@@ -2,8 +2,6 @@ package top.emilejones.hhu.pipeline.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Update;
-import top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo;
 import top.emilejones.hhu.pipeline.entity.OcrMissionPo;
 
 import java.util.List;
@@ -50,14 +48,14 @@ public interface OcrMissionMapper {
     OcrMissionPo findById(@Param("ocrMissionId") String ocrMissionId);
 
     /**
-     * 更新Ocr任务
-     * @param ocrMissionPo
+     * 软删除OCR任务
+     * @param ocrMissionPo OCR任务持久化对象
      */
-    void update(OcrMissionPo ocrMissionPo);
+    void softDelete(OcrMissionPo ocrMissionPo);
 
     /**
-     * 仅供测试使用：物理清空表数据
+     * 物理删除OCR任务
+     * @param ocrMissionId OCR任务ID
      */
-    @Update("DELETE FROM gen_file_ocr")
-    void truncateTable();
+    void hardDelete(@Param("ocrMissionId") String ocrMissionId);
 }

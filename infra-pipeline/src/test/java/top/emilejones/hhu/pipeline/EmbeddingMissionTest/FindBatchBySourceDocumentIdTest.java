@@ -34,13 +34,12 @@ public class FindBatchBySourceDocumentIdTest {
 
     @BeforeEach
     void setUp() {
-        embeddingMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        embeddingMissionMapper.truncateTable();
+        createdMissionIds.forEach(id -> embeddingMissionMapper.hardDelete(id));
     }
 
 

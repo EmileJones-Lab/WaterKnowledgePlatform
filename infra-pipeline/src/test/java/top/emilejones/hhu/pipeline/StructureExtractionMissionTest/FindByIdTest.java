@@ -33,13 +33,12 @@ public class FindByIdTest {
 
     @BeforeEach
     void setUp() {
-        structureExtractionMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        structureExtractionMissionMapper.truncateTable();
+        createdMissionIds.forEach(id -> structureExtractionMissionMapper.hardDelete(id));
     }
 
     /**

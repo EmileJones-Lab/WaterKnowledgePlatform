@@ -3,7 +3,6 @@ package top.emilejones.hhu.pipeline.services;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.pipeline.constant.DeleteConstant;
@@ -15,6 +14,7 @@ import java.util.List;
 
 /**
  * 向量化任务服务实现类
+ *
  * @author Yeyezhi
  */
 @Service
@@ -28,7 +28,6 @@ public class EmbeddingMissionService {
 
     /**
      * 保存单个向量化任务；若已有同标识任务，将覆盖旧记录。
-     *
      * 约定：具备 upsert 语义，重复写入需覆盖旧任务。
      *
      * @param embeddingMission 待保存的向量化任务领域对象，不能为null
@@ -40,7 +39,7 @@ public class EmbeddingMissionService {
 
     /**
      * 批量保存向量化任务；遇到重复标识执行覆盖（upsert）。
-     *
+     * <p>
      * 约定：具备 upsert 语义；应保证部分失败可定位，必要时支持局部回滚或幂等重试。
      *
      * @param embeddingMissionList 待保存的向量化任务集合，不能为null
@@ -59,7 +58,7 @@ public class EmbeddingMissionService {
 
     /**
      * 根据源文档查询任务列表。
-     *
+     * <p>
      * 约定：未命中时返回空列表；任务按创建时间倒序返回。
      *
      * @param sourceDocumentId 源文档标识，不能为null或空
@@ -78,7 +77,7 @@ public class EmbeddingMissionService {
 
     /**
      * 批量查询任务列表。
-     *
+     * <p>
      * 约定：结果顺序需与入参保持一致；缺失项返回空列表。
      *
      * @param sourceDocumentIdList 源文档标识集合，不能为null
@@ -117,7 +116,7 @@ public class EmbeddingMissionService {
         embeddingMissionPo.setEmbeddingMissionId(embeddingMissionId);
         embeddingMissionPo.setIsDelete(DeleteConstant.DELETE);
         //删除对应的向量化文件，因为这里是软删除所以调用的是update方法
-        embeddingMissionMapper.update(embeddingMissionPo);
+        embeddingMissionMapper.softDelete(embeddingMissionPo);
     }
 
     /**

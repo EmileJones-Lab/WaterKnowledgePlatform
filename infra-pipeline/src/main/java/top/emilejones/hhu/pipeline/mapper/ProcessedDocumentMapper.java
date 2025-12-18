@@ -2,8 +2,6 @@ package top.emilejones.hhu.pipeline.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Update;
-import top.emilejones.hhu.pipeline.entity.OcrMissionPo;
 import top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo;
 
 import java.util.List;
@@ -35,15 +33,15 @@ public interface ProcessedDocumentMapper {
      */
     List<ProcessedDocumentPo> findBySourceDocumentId(@Param("sourceDocumentId") String sourceDocumentId);
 
-   /**
-     * 更新Ocr处理后的文档
-     * @param processedDocumentPo
+    /**
+     * 软删除处理后文档
+     * @param processedDocumentPo 处理后文档持久化对象
      */
-    void update(ProcessedDocumentPo processedDocumentPo);
+    void softDelete(ProcessedDocumentPo processedDocumentPo);
 
     /**
-     * 仅供测试使用：物理清空表数据
+     * 物理删除处理后文档
+     * @param processedDocumentId 处理后文档ID
      */
-    @Update("DELETE FROM processed_document")
-    void truncateTable();
+    void hardDelete(@Param("processedDocumentId") String processedDocumentId);
 }

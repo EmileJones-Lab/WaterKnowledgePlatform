@@ -33,13 +33,12 @@ public class DeleteTest {
 
     @BeforeEach
     void setUp() {
-        embeddingMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        embeddingMissionMapper.truncateTable();
+        createdMissionIds.forEach(id -> embeddingMissionMapper.hardDelete(id));
     }
 
     /**
@@ -60,8 +59,6 @@ public class DeleteTest {
 
         // 删除任务
         embeddingMissionService.delete(missionId);
-        // 手动从清理列表中移除，因为我们已经在测试中删除了它
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         EmbeddingMission deletedMission = embeddingMissionService.findById(missionId);
@@ -108,7 +105,6 @@ public class DeleteTest {
 
         // 删除任务
         embeddingMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         EmbeddingMission deletedMission = embeddingMissionService.findById(missionId);
@@ -140,7 +136,6 @@ public class DeleteTest {
 
         // 删除任务
         embeddingMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         EmbeddingMission deletedMission = embeddingMissionService.findById(missionId);
@@ -171,7 +166,6 @@ public class DeleteTest {
 
         // 删除任务
         embeddingMissionService.delete(missionId);
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         EmbeddingMission deletedMission = embeddingMissionService.findById(missionId);
@@ -198,7 +192,6 @@ public class DeleteTest {
         assertDoesNotThrow(() -> {
             embeddingMissionService.delete(missionId);
         });
-        createdMissionIds.remove(missionId);
 
         // 验证任务已被删除
         EmbeddingMission deletedOnce = embeddingMissionService.findById(missionId);
@@ -253,7 +246,6 @@ public class DeleteTest {
 
         // 删除中间的任务
         embeddingMissionService.delete(missionId2);
-        createdMissionIds.remove(missionId2);
 
         // 验证删除后的状态
         EmbeddingMission deletedMission = embeddingMissionService.findById(missionId2);
@@ -332,7 +324,6 @@ public class DeleteTest {
 
         // 删除第一个任务
         embeddingMissionService.delete(missionId1);
-        createdMissionIds.remove(missionId1);
 
         // 验证删除后的批量查询结果
         var afterDeleteResults = embeddingMissionService.findBatchBySourceDocumentId(sourceDocIdList);
