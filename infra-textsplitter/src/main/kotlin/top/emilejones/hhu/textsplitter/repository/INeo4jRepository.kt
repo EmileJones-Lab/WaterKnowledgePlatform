@@ -41,9 +41,19 @@ interface INeo4jRepository {
     fun deleteTextNodeById(id: String)
 
     /**
+     * 通过节点id硬删除TextNode
+     */
+    fun hardDeleteTextNodeById(id: String)
+
+    /**
      * 通过文件节点id软删除FileNode以及其关联关系
      */
     fun deleteFileNodeById(id: String)
+
+    /**
+     * 通过文件节点id硬删除FileNode以及其关联关系
+     */
+    fun hardDeleteFileNodeById(id: String)
 
     /**
      * 获取当前节点的下一个节点

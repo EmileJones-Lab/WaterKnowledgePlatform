@@ -135,15 +135,20 @@ class MultiCollectionSingleCollectionMilvusRepository(
     ): List<EmbeddingDatum> {
         val mutableListOf: MutableList<BaseVector> = mutableListOf(FloatVec(queryVector))
         val searchParamsMap: Map<String, Any> = mapOf(
-            "metric_type" to "L2", "params" to mapOf("nprobe" to 10)
+            "metric_type" to "COSINE", "params" to gson.toJson(mapOf("nprobe" to 10))
         )
         // 构建搜索请求
         val searchReq =
-            SearchReq.builder().databaseName(databaseName).collectionName(collectionName).annsField("vector").topK(topK)
-                .data(mutableListOf).apply {
-                    filter(buildFilter(filter))
-                }.outputFields(listOf("text", "neo4jNodeId", "vector", "type", "isDelete"))
-                .searchParams(searchParamsMap).build()
+            SearchReq.builder()
+                .databaseName(databaseName)
+                .collectionName(collectionName)
+                .annsField("vector")
+                .topK(topK)
+                .data(mutableListOf)
+                .filter(buildFilter(filter))
+                .outputFields(listOf("text", "neo4jNodeId", "vector", "type", "isDelete"))
+                .searchParams(searchParamsMap)
+                .build()
 
         // 发起搜索
         val resp = client.search(searchReq)
@@ -151,7 +156,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
 
 
         val resultsForQuery: List<SearchResp.SearchResult> = data.firstOrNull() ?: return emptyList()
-        // 6. 映射成 EmbeddingDatum
+        // 6. 映射成 EmbeddingDatum（由于服务端已过滤，这里直接映射即可保证 topK）
         return resultsForQuery.mapNotNull { r -> mapToEmbeddingDatum(r.entity) }
     }
 
@@ -161,6 +166,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
             .databaseName(databaseName)
             .build()
         client.dropCollection(dropQuickSetupParam)
+        existsCollection.remove(collectionName)
     }
 
     private fun checkCollectionExistOrCreate(collectionName: String) {

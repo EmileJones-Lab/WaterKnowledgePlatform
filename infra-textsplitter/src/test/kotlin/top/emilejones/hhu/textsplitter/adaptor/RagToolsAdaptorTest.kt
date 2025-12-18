@@ -1,5 +1,6 @@
 package top.emilejones.hhu.textsplitter.adaptor
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -24,10 +25,10 @@ class RagToolsAdaptorTest {
     @Autowired
     private lateinit var neo4jRepository: INeo4jRepository
 
-    private val testCollection = "test"
+    private val testCollection = "test_rag_tools_adaptor"
 
-    @BeforeEach
-    fun setup() {
+    @AfterEach
+    fun drop() {
         milvusRepository.clearAllData(testCollection)
         neo4jRepository.clearAllData()
     }
@@ -226,6 +227,38 @@ class RagToolsAdaptorTest {
 
     @Test
     fun `deleteTextNodeFromVectorDatabase should soft delete`() {
-        adaptor.deleteTextNodeFromVectorDatabases(listOf("1", "2"), testCollection)
+        val vector = List(1024) { 0.1f }
+        val node = TextNode(
+            id = "1",
+            fileNodeId = "file-1",
+            text = "test text",
+            seq = 0,
+            level = 1,
+            type = TextType.COMMON_TEXT,
+            isEmbedded = true,
+            vector = vector
+        )
+
+        // 1. Insert data
+        adaptor.saveTextNodeToVectorDatabase(listOf(node), testCollection)
+
+        // 2. Verify insertion
+        var results = milvusRepository.searchByVector(testCollection, vector)
+        assertTrue(results.any { it.neo4jNodeId == "1" }, "Node should be found after insertion")
+
+        // 3. Delete data
+        try {
+            adaptor.deleteTextNodeFromVectorDatabases(listOf("1"), testCollection)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
+        }
+
+        // Wait for Milvus to consistency sync
+        Thread.sleep(1000)
+
+        // 4. Verify deletion
+        results = milvusRepository.searchByVector(testCollection, vector)
+        assertFalse(results.any { it.neo4jNodeId == "1" }, "Node should not be found after deletion")
     }
 }

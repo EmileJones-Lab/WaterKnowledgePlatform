@@ -103,4 +103,19 @@ class Neo4jFileNodeRepository(
             }
         }
     }
+
+    fun hardDeleteFileNodeById(id: String) {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            session.executeWriteWithoutResult {
+                it.run(
+                    """
+                        MATCH (n:FileNode)
+                        WHERE n.id = ${'$'}id
+                        DETACH DELETE n
+                    """.trimIndent(),
+                    Values.parameters("id", id)
+                )
+            }
+        }
+    }
 }

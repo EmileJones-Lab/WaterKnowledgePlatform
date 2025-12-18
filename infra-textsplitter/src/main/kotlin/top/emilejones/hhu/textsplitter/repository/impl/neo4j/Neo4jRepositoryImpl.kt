@@ -15,7 +15,7 @@ import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.insertRe
 class Neo4jRepositoryImpl(
     private val driver: Driver, private val neo4jConfig: Neo4jConfig,
     private val neo4jContextRepository: Neo4jContextRepository,
-    private val neo4jFileNodeRepository: top.emilejones.hhu.textsplitter.repository.impl.neo4j.Neo4jFileNodeRepository,
+    private val neo4jFileNodeRepository: Neo4jFileNodeRepository,
     private val neo4jTextNodeRepository: Neo4jTextNodeRepository,
     private val nodeTreeRepository: NodeTreeRepository
 ) : INeo4jRepository {
@@ -77,8 +77,16 @@ class Neo4jRepositoryImpl(
         neo4jTextNodeRepository.softDeleteTextNodeById(id)
     }
 
+    override fun hardDeleteTextNodeById(id: String) {
+        neo4jTextNodeRepository.hardDeleteTextNodeById(id)
+    }
+
     override fun deleteFileNodeById(id: String) {
         neo4jFileNodeRepository.softDeleteFileNodeById(id)
+    }
+
+    override fun hardDeleteFileNodeById(id: String) {
+        neo4jFileNodeRepository.hardDeleteFileNodeById(id)
     }
 
     override fun nextNode(id: String): Pair<Neo4jFileNode, Neo4jTextNode>? {

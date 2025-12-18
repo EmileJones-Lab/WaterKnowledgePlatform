@@ -1,6 +1,7 @@
 package top.emilejones.hhu.textsplitter.adaptor
 
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import top.emilejones.hhu.TextSplitterTestMain
@@ -8,14 +9,11 @@ import top.emilejones.hhu.domain.pipeline.TextNode
 import top.emilejones.hhu.domain.pipeline.TextType
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
+import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @SpringBootTest(classes = [TextSplitterTestMain::class])
 class Neo4jNodeRepositoryAdaptorTest {
@@ -26,9 +24,20 @@ class Neo4jNodeRepositoryAdaptorTest {
     @Autowired
     private lateinit var neo4jRepository: INeo4jRepository
 
-    @BeforeEach
-    fun setup() {
-        neo4jRepository.clearAllData()
+    @Autowired
+    private lateinit var milvusRepository: IMultiCollectionMilvusRepository
+
+    private val createdFileNodeIds = mutableListOf<String>()
+    private val createdTextNodeIds = mutableListOf<String>()
+    private val testCollection = "test_collection_neo4j_adaptor"
+
+    @AfterEach
+    fun tearDown() {
+        createdTextNodeIds.forEach { neo4jRepository.hardDeleteTextNodeById(it) }
+        createdFileNodeIds.forEach { neo4jRepository.hardDeleteFileNodeById(it) }
+        createdTextNodeIds.clear()
+        createdFileNodeIds.clear()
+        milvusRepository.clearAllData(testCollection)
     }
 
     @Test
@@ -79,8 +88,73 @@ class Neo4jNodeRepositoryAdaptorTest {
 
         val stored = neo4jRepository.searchNeo4jTextNodeByNodeId(sample.textNodeIds.first())
         assertNotNull(stored)
-        assertEquals("updated content", stored.text)
-        assertEquals(listOf(0.1f, 0.2f, 0.3f), stored.vector)
+        assertEquals("updated content", stored?.text)
+        assertEquals(listOf(0.1f, 0.2f, 0.3f), stored?.vector)
+    }
+
+    @Test
+    fun `saveTextNode should insert new node when not exists`() {
+        val newNodeId = "new-node-id"
+        val fileNodeId =
+            "file-node-1" // Assuming file node exists or not strictly required for this test isolated logic
+        val newNode = TextNode(
+            id = newNodeId,
+            fileNodeId = fileNodeId,
+            text = "new content",
+            seq = 0,
+            level = 1,
+            type = TextType.COMMON_TEXT,
+            isEmbedded = false,
+            vector = null
+        )
+
+        // Ensure cleanup
+        createdTextNodeIds.add(newNodeId)
+
+        adaptor.saveTextNode(newNode)
+
+        val stored = neo4jRepository.searchNeo4jTextNodeByNodeId(newNodeId)
+        assertNotNull(stored)
+        assertEquals("new content", stored?.text)
+        assertEquals(newNodeId, stored?.id)
+    }
+    
+    // 重新编写测试方法，先注入 ModelClient
+    @Autowired
+    private lateinit var modelClient: top.emilejones.hhu.model.ModelClient
+
+    @Test
+    fun `recallTextNode should return mapped text nodes`() {
+        // 1. Prepare data in Neo4j
+        val sample = insertSampleTree()
+        val textNodeId = sample.textNodeIds.first()
+        val text = "first text node"
+
+        // 2. Prepare data in Milvus
+        // Get embedding for the text to ensure it can be recalled
+        val vector = modelClient.embedding(text)
+        
+        val datum = EmbeddingDatum(
+            neo4jNodeId = textNodeId,
+            text = text,
+            vector = vector,
+            type = TextType.COMMON_TEXT
+        )
+        milvusRepository.insert(testCollection, datum)
+        
+        // Wait for Milvus consistency
+        Thread.sleep(1000)
+
+        // 3. Call method
+        val result = adaptor.recallTextNode(text, testCollection)
+
+        // 4. Verify
+        // Should find at least one node (the one we just inserted)
+        assertTrue(result.isNotEmpty(), "Should recall at least one node")
+        val recalledNode = result.first { it.id == textNodeId }
+        assertEquals(textNodeId, recalledNode.id)
+        assertEquals(sample.fileNodeId, recalledNode.fileNodeId)
+        assertEquals(text, recalledNode.text)
     }
 
     @Test
@@ -140,6 +214,11 @@ class Neo4jNodeRepositoryAdaptorTest {
         root.addChild(second)
 
         neo4jRepository.insertTree(root)
+
+        createdFileNodeIds.add(fileNode.id)
+        createdTextNodeIds.add(first.id)
+        createdTextNodeIds.add(second.id)
+
         return SampleTree(
             fileNodeId = fileNode.id,
             fileId = fileNode.fileId!!,

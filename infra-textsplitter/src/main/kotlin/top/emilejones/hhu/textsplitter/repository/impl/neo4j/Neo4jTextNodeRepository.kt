@@ -90,4 +90,19 @@ class Neo4jTextNodeRepository(
             }
         }
     }
+
+    fun hardDeleteTextNodeById(id: String) {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            session.executeWriteWithoutResult {
+                it.run(
+                    """
+                        MATCH (n:TextNode)
+                        WHERE n.id = ${'$'}id
+                        DETACH DELETE n
+                    """.trimIndent(),
+                    Values.parameters("id", id)
+                )
+            }
+        }
+    }
 }
