@@ -5,7 +5,6 @@ plugins {
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
-    implementation("io.minio:minio:8.6.0")
     implementation("org.springframework.boot:spring-boot-starter")
 
     testImplementation(platform("org.junit:junit-bom:5.10.2"))

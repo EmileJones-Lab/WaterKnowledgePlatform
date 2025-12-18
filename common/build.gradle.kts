@@ -12,5 +12,6 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:9.5.0")
 
     api("io.milvus:milvus-sdk-java:2.6.3")
+    api("io.minio:minio:8.6.0")
     api("org.neo4j.driver:neo4j-java-driver:5.28.9")
 }

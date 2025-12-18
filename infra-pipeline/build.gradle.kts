@@ -5,7 +5,6 @@ plugins {
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
-    implementation("io.minio:minio:8.6.0")
     implementation("com.mysql:mysql-connector-j:9.5.0")
     implementation("org.springframework.boot:spring-boot-starter")
 
