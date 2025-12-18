@@ -1,0 +1,56 @@
+package top.emilejones.hhu.pipeline.entity;
+
+import lombok.Data;
+import top.emilejones.hhu.domain.pipeline.MissionStatus;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+
+/**
+ * 结构化抽取任务持久化对象（PO）。
+ *
+ * 表示一次针对 ProcessedDocument 执行的结构抽取任务，
+ * 负责将文档内容解析为结构化的图数据（如 Neo4j 中的 FileNode、TextNode）。
+ *
+ * 该对象用于记录结构化抽取任务的执行状态、
+ * 失败原因以及最终生成的 FileNode 标识，
+ * 不包含具体的抽取算法实现。
+ *
+ * @author Yeyezhi
+ */
+
+@Data
+public class StructureExtractionMissionPo {
+    /** 结构化抽取任务 ID（UUID） */
+    private String structureExtractionMissionId;
+
+    /** 源文档 ID */
+    private String sourceDocumentId;
+
+    /** 使用的 ProcessedDocument ID */
+    private String processedDocumentId;
+
+    /** 任务状态（0=创建成功，1=等待中，2=运行中，3=任务失败，4=任务成功） */
+    private MissionStatus statusType;
+
+    /** 生成的 Neo4j FileNode elementId */
+    private String FileNodeId;
+
+    /** 失败原因 */
+    private String errorMessage;
+
+    /** 创建时间 */
+    private Instant createTime;
+
+    /** 开始时间 */
+    private Instant startTime;
+
+    /** 结束时间 */
+    private Instant endTime;
+
+    /**
+     * 删除标记
+     * 0：删除，1：未删除；默认为1
+     */
+    private int isDelete;
+}
