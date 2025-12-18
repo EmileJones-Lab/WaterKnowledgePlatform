@@ -117,7 +117,7 @@ public class DtoConverter {
             return null;
         }
         TextNodeDTO dto = new TextNodeDTO();
-        dto.setElementId(node.getId());
+        dto.setId(node.getId());
         dto.setText(node.getText());
         dto.setSeq(node.getSeq());
         dto.setLevel(node.getLevel());

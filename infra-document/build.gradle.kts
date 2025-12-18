@@ -7,6 +7,9 @@ dependencies {
     implementation(project(":domain"))
     implementation("org.springframework.boot:spring-boot-starter")
 
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3")
+    implementation("io.minio:minio:8.6.0")
+
     testImplementation(platform("org.junit:junit-bom:5.10.2"))
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.platform", module = "junit-platform-launcher")

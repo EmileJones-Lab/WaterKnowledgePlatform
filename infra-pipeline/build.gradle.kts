@@ -16,6 +16,7 @@ dependencies {
 
     //加入mybatis依赖
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3")
+    implementation("io.minio:minio:8.6.0")
 
 
     // 加入Lombok依赖

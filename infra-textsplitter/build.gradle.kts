@@ -14,6 +14,9 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
     implementation(project(":markdown-corrector"))
+
+    implementation("io.milvus:milvus-sdk-java:2.6.3")
+    implementation("org.neo4j.driver:neo4j-java-driver:5.28.9")
 }
 
 tasks.test {

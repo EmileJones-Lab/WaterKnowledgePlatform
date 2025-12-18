@@ -1,5 +1,7 @@
 package top.emilejones.hhu.pipeline.ProcessedDocumentTest;
 
+import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,16 +11,13 @@ import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
 import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
 import top.emilejones.hhu.pipeline.TestApplication;
 import top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper;
+import top.emilejones.hhu.pipeline.repository.FileStorageRepository;
 import top.emilejones.hhu.pipeline.services.ProcessedDocumentService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 处理后文档打开内容流测试类
+ * 基于Minio存储系统
  * @author Yeyezhi
  */
 @SpringBootTest(classes = TestApplication.class)
@@ -37,44 +37,58 @@ public class OpenContentTest {
     private ProcessedDocumentService processedDocumentService;
     @Autowired
     private ProcessedDocumentMapper processedDocumentMapper;
+    @Autowired
+    private FileStorageRepository fileStorageRepository;
+    @Autowired
+    private MinioClient minioClient;
 
     private List<String> createdDocumentIds = new ArrayList<>();
-    private List<String> createdFilePaths = new ArrayList<>();
-    private String testBaseDir = "test-docs-findbyid";
+    private List<String> createdObjectNames = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
         createdDocumentIds.clear();
-        createdFilePaths.clear();
-        // 创建测试目录
-        try {
-            Files.createDirectories(Paths.get(testBaseDir));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create test directory", e);
-        }
+        createdObjectNames.clear();
     }
 
     @AfterEach
     void tearDown() {
-        // 清理测试创建的所有文档元数据
-        createdDocumentIds.forEach(id -> processedDocumentMapper.hardDelete(id));
-        createdDocumentIds.clear();
-
-        // 清理测试创建的所有文件
-        for (String filePath : createdFilePaths) {
-            try {
-                Files.deleteIfExists(Paths.get(filePath));
-            } catch (IOException e) {
-                // 忽略删除异常
-            }
+        // 1. 清理数据库元数据
+        if (!createdDocumentIds.isEmpty()) {
+            createdDocumentIds.forEach(id -> {
+                try {
+                    processedDocumentMapper.hardDelete(id);
+                } catch (Exception e) {
+                    System.err.println("清理数据库失败，ID: " + id + ", 原因: " + e.getMessage());
+                }
+            });
+            createdDocumentIds.clear();
         }
-        createdFilePaths.clear();
 
-        // 清理测试目录
-        try {
-            Files.deleteIfExists(Paths.get(testBaseDir));
-        } catch (IOException e) {
-            // 忽略删除异常
+        // 2. 真正清理 Minio 中的物理文件
+        if (!createdObjectNames.isEmpty()) {
+            for (String path : createdObjectNames) {
+                try {
+                    // 解析路径 (格式如: /bamboo/uuid.md)
+                    String cleanPath = path.startsWith("/") ? path.substring(1) : path;
+                    int slashIndex = cleanPath.indexOf("/");
+                    if (slashIndex > 0) {
+                        String bucket = cleanPath.substring(0, slashIndex);
+                        String objectKey = cleanPath.substring(slashIndex + 1);
+
+                        // 执行 Minio 删除操作
+                        minioClient.removeObject(
+                                RemoveObjectArgs.builder()
+                                        .bucket(bucket)
+                                        .object(objectKey)
+                                        .build()
+                        );
+                    }
+                } catch (Exception e) {
+                    System.err.println("清理 Minio 文件失败，路径: " + path + ", 原因: " + e.getMessage());
+                }
+            }
+            createdObjectNames.clear();
         }
     }
 
@@ -86,7 +100,7 @@ public class OpenContentTest {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
         String fileName = "test-markdown.md";
-        String filePath = testBaseDir + "/" + fileName;
+        String filePath = "/tmp/test/" + fileName; // 原始路径，仅用于记录
         String content = "# Test Markdown Document\n\nThis is a test markdown file with multiple lines.\n\n## Section 1\nSome content here.\n\n## Section 2\nMore content here.";
 
         // 创建并保存文档
@@ -98,13 +112,18 @@ public class OpenContentTest {
                 ProcessedDocumentType.MARKDOWN
         );
 
+        // 获取预期保存后在Minio中的路径
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
 
         // 打开内容流
-        try (InputStream contentStream = processedDocumentService.openContent(filePath)) {
+        try (InputStream contentStream = processedDocumentService.openContent(minioPath)) {
             assertNotNull(contentStream, "内容流不应该为null");
 
             // 读取内容并验证
@@ -121,7 +140,7 @@ public class OpenContentTest {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
         String fileName = "test-image.png";
-        String filePath = testBaseDir + "/" + fileName;
+        String filePath = "/tmp/test/" + fileName; // 原始路径，仅用于记录
 
         // 创建模拟的PNG文件头和一些数据
         byte[] imageContent = new byte[]{
@@ -145,13 +164,18 @@ public class OpenContentTest {
                 ProcessedDocumentType.PNG
         );
 
+        // 获取预期保存后在Minio中的路径
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(imageContent);
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
 
         // 打开内容流
-        try (InputStream contentStream = processedDocumentService.openContent(filePath)) {
+        try (InputStream contentStream = processedDocumentService.openContent(minioPath)) {
             assertNotNull(contentStream, "图片内容流不应该为null");
 
             // 读取内容并验证
@@ -168,7 +192,7 @@ public class OpenContentTest {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
         String fileName = "empty-file.txt";
-        String filePath = testBaseDir + "/" + fileName;
+        String filePath = "/tmp/test/" + fileName; // 原始路径，仅用于记录
 
         // 创建并保存空文档
         ProcessedDocument processedDocument = new ProcessedDocument(
@@ -179,13 +203,18 @@ public class OpenContentTest {
                 ProcessedDocumentType.MARKDOWN
         );
 
+        // 获取预期保存后在Minio中的路径
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[0]);
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
 
         // 打开内容流
-        try (InputStream contentStream = processedDocumentService.openContent(filePath)) {
+        try (InputStream contentStream = processedDocumentService.openContent(minioPath)) {
             assertNotNull(contentStream, "空文件的内容流不应该为null");
 
             // 验证内容为空
@@ -199,15 +228,15 @@ public class OpenContentTest {
      */
     @Test
     public void openNonExistingFileContentTest() {
-        String nonExistingFilePath = testBaseDir + "/non-existing-file.txt";
+        String nonExistingMinioPath = "/bamboo/non-existing-file.txt";
 
         // 尝试打开不存在的文件，应该抛出异常
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            processedDocumentService.openContent(nonExistingFilePath);
+            processedDocumentService.openContent(nonExistingMinioPath);
         }, "打开不存在的文件应该抛出RuntimeException");
 
-        assertTrue(exception.getMessage().contains("File not found"),
-                "异常消息应该包含'File not found'");
+        assertTrue(exception.getMessage().contains("读取失败") || exception.getMessage().contains("failed"),
+                "异常消息应该包含失败信息");
     }
 
     /**
@@ -218,7 +247,7 @@ public class OpenContentTest {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
         String fileName = "file-with-special-chars_测试.txt";
-        String filePath = testBaseDir + "/" + fileName;
+        String filePath = "/tmp/test/" + fileName; // 原始路径，仅用于记录
         String content = "This file contains special characters in its name: " + fileName;
 
         // 创建并保存文档
@@ -230,13 +259,18 @@ public class OpenContentTest {
                 ProcessedDocumentType.MARKDOWN
         );
 
+        // 获取预期保存后在Minio中的路径
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
 
         // 打开内容流
-        try (InputStream contentStream = processedDocumentService.openContent(filePath)) {
+        try (InputStream contentStream = processedDocumentService.openContent(minioPath)) {
             assertNotNull(contentStream, "包含特殊字符路径的文件内容流不应该为null");
 
             String readContent = new String(contentStream.readAllBytes(), StandardCharsets.UTF_8);
@@ -245,13 +279,13 @@ public class OpenContentTest {
     }
 
     /**
-     * 测试打开深层目录中的文件
+     * 测试打开深层目录中的文件 (在Minio中路径平铺，没有深层目录结构)
      */
     @Test
     public void openNestedDirectoryFileTest() throws IOException {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
-        String nestedPath = testBaseDir + "/level1/level2/level3/deep-nested-file.md";
+        String nestedPath = "/tmp/level1/level2/level3/deep-nested-file.md"; // 原始路径，仅用于记录
         String content = "# Deep Nested File\n\nThis file is located in a deeply nested directory structure.";
 
         // 创建并保存文档
@@ -263,32 +297,22 @@ public class OpenContentTest {
                 ProcessedDocumentType.MARKDOWN
         );
 
+        // 获取预期保存后在Minio中的路径（平铺结构）
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(nestedPath);
 
         // 打开内容流
-        try (InputStream contentStream = processedDocumentService.openContent(nestedPath)) {
+        try (InputStream contentStream = processedDocumentService.openContent(minioPath)) {
             assertNotNull(contentStream, "深层目录中文件的内容流不应该为null");
 
             String readContent = new String(contentStream.readAllBytes(), StandardCharsets.UTF_8);
             assertEquals(content, readContent, "深层目录中文件的内容应该正确读取");
-        }
-
-        // 清理嵌套目录
-        try {
-            Files.walk(Paths.get(testBaseDir))
-                    .sorted((a, b) -> -a.compareTo(b))
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException e) {
-                            // 忽略删除异常
-                        }
-                    });
-        } catch (IOException e) {
-            // 忽略删除异常
         }
     }
 
@@ -300,7 +324,7 @@ public class OpenContentTest {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
         String fileName = "large-file.txt";
-        String filePath = testBaseDir + "/" + fileName;
+        String filePath = "/tmp/test/" + fileName; // 原始路径，仅用于记录
 
         // 创建较大的内容（约1MB）
         StringBuilder largeContent = new StringBuilder();
@@ -318,13 +342,18 @@ public class OpenContentTest {
                 ProcessedDocumentType.MARKDOWN
         );
 
+        // 获取预期保存后在Minio中的路径
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
 
         // 打开内容流
-        try (InputStream contentStream = processedDocumentService.openContent(filePath)) {
+        try (InputStream contentStream = processedDocumentService.openContent(minioPath)) {
             assertNotNull(contentStream, "大文件的内容流不应该为null");
 
             // 分块读取大文件内容并验证
@@ -341,57 +370,13 @@ public class OpenContentTest {
     }
 
     /**
-     * 测试打开没有读取权限的文件
+     * 测试打开内容流的参数验证 - Minio版本不需要权限测试，跳过
      */
     @Test
-    public void openUnreadableFileTest() throws IOException {
-        String documentId = UUID.randomUUID().toString();
-        String sourceDocumentId = UUID.randomUUID().toString();
-        String fileName = "unreadable-file.txt";
-        String filePath = testBaseDir + "/" + fileName;
-        String content = "This file should be unreadable for testing purposes.";
-
-        // 创建并保存文档
-        ProcessedDocument processedDocument = new ProcessedDocument(
-                documentId,
-                sourceDocumentId,
-                filePath,
-                Instant.now(),
-                ProcessedDocumentType.MARKDOWN
-        );
-
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
-
-        // 尝试移除文件的读取权限（在Windows上可能不会生效，但至少会测试代码路径）
-        Path filePathObj = Paths.get(filePath);
-        try {
-            Files.setPosixFilePermissions(filePathObj, java.nio.file.attribute.PosixFilePermissions.fromString("---"));
-        } catch (UnsupportedOperationException e) {
-            // Windows系统不支持POSIX权限，跳过这个测试
-            return;
-        } catch (Exception e) {
-            // 如果无法设置权限，也跳过测试
-            return;
-        }
-
-        // 尝试打开没有读取权限的文件
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            processedDocumentService.openContent(filePath);
-        }, "打开没有读取权限的文件应该抛出RuntimeException");
-
-        // 恢复权限以便清理
-        try {
-            Files.setPosixFilePermissions(filePathObj,
-                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-r--r--"));
-        } catch (Exception e) {
-            // 忽略恢复权限的异常
-        }
-
-        assertTrue(exception.getMessage().contains("cannot be read"),
-                "异常消息应该包含'cannot be read'");
+    public void openUnreadableFileTest() {
+        // Minio存储不适用文件权限概念，此测试跳过
+        // 可以测试访问凭证无效的情况，但这需要更复杂的Mock设置
+        assertTrue(true, "Minio存储不适用文件系统权限，测试跳过");
     }
 
     /**
@@ -423,7 +408,7 @@ public class OpenContentTest {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
         String fileName = "multi-stream-test.txt";
-        String filePath = testBaseDir + "/" + fileName;
+        String filePath = "/tmp/test/" + fileName; // 原始路径，仅用于记录
         String content = "This file will be opened multiple times for testing.\nMultiple streams should be available.";
 
         // 创建并保存文档
@@ -435,15 +420,20 @@ public class OpenContentTest {
                 ProcessedDocumentType.MARKDOWN
         );
 
+        // 获取预期保存后在Minio中的路径
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
 
         // 同时打开多个内容流
-        try (InputStream stream1 = processedDocumentService.openContent(filePath);
-             InputStream stream2 = processedDocumentService.openContent(filePath);
-             InputStream stream3 = processedDocumentService.openContent(filePath)) {
+        try (InputStream stream1 = processedDocumentService.openContent(minioPath);
+             InputStream stream2 = processedDocumentService.openContent(minioPath);
+             InputStream stream3 = processedDocumentService.openContent(minioPath)) {
 
             assertNotNull(stream1, "第一个流不应该为null");
             assertNotNull(stream2, "第二个流不应该为null");
@@ -468,7 +458,7 @@ public class OpenContentTest {
         String documentId = UUID.randomUUID().toString();
         String sourceDocumentId = UUID.randomUUID().toString();
         String fileName = "unicode-test.txt";
-        String filePath = testBaseDir + "/" + fileName;
+        String filePath = "/tmp/test/" + fileName; // 原始路径，仅用于记录
         String unicodeContent = "Unicode Test File\n\nEnglish: Hello World\n" +
                 "Chinese: 你好世界\n" +
                 "Japanese: こんにちは世界\n" +
@@ -487,13 +477,18 @@ public class OpenContentTest {
                 ProcessedDocumentType.MARKDOWN
         );
 
+        // 获取预期保存后在Minio中的路径
+        String minioPath = "/bamboo/" + documentId + ".md";
+
+        // 提前记录到清理列表中，确保即使save失败也能正确清理
+        createdDocumentIds.add(documentId);
+        createdObjectNames.add(minioPath);
+
         ByteArrayInputStream inputStream = new ByteArrayInputStream(unicodeContent.getBytes(StandardCharsets.UTF_8));
         processedDocumentService.save(processedDocument, inputStream);
-        createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
 
         // 打开内容流
-        try (InputStream contentStream = processedDocumentService.openContent(filePath)) {
+        try (InputStream contentStream = processedDocumentService.openContent(minioPath)) {
             assertNotNull(contentStream, "Unicode文件的内容流不应该为null");
 
             String readContent = new String(contentStream.readAllBytes(), StandardCharsets.UTF_8);

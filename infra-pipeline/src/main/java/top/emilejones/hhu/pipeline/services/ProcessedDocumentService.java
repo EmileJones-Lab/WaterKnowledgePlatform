@@ -6,6 +6,7 @@ import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
 import top.emilejones.hhu.pipeline.constant.DeleteConstant;
 import top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo;
 import top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper;
+import top.emilejones.hhu.pipeline.repository.FileStorageRepository;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
 
 import java.io.File;
@@ -27,9 +28,12 @@ import java.util.Optional;
 public class ProcessedDocumentService {
 
     private final ProcessedDocumentMapper processedDocumentMapper;
+    private final FileStorageRepository fileStorageRepository;
 
-    public ProcessedDocumentService(ProcessedDocumentMapper processedDocumentMapper) {
+    public ProcessedDocumentService(ProcessedDocumentMapper processedDocumentMapper,
+                                    FileStorageRepository fileStorageRepository) {
         this.processedDocumentMapper = processedDocumentMapper;
+        this.fileStorageRepository = fileStorageRepository;
     }
 
     /**
@@ -42,20 +46,15 @@ public class ProcessedDocumentService {
      * @param content           Markdown 正文内容流；调用方负责在写入完成后关闭流
      */
     public void save(@NotNull ProcessedDocument processedDocument, @NotNull InputStream content) {
+        // 1. 业务逻辑决定文件名
+        String objectName = processedDocument.getId() + ".md";
+
+        // 2. 调用仓储存入 MinIO，获取路径
+        String minioPath = fileStorageRepository.save(content, objectName);
+
+        // 3. 将 MinIO 路径写回 PO 并存入数据库
         ProcessedDocumentPo po = convertToPo(processedDocument);
-
-        // 保存文件内容到文件系统
-        try {
-            Path filePath = Paths.get(po.getFilePath());
-            // 确保父目录存在
-            Files.createDirectories(filePath.getParent());
-            // 将输入流复制到目标文件
-            Files.copy(content, filePath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save document content to file: " + po.getFilePath(), e);
-        }
-
-        // 保存元数据到数据库
+        po.setFilePath(minioPath);
         processedDocumentMapper.upsertProcessedDocument(po);
     }
 
@@ -89,20 +88,8 @@ public class ProcessedDocumentService {
             throw new IllegalArgumentException("File path cannot be blank");
         }
 
-        File file = new File(filePath);
-        if (!file.exists()) {
-            throw new RuntimeException("File not found: " + filePath);
-        }
-
-        if (!file.canRead()) {
-            throw new RuntimeException("File cannot be read: " + filePath);
-        }
-
-        try {
-            return new FileInputStream(file);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to open file: " + filePath, e);
-        }
+        // 这里的 filePath 传入的是数据库里存的 MinIO 路径（如 /bamboo/2024/xxx.md）
+        return fileStorageRepository.open(filePath);
     }
 
     /**
