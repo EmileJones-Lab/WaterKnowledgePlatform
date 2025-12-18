@@ -11,46 +11,53 @@
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
         <result column="end_time" property="endTime" jdbcType="TIMESTAMP"/>
+        <result column="isdelete" property="isDelete" jdbcType="INTEGER"/>
     </resultMap>
 
     <!-- 插入或更新向量化任务 -->
     <insert id="upsertEmbeddingMission" parameterType="top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo">
         INSERT INTO gen_file_embed (
-            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time, isdelete
         ) VALUES (
             #{embeddingMission.embeddingMissionId,jdbcType=VARCHAR},
             #{embeddingMission.sourceDocumentId,jdbcType=VARCHAR},
-            #{embeddingMission.FileNodeId,jdbcType=VARCHAR},
+            #{embeddingMission.fileNodeId,jdbcType=VARCHAR},
             #{embeddingMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
             #{embeddingMission.errorMessage,jdbcType=VARCHAR},
             #{embeddingMission.createTime,jdbcType=TIMESTAMP},
             #{embeddingMission.startTime,jdbcType=TIMESTAMP},
-            #{embeddingMission.endTime,jdbcType=TIMESTAMP}
+            #{embeddingMission.endTime,jdbcType=TIMESTAMP},
+            #{embeddingMission.isDelete,jdbcType=INTEGER}
         )
         ON DUPLICATE KEY UPDATE
-            file_id = #{embeddingMission.sourceDocumentId,jdbcType=VARCHAR},
-            file_node_id = #{embeddingMission.FileNodeId,jdbcType=VARCHAR},
-            status_type = #{embeddingMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
-            error_message = #{embeddingMission.errorMessage,jdbcType=VARCHAR},
-            start_time = #{embeddingMission.startTime,jdbcType=TIMESTAMP},
-            end_time = #{embeddingMission.endTime,jdbcType=TIMESTAMP}
+        <trim suffixOverrides=",">
+            <if test="embeddingMission.sourceDocumentId != null">file_id = #{embeddingMission.sourceDocumentId},</if>
+            <if test="embeddingMission.fileNodeId != null">file_node_id = #{embeddingMission.fileNodeId},</if>
+            <if test="embeddingMission.statusType != null">status_type = #{embeddingMission.statusType, typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},</if>
+            <if test="embeddingMission.errorMessage != null">error_message = #{embeddingMission.errorMessage},</if>
+            <if test="embeddingMission.createTime != null">create_time = #{embeddingMission.createTime},</if>
+            <if test="embeddingMission.startTime != null">start_time = #{embeddingMission.startTime},</if>
+            <if test="embeddingMission.endTime != null">end_time = #{embeddingMission.endTime},</if>
+            <if test="embeddingMission.isDelete != null">isdelete = #{embeddingMission.isDelete}</if>
+        </trim>
     </insert>
 
     <!-- 批量插入或更新向量化任务 -->
     <insert id="upsertEmbeddingMissionBatch" parameterType="java.util.List">
         INSERT INTO gen_file_embed (
-            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time, isdelete
         ) VALUES
         <foreach collection="embeddingMissionList" item="item" separator=",">
             (
                 #{item.embeddingMissionId,jdbcType=VARCHAR},
                 #{item.sourceDocumentId,jdbcType=VARCHAR},
-                #{item.FileNodeId,jdbcType=VARCHAR},
+                #{item.fileNodeId,jdbcType=VARCHAR},
                 #{item.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
                 #{item.errorMessage,jdbcType=VARCHAR},
                 #{item.createTime,jdbcType=TIMESTAMP},
                 #{item.startTime,jdbcType=TIMESTAMP},
-                #{item.endTime,jdbcType=TIMESTAMP}
+                #{item.endTime,jdbcType=TIMESTAMP},
+                #{item.isDelete,jdbcType=INTEGER}
             )
         </foreach>
         ON DUPLICATE KEY UPDATE
@@ -59,30 +66,35 @@
             status_type = VALUES(status_type),
             error_message = VALUES(error_message),
             start_time = VALUES(start_time),
-            end_time = VALUES(end_time)
+            end_time = VALUES(end_time),
+            isdelete = VALUES(isdelete)
     </insert>
 
     <!-- 根据源文档ID查询向量化任务列表 -->
     <select id="findBySourceDocumentId" resultMap="EmbeddingMissionResultMap">
         SELECT
-            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time, isdelete
         FROM gen_file_embed
-        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
-        ORDER BY create_time DESC
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR} AND isdelete = 1
+        ORDER BY
+            create_time DESC,
+            status_type ASC,
+            embed_mission_id DESC
     </select>
 
     <!-- 根据向量化任务ID查询任务 -->
     <select id="findById" resultMap="EmbeddingMissionResultMap">
         SELECT
-            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time
+            embed_mission_id, file_id, file_node_id, status_type, error_message, create_time, start_time, end_time, isdelete
         FROM gen_file_embed
-        WHERE embed_mission_id = #{embeddingMissionId,jdbcType=VARCHAR}
+        WHERE embed_mission_id = #{embeddingMissionId,jdbcType=VARCHAR} AND isdelete = 1
     </select>
 
-    <!-- 删除向量化任务 -->
-    <delete id="delete">
-        DELETE FROM gen_file_embed
+    <!-- 软删除向量化任务 -->
+    <update id="update">
+        UPDATE gen_file_embed
+        SET isdelete = #{isDelete,jdbcType=INTEGER}
         WHERE embed_mission_id = #{embeddingMissionId,jdbcType=VARCHAR}
-    </delete>
+    </update>
 
 </mapper>

@@ -39,4 +39,10 @@ public class ProcessedDocumentPo {
 
     /** 创建时间 */
     private Instant createTime;
+
+    /**
+     * 删除标记
+     * 0：删除，1：未删除；默认为1
+     */
+    private int isDelete;
 }

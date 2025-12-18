@@ -3,6 +3,7 @@ package top.emilejones.hhu.pipeline.services;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
+import top.emilejones.hhu.pipeline.constant.DeleteConstant;
 import top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo;
 import top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
@@ -116,6 +117,8 @@ public class ProcessedDocumentService {
         po.setFilePath(processedDocument.getFilePath());
         po.setCreateTime(processedDocument.getCreateTime());
         po.setType(processedDocument.getProcessedDocumentType());
+        // 设置删除标记为存在状态
+        po.setIsDelete(DeleteConstant.EXIST);
 
         // 从文件路径中提取文件名
         Path path = Paths.get(processedDocument.getFilePath());

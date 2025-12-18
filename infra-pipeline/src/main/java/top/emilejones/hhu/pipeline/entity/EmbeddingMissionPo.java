@@ -4,7 +4,7 @@ import lombok.Data;
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+
 
 /**
  * 向量化任务持久化对象（PO）。
@@ -28,7 +28,7 @@ public class EmbeddingMissionPo {
     private String sourceDocumentId;
 
     /** 输入的 Neo4j FileNode elementId */
-    private String FileNodeId;
+    private String fileNodeId;
 
     /** 任务状态（0=创建成功，1=等待中，2=运行中，3=任务失败，4=任务成功） */
     private MissionStatus statusType;
@@ -44,5 +44,11 @@ public class EmbeddingMissionPo {
 
     /** 结束时间 */
     private Instant endTime;
+
+    /**
+     * 删除标记
+     * 0：删除，1：未删除；默认为1
+     */
+    private int isDelete;
 
 }

@@ -43,4 +43,10 @@ public class OcrMissionPo {
 
     /** 结束时间 */
     private Instant endTime;
+
+    /**
+     * 删除标记
+     * 0：删除，1：未删除；默认为1
+     */
+    private int isDelete;
 }

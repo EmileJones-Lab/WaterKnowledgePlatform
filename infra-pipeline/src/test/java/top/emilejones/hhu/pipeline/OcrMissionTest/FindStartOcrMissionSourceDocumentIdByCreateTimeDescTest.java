@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.pipeline.TestApplication;
+import top.emilejones.hhu.pipeline.mapper.OcrMissionMapper;
 import top.emilejones.hhu.pipeline.services.OcrMissionService;
 
 import java.util.ArrayList;
@@ -27,26 +28,23 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
 
     @Autowired
     private OcrMissionService ocrMissionService;
+    @Autowired
+    private OcrMissionMapper ocrMissionMapper;
 
     private List<String> createdMissionIds = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
+        ocrMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        // 清理测试创建的所有任务
-        for (String missionId : createdMissionIds) {
-            try {
-                ocrMissionService.delete(missionId);
-            } catch (Exception e) {
-                // 忽略删除异常，可能是已经被删除或不存在的任务
-            }
-        }
-        createdMissionIds.clear();
+        // 测试结束后也可以执行一次，保持数据库清洁
+        ocrMissionMapper.truncateTable();
     }
+
 
     /**
      * 测试基本的分页查询功能

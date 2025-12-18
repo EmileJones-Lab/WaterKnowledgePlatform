@@ -11,12 +11,13 @@
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
         <result column="end_time" property="endTime" jdbcType="TIMESTAMP"/>
+        <result column="isdelete" property="isDelete" jdbcType="INTEGER"/>
     </resultMap>
 
 
     <insert id="upsertOcrMission" parameterType="top.emilejones.hhu.pipeline.entity.OcrMissionPo">
         INSERT INTO gen_file_ocr (
-            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time
+            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time, isdelete
         ) VALUES (
             #{ocrMission.ocrMissionId,jdbcType=VARCHAR},
             #{ocrMission.sourceDocumentId,jdbcType=VARCHAR},
@@ -25,21 +26,26 @@
             #{ocrMission.errorMessage,jdbcType=VARCHAR},
             #{ocrMission.createTime,jdbcType=TIMESTAMP},
             #{ocrMission.startTime,jdbcType=TIMESTAMP},
-            #{ocrMission.endTime,jdbcType=TIMESTAMP}
+            #{ocrMission.endTime,jdbcType=TIMESTAMP},
+            #{ocrMission.isDelete,jdbcType=INTEGER}
         )
         ON DUPLICATE KEY UPDATE
-            file_id = #{ocrMission.sourceDocumentId,jdbcType=VARCHAR},
-            status_type = #{ocrMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
-            processed_doc_id = #{ocrMission.processedDocumentId,jdbcType=VARCHAR},
-            error_message = #{ocrMission.errorMessage,jdbcType=VARCHAR},
-            start_time = #{ocrMission.startTime,jdbcType=TIMESTAMP},
-            end_time = #{ocrMission.endTime,jdbcType=TIMESTAMP}
+        <trim suffixOverrides=",">
+            <if test="ocrMission.sourceDocumentId != null">file_id = #{ocrMission.sourceDocumentId},</if>
+            <if test="ocrMission.statusType != null">status_type = #{ocrMission.statusType, typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},</if>
+            <if test="ocrMission.processedDocumentId != null">processed_doc_id = #{ocrMission.processedDocumentId},</if>
+            <if test="ocrMission.errorMessage != null">error_message = #{ocrMission.errorMessage},</if>
+            <if test="ocrMission.createTime != null">create_time = #{ocrMission.createTime},</if>
+            <if test="ocrMission.startTime != null">start_time = #{ocrMission.startTime},</if>
+            <if test="ocrMission.endTime != null">end_time = #{ocrMission.endTime},</if>
+            <if test="ocrMission.isDelete != null">isdelete = #{ocrMission.isDelete}</if>
+        </trim>
     </insert>
 
 
     <insert id="upsertOcrMissionBatch" parameterType="java.util.List">
         INSERT INTO gen_file_ocr (
-            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time
+            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time, isdelete
         ) VALUES
         <foreach collection="ocrMissionList" item="item" separator=",">
             (
@@ -50,7 +56,8 @@
                 #{item.errorMessage,jdbcType=VARCHAR},
                 #{item.createTime,jdbcType=TIMESTAMP},
                 #{item.startTime,jdbcType=TIMESTAMP},
-                #{item.endTime,jdbcType=TIMESTAMP}
+                #{item.endTime,jdbcType=TIMESTAMP},
+                #{item.isDelete,jdbcType=INTEGER}
             )
         </foreach>
         ON DUPLICATE KEY UPDATE
@@ -59,14 +66,16 @@
             processed_doc_id = VALUES(processed_doc_id),
             error_message = VALUES(error_message),
             start_time = VALUES(start_time),
-            end_time = VALUES(end_time)
+            end_time = VALUES(end_time),
+            isdelete = VALUES(isdelete)
     </insert>
 
 
     <select id="findStartOcrMissionSourceDocumentIdByCreateTimeDesc" resultType="java.lang.String">
         SELECT file_id
         FROM gen_file_ocr
-        WHERE status_type IN (0, 1, 2, 3, 4)
+        WHERE isdelete = 1
+            AND status_type IN (0, 1, 2, 3, 4)
         ORDER BY
             create_time DESC,
             CASE status_type
@@ -83,24 +92,28 @@
 
     <select id="findBySourceDocumentId" resultMap="OcrMissionResultMap">
         SELECT
-            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time
+            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time, isdelete
         FROM gen_file_ocr
-        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
-        ORDER BY create_time DESC
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR} AND isdelete = 1
+        ORDER BY
+            create_time DESC,
+            status_type ASC,
+            ocr_mission_id DESC
     </select>
 
 
     <select id="findById" resultMap="OcrMissionResultMap">
         SELECT
-            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time
+            ocr_mission_id, file_id, status_type, processed_doc_id, error_message, create_time, start_time, end_time, isdelete
         FROM gen_file_ocr
-        WHERE ocr_mission_id = #{ocrMissionId,jdbcType=VARCHAR}
+        WHERE ocr_mission_id = #{ocrMissionId,jdbcType=VARCHAR} AND isdelete = 1
     </select>
 
-
-    <delete id="delete">
-        DELETE FROM gen_file_ocr
+    <!-- 软删除向量化任务 -->
+    <update id="update">
+        UPDATE gen_file_ocr
+        SET isdelete = #{isDelete,jdbcType=INTEGER}
         WHERE ocr_mission_id = #{ocrMissionId,jdbcType=VARCHAR}
-    </delete>
+    </update>
 
 </mapper>

@@ -7,42 +7,48 @@
         <result column="file_id" property="sourceDocumentId" jdbcType="VARCHAR"/>
         <result column="processed_doc_id" property="processedDocumentId" jdbcType="VARCHAR"/>
         <result column="status_type" property="statusType" jdbcType="INTEGER" typeHandler="top.emilejones.hhu.pipeline.handler.MissionStatusHandler"/>
-        <result column="file_node_id" property="fileNodeElementId" jdbcType="VARCHAR"/>
+        <result column="file_node_id" property="fileNodeId" jdbcType="VARCHAR"/>
         <result column="error_message" property="errorMessage" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
         <result column="end_time" property="endTime" jdbcType="TIMESTAMP"/>
+        <result column="isdelete" property="isDelete" jdbcType="INTEGER"/>
     </resultMap>
 
 
     <insert id="upsertStructureExtractionMission" parameterType="top.emilejones.hhu.pipeline.entity.StructureExtractionMissionPo">
         INSERT INTO gen_file_extract (
-            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time, isdelete
         ) VALUES (
             #{structureExtractionMission.structureExtractionMissionId,jdbcType=VARCHAR},
             #{structureExtractionMission.sourceDocumentId,jdbcType=VARCHAR},
             #{structureExtractionMission.processedDocumentId,jdbcType=VARCHAR},
             #{structureExtractionMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
-            #{structureExtractionMission.fileNodeElementId,jdbcType=VARCHAR},
+            #{structureExtractionMission.fileNodeId,jdbcType=VARCHAR},
             #{structureExtractionMission.errorMessage,jdbcType=VARCHAR},
             #{structureExtractionMission.createTime,jdbcType=TIMESTAMP},
             #{structureExtractionMission.startTime,jdbcType=TIMESTAMP},
-            #{structureExtractionMission.endTime,jdbcType=TIMESTAMP}
+            #{structureExtractionMission.endTime,jdbcType=TIMESTAMP},
+            #{structureExtractionMission.isDelete,jdbcType=INTEGER}
         )
         ON DUPLICATE KEY UPDATE
-            file_id = #{structureExtractionMission.sourceDocumentId,jdbcType=VARCHAR},
-            processed_doc_id = #{structureExtractionMission.processedDocumentId,jdbcType=VARCHAR},
-            status_type = #{structureExtractionMission.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
-            file_node_id = #{structureExtractionMission.fileNodeElementId,jdbcType=VARCHAR},
-            error_message = #{structureExtractionMission.errorMessage,jdbcType=VARCHAR},
-            start_time = #{structureExtractionMission.startTime,jdbcType=TIMESTAMP},
-            end_time = #{structureExtractionMission.endTime,jdbcType=TIMESTAMP}
+        <trim suffixOverrides=",">
+            <if test="structureExtractionMission.sourceDocumentId != null">file_id = #{structureExtractionMission.sourceDocumentId},</if>
+            <if test="structureExtractionMission.statusType != null">status_type = #{structureExtractionMission.statusType, typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},</if>
+            <if test="structureExtractionMission.processedDocumentId != null">processed_doc_id = #{structureExtractionMission.processedDocumentId},</if>
+            <if test="structureExtractionMission.fileNodeId != null">file_node_id = #{structureExtractionMission.fileNodeId},</if>
+            <if test="structureExtractionMission.errorMessage != null">error_message = #{structureExtractionMission.errorMessage},</if>
+            <if test="structureExtractionMission.createTime != null">create_time = #{structureExtractionMission.createTime},</if>
+            <if test="structureExtractionMission.startTime != null">start_time = #{structureExtractionMission.startTime},</if>
+            <if test="structureExtractionMission.endTime != null">end_time = #{structureExtractionMission.endTime},</if>
+            <if test="structureExtractionMission.isDelete != null">isdelete = #{structureExtractionMission.isDelete}</if>
+        </trim>
     </insert>
 
 
     <insert id="upsertStructureExtractionMissionBatch" parameterType="java.util.List">
         INSERT INTO gen_file_extract (
-            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time, isdelete
         ) VALUES
         <foreach collection="structureExtractionMissionList" item="item" separator=",">
             (
@@ -50,11 +56,12 @@
                 #{item.sourceDocumentId,jdbcType=VARCHAR},
                 #{item.processedDocumentId,jdbcType=VARCHAR},
                 #{item.statusType,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.MissionStatusHandler},
-                #{item.fileNodeElementId,jdbcType=VARCHAR},
+                #{item.fileNodeId,jdbcType=VARCHAR},
                 #{item.errorMessage,jdbcType=VARCHAR},
                 #{item.createTime,jdbcType=TIMESTAMP},
                 #{item.startTime,jdbcType=TIMESTAMP},
-                #{item.endTime,jdbcType=TIMESTAMP}
+                #{item.endTime,jdbcType=TIMESTAMP},
+                #{item.isDelete,jdbcType=INTEGER}
             )
         </foreach>
         ON DUPLICATE KEY UPDATE
@@ -64,30 +71,35 @@
             file_node_id = VALUES(file_node_id),
             error_message = VALUES(error_message),
             start_time = VALUES(start_time),
-            end_time = VALUES(end_time)
+            end_time = VALUES(end_time),
+            isdelete = VALUES(isdelete)
     </insert>
 
 
     <select id="findBySourceDocumentId" resultMap="StructureExtractionMissionResultMap">
         SELECT
-            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time, isdelete
         FROM gen_file_extract
-        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
-        ORDER BY create_time DESC
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR} AND isdelete = 1
+        ORDER BY
+            create_time DESC,
+            status_type ASC,
+            extract_mission_id DESC
     </select>
 
 
     <select id="findById" resultMap="StructureExtractionMissionResultMap">
         SELECT
-            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time
+            extract_mission_id, file_id, processed_doc_id, status_type, file_node_id, error_message, create_time, start_time, end_time, isdelete
         FROM gen_file_extract
-        WHERE extract_mission_id = #{structureExtractionMissionId,jdbcType=VARCHAR}
+        WHERE extract_mission_id = #{structureExtractionMissionId,jdbcType=VARCHAR} AND isdelete = 1
     </select>
 
-
-    <delete id="delete">
-        DELETE FROM gen_file_extract
+    <!-- 软删除向量化任务 -->
+    <update id="update">
+        UPDATE gen_file_extract
+        SET isdelete = #{isDelete,jdbcType=INTEGER}
         WHERE extract_mission_id = #{structureExtractionMissionId,jdbcType=VARCHAR}
-    </delete>
+    </update>
 
 </mapper>

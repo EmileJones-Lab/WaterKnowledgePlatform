@@ -7,6 +7,8 @@ import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
+import top.emilejones.hhu.pipeline.constant.DeleteConstant;
+import top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo;
 import top.emilejones.hhu.pipeline.entity.OcrMissionPo;
 import top.emilejones.hhu.pipeline.mapper.OcrMissionMapper;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
@@ -123,18 +125,25 @@ public class OcrMissionService{
 
 
     /**
-     * 删除OCR任务。
+     * 软删除指定的向量化文件。
+     * 该操作通过更新文档的isDelete字段来标记删除，而非物理删除。
      *
-     * 约定：删除操作幂等，重复删除不抛出异常；未命中时静默返回。
-     *
-     * @param ocrMissionId 任务标识，不能为null或空
+     * @param ocrMissionId 待删除向量化文件的ID。
      */
     public void delete(String ocrMissionId) {
         if (ocrMissionId == null || ocrMissionId.isBlank()) {
-            throw new IllegalArgumentException("OCR mission ID cannot be blank");
+            throw new IllegalArgumentException("Ocr mission ID cannot be blank");
         }
 
-        ocrMissionMapper.delete(ocrMissionId);
+        OcrMissionPo ocrMissionPo = new OcrMissionPo();
+        // 对需要删除的信息封装成EmbeddingMissionPo对象
+
+        ocrMissionPo.setOcrMissionId(ocrMissionId);
+        ocrMissionPo.setIsDelete(DeleteConstant.DELETE);
+
+        //删除对应的向量化文件，因为这里是软删除所以调用的是update方法
+        ocrMissionMapper.update(ocrMissionPo);
+
     }
 
 
@@ -145,8 +154,8 @@ public class OcrMissionService{
      * @return OCR任务对象，不存在时返回null
      */
     @Nullable
-    public OcrMission findById(@NotNull String ocrMissionId) {
-        if (ocrMissionId.isBlank()) {
+    public OcrMission findById(String ocrMissionId) {
+        if (ocrMissionId == null|| ocrMissionId.isBlank()) {
             throw new IllegalArgumentException("OCR mission ID cannot be blank");
         }
 
@@ -164,6 +173,8 @@ public class OcrMissionService{
         po.setCreateTime(ocrMission.getCreateTime());
         po.setStartTime(ocrMission.getStartTime());
         po.setEndTime(ocrMission.getEndTime());
+        // 设置删除标记为存在状态
+        po.setIsDelete(DeleteConstant.EXIST);
 
         // 处理结果信息：保留源文件ID，按结果填充 processed/error
         OcrMissionResult r = ocrMission.getResult();

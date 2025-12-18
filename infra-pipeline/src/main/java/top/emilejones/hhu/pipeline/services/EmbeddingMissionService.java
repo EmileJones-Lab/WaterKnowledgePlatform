@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
+import top.emilejones.hhu.pipeline.constant.DeleteConstant;
 import top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo;
 import top.emilejones.hhu.pipeline.mapper.EmbeddingMissionMapper;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
@@ -100,18 +101,23 @@ public class EmbeddingMissionService {
     }
 
     /**
-     * 删除向量化任务。
+     * 软删除指定的向量化文件。
+     * 该操作通过更新文档的isDelete字段来标记删除，而非物理删除。
      *
-     * 约定：删除操作幂等，重复删除不抛出异常；未命中时静默返回。
-     *
-     * @param embeddingMissionId 任务标识，不能为null或空
+     * @param embeddingMissionId 待删除向量化文件的ID。
      */
     public void delete(String embeddingMissionId) {
         if (embeddingMissionId == null || embeddingMissionId.isBlank()) {
             throw new IllegalArgumentException("Embedding mission ID cannot be blank");
         }
 
-        embeddingMissionMapper.delete(embeddingMissionId);
+        EmbeddingMissionPo embeddingMissionPo = new EmbeddingMissionPo();
+        // 对需要删除的信息封装成EmbeddingMissionPo对象
+
+        embeddingMissionPo.setEmbeddingMissionId(embeddingMissionId);
+        embeddingMissionPo.setIsDelete(DeleteConstant.DELETE);
+        //删除对应的向量化文件，因为这里是软删除所以调用的是update方法
+        embeddingMissionMapper.update(embeddingMissionPo);
     }
 
     /**
@@ -145,6 +151,8 @@ public class EmbeddingMissionService {
         po.setCreateTime(embeddingMission.getCreateTime());
         po.setStartTime(embeddingMission.getStartTime());
         po.setEndTime(embeddingMission.getEndTime());
+        // 设置删除标记为存在状态
+        po.setIsDelete(DeleteConstant.EXIST);
 
         // 处理结果信息：保留源文件ID，按结果填充 FileNodeId/errorMessage
         EmbeddingMissionResult r = embeddingMission.getResult();

@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.pipeline.TestApplication;
+import top.emilejones.hhu.pipeline.mapper.EmbeddingMissionMapper;
 import top.emilejones.hhu.pipeline.services.EmbeddingMissionService;
 
 import java.util.Arrays;
@@ -26,24 +27,22 @@ public class FindBatchBySourceDocumentIdTest {
 
     @Autowired
     private EmbeddingMissionService embeddingMissionService;
+    @Autowired
+    private EmbeddingMissionMapper embeddingMissionMapper;
 
     private final List<String> createdMissionIds = new java.util.ArrayList<>();
 
     @BeforeEach
     void setUp() {
+        embeddingMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        for (String missionId : createdMissionIds) {
-            try {
-                embeddingMissionService.delete(missionId);
-            } catch (Exception ignored) {
-            }
-        }
-        createdMissionIds.clear();
+        embeddingMissionMapper.truncateTable();
     }
+
 
     /**
      * 测试批量查找单个源文档ID的任务

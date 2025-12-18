@@ -9,6 +9,7 @@ import org.springframework.dao.DataAccessException;
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
 import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
 import top.emilejones.hhu.pipeline.TestApplication;
+import top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper;
 import top.emilejones.hhu.pipeline.services.ProcessedDocumentService;
 
 import java.io.ByteArrayInputStream;
@@ -31,6 +32,8 @@ public class FindByIdTest {
 
     @Autowired
     private ProcessedDocumentService processedDocumentService;
+    @Autowired
+    private ProcessedDocumentMapper processedDocumentMapper;
 
     private List<String> createdDocumentIds = new ArrayList<>();
     private List<String> createdFilePaths = new ArrayList<>();
@@ -38,6 +41,7 @@ public class FindByIdTest {
 
     @BeforeEach
     void setUp() {
+        processedDocumentMapper.truncateTable();
         createdDocumentIds.clear();
         createdFilePaths.clear();
         // 创建测试目录
@@ -52,7 +56,7 @@ public class FindByIdTest {
     void tearDown() {
         // 清理测试创建的所有文档元数据
         createdDocumentIds.clear();
-
+        processedDocumentMapper.truncateTable();
         // 清理测试创建的所有文件
         for (String filePath : createdFilePaths) {
             try {
@@ -69,6 +73,8 @@ public class FindByIdTest {
         } catch (IOException e) {
             // 忽略删除异常
         }
+        createdFilePaths.clear();
+        createdDocumentIds.clear();
     }
 
     /**

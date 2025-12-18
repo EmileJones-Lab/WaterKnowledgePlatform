@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.pipeline.TestApplication;
+import top.emilejones.hhu.pipeline.mapper.StructureExtractionMissionMapper;
 import top.emilejones.hhu.pipeline.services.StructureExtractionMissionService;
 
 import java.util.ArrayList;
@@ -25,23 +26,20 @@ public class FindByIdTest {
 
     @Autowired
     private StructureExtractionMissionService structureExtractionMissionService;
+    @Autowired
+    private StructureExtractionMissionMapper structureExtractionMissionMapper;
 
     private final List<String> createdMissionIds = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
+        structureExtractionMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        for (String missionId : createdMissionIds) {
-            try {
-                structureExtractionMissionService.delete(missionId);
-            } catch (Exception ignored) {
-            }
-        }
-        createdMissionIds.clear();
+        structureExtractionMissionMapper.truncateTable();
     }
 
     /**

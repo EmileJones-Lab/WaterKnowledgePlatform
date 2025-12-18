@@ -9,6 +9,7 @@ import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.pipeline.TestApplication;
+import top.emilejones.hhu.pipeline.mapper.EmbeddingMissionMapper;
 import top.emilejones.hhu.pipeline.services.EmbeddingMissionService;
 
 import java.util.ArrayList;
@@ -26,25 +27,22 @@ public class SaveTest {
 
     @Autowired
     private EmbeddingMissionService embeddingMissionService;
+    @Autowired
+    private EmbeddingMissionMapper embeddingMissionMapper;
 
-    private final List<String> createdMissionIds = new ArrayList<>();
+    private final List<String> createdMissionIds = new java.util.ArrayList<>();
 
     @BeforeEach
     void setUp() {
+        embeddingMissionMapper.truncateTable();
         createdMissionIds.clear();
     }
 
     @AfterEach
     void tearDown() {
-        for (String missionId : createdMissionIds) {
-            try {
-                embeddingMissionService.delete(missionId);
-            } catch (Exception ignored) {
-                // 任务可能已被删除，忽略异常
-            }
-        }
-        createdMissionIds.clear();
+        embeddingMissionMapper.truncateTable();
     }
+
 
     /**
      * 测试保存单个向量化任务

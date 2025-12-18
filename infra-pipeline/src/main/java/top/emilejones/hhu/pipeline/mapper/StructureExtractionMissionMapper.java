@@ -2,6 +2,8 @@ package top.emilejones.hhu.pipeline.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
+import top.emilejones.hhu.pipeline.entity.EmbeddingMissionPo;
 import top.emilejones.hhu.pipeline.entity.StructureExtractionMissionPo;
 
 import java.util.List;
@@ -39,9 +41,15 @@ public interface StructureExtractionMissionMapper {
      */
     StructureExtractionMissionPo findById(@Param("structureExtractionMissionId") String structureExtractionMissionId);
 
-    /**
-     * 删除任务
-     * @param structureExtractionMissionId 任务ID
+   /**
+     * 更新向量化任务
+     * @param structureExtractionMissionPo
      */
-    void delete(@Param("structureExtractionMissionId") String structureExtractionMissionId);
+    void update(StructureExtractionMissionPo structureExtractionMissionPo);
+
+    /**
+     * 仅供测试使用：物理清空表数据
+     */
+    @Update("DELETE FROM gen_file_extract")
+    void truncateTable();
 }

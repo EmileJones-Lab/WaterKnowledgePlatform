@@ -6,6 +6,8 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
+import top.emilejones.hhu.pipeline.constant.DeleteConstant;
+import top.emilejones.hhu.pipeline.entity.OcrMissionPo;
 import top.emilejones.hhu.pipeline.entity.StructureExtractionMissionPo;
 import top.emilejones.hhu.pipeline.mapper.StructureExtractionMissionMapper;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
@@ -87,15 +89,23 @@ public class StructureExtractionMissionService {
 
 
     /**
-     * 删除结构化抽取任务；幂等删除。
-     * @param structureExtractionMissionId 任务标识
+     * 软删除指定的向量化文件。
+     * 该操作通过更新文档的isDelete字段来标记删除，而非物理删除。
+     *
+     * @param structureExtractionMissionId 待删除向量化文件的ID。
      */
-    public void delete(@NotNull String structureExtractionMissionId) {
-        if (structureExtractionMissionId.isBlank()) {
-            throw new IllegalArgumentException("Structure extraction mission ID cannot be blank");
+    public void delete(String structureExtractionMissionId) {
+        if (structureExtractionMissionId == null || structureExtractionMissionId.isBlank()) {
+            throw new IllegalArgumentException("Embedding mission ID cannot be blank");
         }
+        StructureExtractionMissionPo structureExtractionMissionPo = new StructureExtractionMissionPo();
+        // 对需要删除的信息封装成StructureExtractionMissionPo对象
 
-        structureExtractionMissionMapper.delete(structureExtractionMissionId);
+        structureExtractionMissionPo.setStructureExtractionMissionId(structureExtractionMissionId);
+        structureExtractionMissionPo.setIsDelete(DeleteConstant.DELETE);
+
+        //删除对应的向量化文件，因为这里是软删除所以调用的是update方法
+        structureExtractionMissionMapper.update(structureExtractionMissionPo);
     }
 
     /**
@@ -122,6 +132,8 @@ public class StructureExtractionMissionService {
         po.setCreateTime(structureExtractionMission.getCreateTime());
         po.setStartTime(structureExtractionMission.getStartTime());
         po.setEndTime(structureExtractionMission.getEndTime());
+        // 设置删除标记为存在状态
+        po.setIsDelete(DeleteConstant.EXIST);
 
         StructureExtractionMissionResult result = structureExtractionMission.getResult();
         if (result instanceof StructureExtractionMissionResult.Success success) {
