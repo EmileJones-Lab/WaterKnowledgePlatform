@@ -1,5 +1,7 @@
 package top.emilejones.hhu.pipeline.ProcessedDocumentTest;
 
+import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,15 +36,17 @@ public class FindByIdTest {
     private ProcessedDocumentService processedDocumentService;
     @Autowired
     private ProcessedDocumentMapper processedDocumentMapper;
+    @Autowired
+    private MinioClient minioClient;
 
     private List<String> createdDocumentIds = new ArrayList<>();
-    private List<String> createdFilePaths = new ArrayList<>();
+    private List<String> createdObjectNames = new ArrayList<>();
     private String testBaseDir = "test-docs-findbyid";
 
     @BeforeEach
     void setUp() {
         createdDocumentIds.clear();
-        createdFilePaths.clear();
+        createdObjectNames.clear();
         // 创建测试目录
         try {
             Files.createDirectories(Paths.get(testBaseDir));
@@ -53,25 +57,42 @@ public class FindByIdTest {
 
     @AfterEach
     void tearDown() {
-        // 清理测试创建的所有文档元数据
-        createdDocumentIds.forEach(id -> processedDocumentMapper.hardDelete(id));
-        createdDocumentIds.clear();
-
-        // 清理测试创建的所有文件
-        for (String filePath : createdFilePaths) {
-            try {
-                Files.deleteIfExists(Paths.get(filePath));
-            } catch (IOException e) {
-                // 忽略删除异常
-            }
+        // 1. 清理数据库元数据
+        if (!createdDocumentIds.isEmpty()) {
+            createdDocumentIds.forEach(id -> {
+                try {
+                    processedDocumentMapper.hardDelete(id);
+                } catch (Exception e) {
+                    System.err.println("清理数据库失败，ID: " + id + ", 原因: " + e.getMessage());
+                }
+            });
+            createdDocumentIds.clear();
         }
-        createdFilePaths.clear();
 
-        // 清理测试目录
-        try {
-            Files.deleteIfExists(Paths.get(testBaseDir));
-        } catch (IOException e) {
-            // 忽略删除异常
+        // 2. 真正清理 Minio 中的物理文件
+        if (!createdObjectNames.isEmpty()) {
+            for (String path : createdObjectNames) {
+                try {
+                    // 解析路径 (格式如: /bamboo/uuid.md)
+                    String cleanPath = path.startsWith("/") ? path.substring(1) : path;
+                    int slashIndex = cleanPath.indexOf("/");
+                    if (slashIndex > 0) {
+                        String bucket = cleanPath.substring(0, slashIndex);
+                        String objectKey = cleanPath.substring(slashIndex + 1);
+
+                        // 执行 Minio 删除操作
+                        minioClient.removeObject(
+                                RemoveObjectArgs.builder()
+                                        .bucket(bucket)
+                                        .object(objectKey)
+                                        .build()
+                        );
+                    }
+                } catch (Exception e) {
+                    System.err.println("清理 Minio 文件失败，路径: " + path + ", 原因: " + e.getMessage());
+                }
+            }
+            createdObjectNames.clear();
         }
     }
 
@@ -86,6 +107,8 @@ public class FindByIdTest {
         String filePath = testBaseDir + "/" + fileName;
         String content = "# Test Markdown Document\n\nThis is a test markdown file.";
 
+        String expectedMinioPath = "/bamboo/" + documentId + ".md";
+
         // 创建并保存文档
         ProcessedDocument processedDocument = new ProcessedDocument(
                 documentId,
@@ -96,9 +119,12 @@ public class FindByIdTest {
         );
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes());
-        processedDocumentService.save(processedDocument, inputStream);
+
+        // 在保存之前记录清理信息，确保即使保存失败也能清理
         createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
+        createdObjectNames.add(expectedMinioPath);
+
+        processedDocumentService.save(processedDocument, inputStream);
 
         // 查找文档
         ProcessedDocument foundDocument = processedDocumentService.findById(documentId)
@@ -108,7 +134,7 @@ public class FindByIdTest {
         assertNotNull(foundDocument, "应该能够找到已保存的文档");
         assertEquals(documentId, foundDocument.getId());
         assertEquals(sourceDocumentId, foundDocument.getSourceDocumentId());
-        assertEquals(filePath, foundDocument.getFilePath());
+        assertEquals(expectedMinioPath, foundDocument.getFilePath());
         assertEquals(ProcessedDocumentType.MARKDOWN, foundDocument.getProcessedDocumentType());
         assertNotNull(foundDocument.getCreateTime());
     }
@@ -124,6 +150,8 @@ public class FindByIdTest {
         String filePath = testBaseDir + "/" + fileName;
         byte[] imageContent = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
+        String expectedMinioPath = "/bamboo/" + documentId + ".md";
+
         // 创建并保存图片文档
         ProcessedDocument processedDocument = new ProcessedDocument(
                 documentId,
@@ -134,9 +162,12 @@ public class FindByIdTest {
         );
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(imageContent);
-        processedDocumentService.save(processedDocument, inputStream);
+
+        // 在保存之前记录清理信息，确保即使保存失败也能清理
         createdDocumentIds.add(documentId);
-        createdFilePaths.add(filePath);
+        createdObjectNames.add(expectedMinioPath);
+
+        processedDocumentService.save(processedDocument, inputStream);
 
         // 查找文档
         ProcessedDocument foundDocument = processedDocumentService.findById(documentId)
@@ -146,7 +177,7 @@ public class FindByIdTest {
         assertNotNull(foundDocument, "应该能够找到已保存的图片文档");
         assertEquals(documentId, foundDocument.getId());
         assertEquals(sourceDocumentId, foundDocument.getSourceDocumentId());
-        assertEquals(filePath, foundDocument.getFilePath());
+        assertEquals(expectedMinioPath, foundDocument.getFilePath());
         assertEquals(ProcessedDocumentType.PNG, foundDocument.getProcessedDocumentType());
         assertNotNull(foundDocument.getCreateTime());
     }
@@ -203,7 +234,11 @@ public class FindByIdTest {
         for (int i = 0; i < 3; i++) {
             documentIds[i] = UUID.randomUUID().toString();
             sourceDocumentIds[i] = UUID.randomUUID().toString();
-            filePaths[i] = testBaseDir + "/" + fileNames[i];
+            filePaths[i] = "/bamboo/" + documentIds[i] + ".md";
+
+            // 在保存之前记录清理信息
+            createdDocumentIds.add(documentIds[i]);
+            createdObjectNames.add(filePaths[i]);
 
             // 间隔一段时间创建文档，确保创建时间不同
             if (i > 0) {
@@ -223,8 +258,6 @@ public class FindByIdTest {
             String content = "# Document " + (i + 1) + "\n\nContent for document " + (i + 1);
             ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes());
             processedDocumentService.save(processedDocument, inputStream);
-            createdDocumentIds.add(documentIds[i]);
-            createdFilePaths.add(filePaths[i]);
         }
 
         // 验证每个文档都能正确查找且创建时间正确
@@ -258,6 +291,7 @@ public class FindByIdTest {
             documentIds[i] = UUID.randomUUID().toString();
             sourceDocumentIds[i] = UUID.randomUUID().toString();
             String filePath = testBaseDir + "/doc" + i + ".md";
+            String expectedMinioPath = "/bamboo/" + documentIds[i] + ".md";
 
             ProcessedDocument processedDocument = new ProcessedDocument(
                     documentIds[i],
@@ -269,18 +303,23 @@ public class FindByIdTest {
 
             String content = "# Document " + i + "\n\nThis is document number " + i;
             ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes());
-            processedDocumentService.save(processedDocument, inputStream);
+
+            // 在保存之前记录清理信息
             createdDocumentIds.add(documentIds[i]);
-            createdFilePaths.add(filePath);
+            createdObjectNames.add(expectedMinioPath);
+
+            processedDocumentService.save(processedDocument, inputStream);
         }
 
         // 验证所有文档都能正确查找
         for (int i = 0; i < documentCount; i++) {
+            String expectedMinioPath = "/bamboo/" + documentIds[i] + ".md";
             ProcessedDocument foundDocument = processedDocumentService.findById(documentIds[i])
                     .orElse(null);
             assertNotNull(foundDocument, "文档 " + i + " 应该能够被找到");
             assertEquals(documentIds[i], foundDocument.getId());
             assertEquals(sourceDocumentIds[i], foundDocument.getSourceDocumentId());
+            assertEquals(expectedMinioPath, foundDocument.getFilePath());
             assertEquals(ProcessedDocumentType.MARKDOWN, foundDocument.getProcessedDocumentType());
         }
 
@@ -316,6 +355,7 @@ public class FindByIdTest {
             String sourceDocumentId = UUID.randomUUID().toString();
             // 由于 filePath 的长度可能也有数据库限制，这里简化一下
             String filePath = testBaseDir + "/special-" + documentId.replaceAll("[^a-zA-Z0-9]", "") + ".md";
+            String expectedMinioPath = "/bamboo/" + documentId + ".md";
 
             ProcessedDocument processedDocument = new ProcessedDocument(
                     documentId,
@@ -328,10 +368,12 @@ public class FindByIdTest {
             String content = "# Special ID Document\n\nDocument ID: " + documentId;
             ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes());
 
+            // 在保存之前记录清理信息
+            createdDocumentIds.add(documentId);
+            createdObjectNames.add(expectedMinioPath);
+
             // 1. 保存操作 (现在不会因为 ID 过长而报错)
             processedDocumentService.save(processedDocument, inputStream);
-            createdDocumentIds.add(documentId);
-            createdFilePaths.add(filePath);
 
             // 2. 查找文档
             ProcessedDocument foundDocument = processedDocumentService.findById(documentId)
@@ -340,6 +382,7 @@ public class FindByIdTest {
             // 3. 断言
             assertNotNull(foundDocument, "包含特殊字符的文档ID应该能够被找到: " + documentId);
             assertEquals(documentId, foundDocument.getId());
+            assertEquals(expectedMinioPath, foundDocument.getFilePath());
         }
     }
 

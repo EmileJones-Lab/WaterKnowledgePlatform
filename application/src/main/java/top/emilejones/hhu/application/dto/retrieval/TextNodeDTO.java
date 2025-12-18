@@ -1,18 +1,18 @@
 package top.emilejones.hhu.application.dto.retrieval;
 
 public class TextNodeDTO {
-    private String elementId;
+    private String id;
     private String text;
     private Integer seq;
     private Integer level;
     private TextType type;
 
-    public String getElementId() {
-        return elementId;
+    public String getId() {
+        return id;
     }
 
-    public void setElementId(String elementId) {
-        this.elementId = elementId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getText() {
@@ -50,7 +50,7 @@ public class TextNodeDTO {
     @Override
     public String toString() {
         return "TextNodeDTO{" +
-                "elementId='" + elementId + "'" +
+                "id='" + id + "'" +
                 ", text='" + text + "'" +
                 ", seq=" + seq +
                 ", level=" + level +
