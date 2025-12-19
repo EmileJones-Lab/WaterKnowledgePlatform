@@ -37,8 +37,8 @@ public class OcrMissionController implements OcrMissionRepository {
 
     @Override
     @NotNull
-    public List<String> findStartOcrMissionSourceDocumentIdByCreateTimeDesc(int limit, int offset) {
-        return ocrMissionService.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit, offset);
+    public List<String> findStartOcrMissionSourceDocumentIdByCreateTimeDesc(int limit, int offset, String keyword) {
+        return ocrMissionService.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit, offset, keyword);
     }
 
     @Override

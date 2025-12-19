@@ -62,14 +62,15 @@ public class OcrMissionService {
      *
      * @param limit  限制返回数量，必须大于等于0
      * @param offset 偏移量，用于分页，必须大于等于0
+     * @param keyword 搜索关键字，用于匹配源文件ID
      * @return 源文件标识列表，按创建时间倒序，若无记录则返回空列表
      */
     @NotNull
-    public List<String> findStartOcrMissionSourceDocumentIdByCreateTimeDesc(int limit, int offset) {
+    public List<String> findStartOcrMissionSourceDocumentIdByCreateTimeDesc(int limit, int offset, String keyword) {
         if (limit < 0 || offset < 0) {
             throw new IllegalArgumentException("Limit and offset must be non-negative");
         }
-        return ocrMissionMapper.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit, offset);
+        return ocrMissionMapper.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit, offset, keyword);
     }
 
     /**
@@ -115,25 +116,17 @@ public class OcrMissionService {
 
 
     /**
-     * 软删除指定的向量化文件。
-     * 该操作通过更新文档的isDelete字段来标记删除，而非物理删除。
+     * 删除指定的OCR任务（物理删除）。
      *
-     * @param ocrMissionId 待删除向量化文件的ID。
+     * @param ocrMissionId 待删除OCR任务的ID。
      */
     public void delete(String ocrMissionId) {
         if (ocrMissionId == null || ocrMissionId.isBlank()) {
             throw new IllegalArgumentException("Ocr mission ID cannot be blank");
         }
 
-        OcrMissionPo ocrMissionPo = new OcrMissionPo();
-        // 对需要删除的信息封装成EmbeddingMissionPo对象
-
-        ocrMissionPo.setOcrMissionId(ocrMissionId);
-        ocrMissionPo.setIsDelete(DeleteConstant.DELETE);
-
-        //删除对应的向量化文件，因为这里是软删除所以调用的是update方法
-        ocrMissionMapper.softDelete(ocrMissionPo);
-
+        // 物理删除对应的OCR任务
+        ocrMissionMapper.hardDelete(ocrMissionId);
     }
 
 

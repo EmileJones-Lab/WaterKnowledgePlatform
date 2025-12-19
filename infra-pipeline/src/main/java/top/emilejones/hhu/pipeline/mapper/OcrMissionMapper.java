@@ -29,9 +29,10 @@ public interface OcrMissionMapper {
      * 查询最近启动的OCR任务对应的源文件ID
      * @param limit 限制返回数量
      * @param offset 偏移量
+     * @param keyword 搜索关键字
      * @return 源文件ID列表
      */
-    List<String> findStartOcrMissionSourceDocumentIdByCreateTimeDesc(@Param("limit") int limit, @Param("offset") int offset);
+    List<String> findStartOcrMissionSourceDocumentIdByCreateTimeDesc(@Param("limit") int limit, @Param("offset") int offset, @Param("keyword") String keyword);
 
     /**
      * 根据源文档ID查询OCR任务列表

@@ -32,9 +32,10 @@ interface OcrMissionRepository {
      *
      * @param limit 限制返回数量
      * @param offset 偏移量，用于分页
+     * @param keyword 搜索关键字，用于匹配源文件ID
      * @return 源文件标识列表，按创建时间倒序
      */
-    fun findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit: Int, offset: Int): List<String>
+    fun findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit: Int, offset: Int, keyword: String?): List<String>
 
     /**
      * 根据源文档查询任务列表。

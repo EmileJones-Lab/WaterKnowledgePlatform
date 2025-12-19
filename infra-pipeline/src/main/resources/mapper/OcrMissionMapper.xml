@@ -72,20 +72,27 @@
 
 
     <select id="findStartOcrMissionSourceDocumentIdByCreateTimeDesc" resultType="java.lang.String">
-        SELECT file_id
-        FROM gen_file_ocr
-        WHERE isdelete = 1
-            AND status_type IN (0, 1, 2, 3, 4)
+        SELECT gfo.file_id
+        FROM gen_file_ocr gfo
+        <if test="keyword != null and keyword != ''">
+            JOIN col_file cf ON gfo.file_id = cf.file_id
+        </if>
+        WHERE gfo.isdelete = 1
+            AND gfo.status_type IN (0, 1, 2, 3, 4)
+            <if test="keyword != null and keyword != ''">
+                AND cf.filename LIKE concat('%', #{keyword}, '%')
+            </if>
+        GROUP BY gfo.file_id
         ORDER BY
-            create_time DESC,
-            CASE status_type
+            MAX(gfo.create_time) DESC,
+            MIN(CASE gfo.status_type
                 WHEN 0 THEN 1  -- CREATED
                 WHEN 1 THEN 2  -- PENDING
                 WHEN 2 THEN 3  -- RUNNING
                 WHEN 3 THEN 4  -- ERROR
                 WHEN 4 THEN 5  -- SUCCESS
-                END ASC,
-            file_id DESC
+                END) ASC,
+            gfo.file_id DESC
         LIMIT #{limit,jdbcType=INTEGER} OFFSET #{offset,jdbcType=INTEGER}
     </select>
 

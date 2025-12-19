@@ -322,7 +322,7 @@ public class DeleteTest {
         }
 
         // 验证初始数量
-        var initialResults = ocrMissionService.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(missionCount, 0);
+        var initialResults = ocrMissionService.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(missionCount, 0,null);
         assertEquals(missionCount, initialResults.size());
 
         // 删除几个任务
@@ -336,7 +336,7 @@ public class DeleteTest {
         }
 
         // 验证删除后的数量
-        var afterDeleteResults = ocrMissionService.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(missionCount, 0);
+        var afterDeleteResults = ocrMissionService.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(missionCount, 0, null);
         assertEquals(missionCount - 3, afterDeleteResults.size());
     }
 }

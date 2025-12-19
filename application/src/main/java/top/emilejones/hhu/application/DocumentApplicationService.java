@@ -5,12 +5,38 @@ import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.LazyPageDTO;
 import top.emilejones.hhu.application.dto.mission.MissionsDTO;
 import top.emilejones.hhu.application.dto.retrieval.TextNodeDTO;
+import top.emilejones.hhu.application.utils.ListDtoConverter;
+import top.emilejones.hhu.domain.document.SourceDocument;
+import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
+import top.emilejones.hhu.domain.pipeline.MissionStatus;
+import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
+import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 public class DocumentApplicationService {
+    private final SourceDocumentRepository sourceDocumentRepository;
+    private final NodeRepository nodeRepository;
+    private final StructureExtractionMissionRepository structureExtractionMissionRepository;
+    private final OcrMissionRepository ocrMissionRepository;
+    private final EmbeddingMissionRepository embeddingMissionRepository;
+
+    public DocumentApplicationService(SourceDocumentRepository sourceDocumentRepository, NodeRepository nodeRepository, StructureExtractionMissionRepository structureExtractionMissionRepository, OcrMissionRepository ocrMissionRepository, EmbeddingMissionRepository embeddingMissionRepository) {
+        this.sourceDocumentRepository = sourceDocumentRepository;
+        this.nodeRepository = nodeRepository;
+        this.structureExtractionMissionRepository = structureExtractionMissionRepository;
+        this.ocrMissionRepository = ocrMissionRepository;
+        this.embeddingMissionRepository = embeddingMissionRepository;
+    }
 
     /**
      * 获取一个文件的层次结构
@@ -19,7 +45,17 @@ public class DocumentApplicationService {
      * @return 文件结构化数据
      */
     public List<TextNodeDTO> getFileStructureByFileId(String fileId) {
-        return null;
+        Optional<StructureExtractionMission> successStructureExtractionMissionOptional = structureExtractionMissionRepository.findBySourceDocumentId(fileId)
+                .stream()
+                .filter(mission -> MissionStatus.SUCCESS.equals(mission.getStatus()))
+                .findFirst();
+
+        if (successStructureExtractionMissionOptional.isEmpty())
+            return List.of();
+
+        String fileNodeId = successStructureExtractionMissionOptional.get().getSuccessResult().getFileNodeId();
+        List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
+        return ListDtoConverter.toTextNodeDTOList(textNodeList);
     }
 
     /**
@@ -32,6 +68,25 @@ public class DocumentApplicationService {
      * @return 任务列表
      */
     public LazyPageDTO<MissionsDTO> getMissionsList(Integer limit, Integer pageNum, String keyword, Boolean hasMission) {
-        return null;
+        if (!hasMission)
+            throw new IllegalArgumentException("目前只支持查询开启任务的文件信息列表");
+        List<String> fileIdList = ocrMissionRepository.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit + 1, pageNum * limit, keyword);
+        boolean hasNextPage = false;
+        if (fileIdList.size() > limit){
+            hasNextPage = true;
+            fileIdList.remove(limit.intValue());
+        }
+        List<SourceDocument> sourceDocuments = fileIdList.stream()
+                .map(sourceDocumentRepository::findSourceDocumentById)
+                .map(Optional::get)
+                .toList();
+
+        List<List<OcrMission>> ocrMissions = ocrMissionRepository.findBatchBySourceDocumentId(fileIdList);
+        List<List<StructureExtractionMission>> splitterMissions = structureExtractionMissionRepository.findBySourceDocumentIdList(fileIdList);
+        List<List<EmbeddingMission>> embeddingMissions = embeddingMissionRepository.findBatchBySourceDocumentId(fileIdList);
+
+        List<MissionsDTO> missionsDTOS = ListDtoConverter.toMissionsDTOList(sourceDocuments, ocrMissions, splitterMissions, embeddingMissions);
+
+        return new LazyPageDTO<>(hasNextPage, missionsDTOS);
     }
 }
