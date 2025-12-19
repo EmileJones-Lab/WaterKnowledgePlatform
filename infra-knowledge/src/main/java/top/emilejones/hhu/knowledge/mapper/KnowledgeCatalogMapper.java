@@ -37,5 +37,11 @@ public interface KnowledgeCatalogMapper {
      * @param knowledgeCatalogDto
      */
     void update(KnowledgeCatalogDto knowledgeCatalogDto);
+
+    /**
+     * 硬删除知识库（物理删除）
+     * @param knowledgeCatalogId
+     */
+    void hardDelete(String knowledgeCatalogId);
 }
 

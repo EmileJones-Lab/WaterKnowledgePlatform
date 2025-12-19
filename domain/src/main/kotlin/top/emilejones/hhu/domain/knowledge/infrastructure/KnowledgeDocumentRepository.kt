@@ -69,4 +69,11 @@ interface KnowledgeDocumentRepository {
      */
     fun findKnowledgeDocumentByKnowledgeDocumentId(knowledgeDocumentId: String): KnowledgeDocument
 
+    /**
+     * 根据向量化任务 ID 查询对应的知识文档。
+     * @param embeddingMissionId 向量化任务 ID
+     * @return KnowledgeDocument? 知识文档，若未查询到则返回 null
+     * @author EmileJones
+     */
+    fun findByEmbeddingMissionId(embeddingMissionId: String): KnowledgeDocument?
 }

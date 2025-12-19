@@ -8,17 +8,25 @@ import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.utils.DtoConverter;
+import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
+import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
+import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
+import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
+import top.emilejones.hhu.domain.pipeline.MissionStatus;
+import top.emilejones.hhu.domain.pipeline.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
-import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,28 +38,19 @@ public class PipeLineApplicationService {
     private final EmbeddingMissionRepository embeddingMissionRepository;
     private final EmbeddingGateway embeddingGateway;
     private final NodeRepository nodeRepository;
+    private final OcrMissionRepository ocrMissionRepository;
+    private final KnowledgeDocumentRepository knowledgeDocumentRepository;
+    private final KnowledgeCatalogRepository knowledgeCatalogRepository;
 
-    /**
-     * 构造函数。
-     *
-     * @param publisher                            Spring事件发布器。
-     * @param structureExtractionMissionRepository 结构提取任务仓储。
-     * @param embeddingMissionRepository           向量化任务仓储。
-     * @param embeddingGateway                     向量化网关。
-     * @param nodeRepository                       节点仓储。
-     */
-    public PipeLineApplicationService(
-            ApplicationEventPublisher publisher,
-            StructureExtractionMissionRepository structureExtractionMissionRepository,
-            EmbeddingMissionRepository embeddingMissionRepository,
-            EmbeddingGateway embeddingGateway,
-            NodeRepository nodeRepository
-    ) {
+    public PipeLineApplicationService(ApplicationEventPublisher publisher, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository) {
         this.publisher = publisher;
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.embeddingGateway = embeddingGateway;
         this.nodeRepository = nodeRepository;
+        this.ocrMissionRepository = ocrMissionRepository;
+        this.knowledgeDocumentRepository = knowledgeDocumentRepository;
+        this.knowledgeCatalogRepository = knowledgeCatalogRepository;
     }
 
     /**
@@ -60,7 +59,55 @@ public class PipeLineApplicationService {
      * @param documentSplittingMissionId 结构提取任务的唯一标识。
      */
     public void deleteExtractStructureMission(String documentSplittingMissionId) {
+        // 找到结构提取任务
+        Optional<StructureExtractionMission> successSplitterMissionOptional = structureExtractionMissionRepository.findBySourceDocumentId(documentSplittingMissionId)
+                .stream()
+                .filter(mission ->
+                        MissionStatus.SUCCESS.equals(mission.getStatus())
+                ).findFirst();
+        if (successSplitterMissionOptional.isEmpty())
+            throw new IllegalStateException("文件 [" + documentSplittingMissionId + "] 不存在结构提取任务");
+        StructureExtractionMission successSplitterMission = successSplitterMissionOptional.get();
 
+        // 找到OCR任务
+        Optional<OcrMission> successOcrMissionOptional = ocrMissionRepository.findBySourceDocumentId(documentSplittingMissionId)
+                .stream()
+                .filter(mission ->
+                        MissionStatus.SUCCESS.equals(mission.getStatus())
+                ).findFirst();
+        if (successOcrMissionOptional.isEmpty())
+            throw new IllegalStateException("文件 [" + documentSplittingMissionId + "] 存在结构提取任务当不存在OCR任务");
+
+        OcrMission successOcrMission = successOcrMissionOptional.get();
+
+        // 找到向量化任务
+        Optional<EmbeddingMission> successEmbeddingMissionOptional = embeddingMissionRepository.findBySourceDocumentId(documentSplittingMissionId)
+                .stream()
+                .filter(mission ->
+                        MissionStatus.SUCCESS.equals(mission.getStatus())
+                ).findFirst();
+
+
+        // 删除OCR任务
+        ocrMissionRepository.delete(successOcrMission.getId());
+
+        // 删除向量化任务和结构提取任务
+        String fileNodeId = successSplitterMission.getSuccessResult().getFileNodeId();
+        // 删除向量化任务
+        if (successEmbeddingMissionOptional.isPresent()) {
+            EmbeddingMission successEmbeddingMission = successEmbeddingMissionOptional.get();
+            KnowledgeDocument knowledgeDocument = knowledgeDocumentRepository.findByEmbeddingMissionId(successEmbeddingMission.getId());
+            List<KnowledgeCatalog> knowledgeCatalogList = knowledgeDocumentRepository.findKnowledgeCatalogByKnowledgeDocumentId(knowledgeDocument.getId());
+            List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
+            List<String> textNodeIdList = textNodeList.stream().map(TextNode::getId).toList();
+            knowledgeCatalogList.forEach(knowledgeCatalog -> {
+                knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalog.getId(), List.of(knowledgeDocument.getId()));
+                embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
+            });
+        }
+        // 删除结构提取任务
+        nodeRepository.deleteAllNodeByFileNodeId(fileNodeId);
+        structureExtractionMissionRepository.delete(successSplitterMission.getId());
     }
 
     /**
@@ -135,7 +182,7 @@ public class PipeLineApplicationService {
     public void handleKnowledgeDocumentAddedToCatalogEvent(KnowledgeDocumentAddedToCatalogEvent event) {
         String embeddingMissionId = event.getKnowledgeDocument().getEmbeddingMissionId();
         String milvusCollectionName = event.getKnowledgeCatalog().getMilvusCollectionName();
-        
+
         try {
             // 2. 从 embeddingMissionRepository 查找对应的 EmbeddingMission
             EmbeddingMission mission = embeddingMissionRepository.findById(embeddingMissionId);
@@ -156,7 +203,6 @@ public class PipeLineApplicationService {
 
             // 4. 调用 embeddingGateway.saveTextNodeToVectorDatabase 将 TextNodes 存入 Milvus (副作用)
             embeddingGateway.saveTextNodeToVectorDatabase(textNodes, milvusCollectionName);
-
         } catch (Exception e) {
             // 5. 如果失败，仅打印日志
             e.printStackTrace();
@@ -165,7 +211,7 @@ public class PipeLineApplicationService {
 
     @Async("domainEventExecutor")
     @EventListener
-    public void handleCreatedKnowledgeCatalogEvent(CreatedKnowledgeCatalogEvent event){
+    public void handleCreatedKnowledgeCatalogEvent(CreatedKnowledgeCatalogEvent event) {
         embeddingGateway.createCollection(event.getNewKnowledgeCatalog().getMilvusCollectionName());
     }
 }

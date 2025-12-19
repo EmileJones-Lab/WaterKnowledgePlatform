@@ -82,4 +82,12 @@
         select * from knowledge_document where document=#{knowledgeDocumentId}
     </select>
 
+    <select id="findByEmbedId" resultMap="KnowledgeDocumentResultMap">
+        select * from knowledge_document where embed_id=#{embedId}
+    </select>
+
+    <delete id="hardDelete">
+        delete from knowledge_document where document_id=#{documentId}
+    </delete>
+
 </mapper>

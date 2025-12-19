@@ -38,6 +38,7 @@ public class BindWithTimeTest {
                 "311f8e2a-a588-11ef-9d42-6ce2d3cf236c",
                 "test3",
                 "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
+                java.time.Instant.now(),
                 KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR
         );
 
@@ -63,6 +64,7 @@ public class BindWithTimeTest {
                 "311f8e2a-a588-11ef-9d42-6ce2d3cf236c",
                 "test3",
                 "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
+                java.time.Instant.now(),
                 KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR
         );
 
@@ -87,6 +89,7 @@ public class BindWithTimeTest {
                 "649b8aa0-c44d-4427-bb07-fed70a16dfd3",
                 "test4",
                 "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
+                java.time.Instant.now(),
                 KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR
         );
 
@@ -112,6 +115,7 @@ public class BindWithTimeTest {
                 "649b8aa0-c44d-4427-bb07-fed70a16dfd3",
                 "test4",
                 "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
+                java.time.Instant.now(),
                 KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR
         );
 
@@ -137,6 +141,7 @@ public class BindWithTimeTest {
                 "649b8aa0-c44d-4427-bb07-fed70a16dfd3",
                 "test4",
                 "_30cbe64e_a588_11ef_9d42_6ce2d3cf236c",
+                java.time.Instant.now(),
                 KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR
         );
 

@@ -36,6 +36,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @param offset 查询的起始偏移量。
      * @return List<KnowledgeDocument> 绑定的向量化文件列表，可能为空但不会为null。
      */
+    @Override
     public @NotNull List<KnowledgeDocument> findByKnowledgeCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset) {
         List<KnowledgeDocumentDto> knowledgeDocumentDtoList = knowledgeDocumentMapper.findByKnowledgeCatalogId(knowledgeCatalogId, limit, offset);
 
@@ -52,6 +53,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @param keyWord 根据向量化文件名模糊查询
      * @return List<KnowledgeDocumentWithBindTime> 绑定的向量化文件列表，可能为空但不会为null。
      */
+    @Override
     @NotNull
     public List<KnowledgeDocumentWithBindTime> findDocumentsWithBindInfoByCatalogId(@NotNull String knowledgeCatalogId, int limit, int offset, String keyWord) {
         // 根据 catalogId 在collection_document中查询所有相关的绑定记录
@@ -85,6 +87,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @param keyWord 根据向量化文件名模糊查询
      * @return List<KnowledgeDocument> 候选向量化文件的集合，可能为空但不会为null，需要考虑去重。
      */
+    @Override
     @NotNull
     public List<KnowledgeDocument> findCandidateKnowledgeDocumentKnowledgeCatalogId(@NotNull String knowledgeCatalogId, String keyWord) {
         // 根据catalogId去查询知识库类型
@@ -109,6 +112,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      *
      * @param knowledgeDocument 待保存的向量化文件实例。
      */
+    @Override
     public void save(@NotNull KnowledgeDocument knowledgeDocument) {
         // 封装KnowledgeDocument对象到Dto中
         KnowledgeDocumentDto knowledgeDocumentDto = new KnowledgeDocumentDto();
@@ -137,6 +141,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      *
      * @param knowledgeDocumentId 待删除向量化文件的ID。
      */
+    @Override
     public void delete(@NotNull String knowledgeDocumentId) {
         KnowledgeDocumentDto knowledgeDocumentDto = new KnowledgeDocumentDto();
         // 对需要删除的信息封装成KnowledgeDocumentDto对象
@@ -153,6 +158,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @param knowledgeDocumentId 向量化文件的ID。
      * @return List<KnowledgeCatalog> 绑定了该向量化文件的知识库集合，可能为空但不会为null。
      */
+    @Override
     @NotNull
     public List<KnowledgeCatalog> findKnowledgeCatalogByKnowledgeDocumentId(@NotNull String knowledgeDocumentId) {
         // 查询所有的KnowledgeCatalogDto
@@ -168,9 +174,24 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * @param knowledgeDocumentId
      * @return KnowledgeDocument
      */
+    @Override
     @NotNull
     public KnowledgeDocument findKnowledgeDocumentByKnowledgeDocumentId(@NotNull String knowledgeDocumentId) {
         KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.findKnowledgeDocumentByKnowledgeDocumentId(knowledgeDocumentId);
+        return DtoToDomainUtil.toDocumentDomain(knowledgeDocumentDto);
+    }
+
+    /**
+     * 根据向量化任务 ID 查询对应的知识文档。
+     * @param embeddingMissionId 向量化任务 ID
+     * @return KnowledgeDocument? 知识文档，若未查询到则返回 null
+     */
+    @Override
+    public KnowledgeDocument findByEmbeddingMissionId(String embeddingMissionId) {
+        KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.findByEmbedId(embeddingMissionId);
+        if (knowledgeDocumentDto == null) {
+            return null;
+        }
         return DtoToDomainUtil.toDocumentDomain(knowledgeDocumentDto);
     }
 
