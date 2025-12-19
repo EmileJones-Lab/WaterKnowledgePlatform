@@ -76,4 +76,10 @@
         (select kb_id from collection_document where document_id=#{knowledgeDocumentId} and isdelete=1)
     </select>
 
+    <select id="findKnowledgeDocumentByKnowledgeDocumentId"
+            resultType="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto"
+            resultMap="top.emilejones.hhu.knowledge.mapper.KnowledgeCatalogMapper.KnowledgeCatalogResultMap">
+        select * from knowledge_document where document=#{knowledgeDocumentId}
+    </select>
+
 </mapper>

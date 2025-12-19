@@ -163,6 +163,17 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         return knowledgeCatalogList;
     }
 
+    /**
+     * 根据id查询对应的向量化文件
+     * @param knowledgeDocumentId
+     * @return KnowledgeDocument
+     */
+    @NotNull
+    public KnowledgeDocument findKnowledgeDocumentByKnowledgeDocumentId(@NotNull String knowledgeDocumentId) {
+        KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.findKnowledgeDocumentByKnowledgeDocumentId(knowledgeDocumentId);
+        return DtoToDomainUtil.toDocumentDomain(knowledgeDocumentDto);
+    }
+
 
     /**
      * 将KnowledgeCatalogType映射为对应的KnowledgeDocumentType列表。

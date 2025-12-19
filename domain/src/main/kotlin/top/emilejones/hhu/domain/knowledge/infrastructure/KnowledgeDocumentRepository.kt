@@ -62,4 +62,11 @@ interface KnowledgeDocumentRepository {
      */
     fun findKnowledgeCatalogByKnowledgeDocumentId(knowledgeDocumentId: String): List<KnowledgeCatalog>
 
+    /**
+     * 根据id查询对应的向量化文件
+     * @param knowledgeDocumentId
+     * @return KnowledgeDocument
+     */
+    fun findKnowledgeDocumentByKnowledgeDocumentId(knowledgeDocumentId: String): KnowledgeDocument
+
 }

@@ -64,4 +64,11 @@ public interface KnowledgeDocumentMapper {
      * @return
      */
     List<KnowledgeCatalogDto> findKnowledgeCatalogByKnowledgeDocumentId(@Param("knowledgeDocumentId") String knowledgeDocumentId);
+
+    /**
+     * 根据id查询对应的向量化文件
+     * @param knowledgeDocumentId
+     * @return KnowledgeDocument
+     */
+    KnowledgeDocumentDto findKnowledgeDocumentByKnowledgeDocumentId(@Param("knowledgeDocumentId") String knowledgeDocumentId);
 }
