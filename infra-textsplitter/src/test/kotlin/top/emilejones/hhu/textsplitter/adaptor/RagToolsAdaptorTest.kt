@@ -26,17 +26,21 @@ class RagToolsAdaptorTest {
     private lateinit var neo4jRepository: INeo4jRepository
 
     private val testCollection = "test_rag_tools_adaptor"
+    private val createdFileNodeIds = mutableListOf<String>()
+    private val createdTextNodeIds = mutableListOf<String>()
 
     @BeforeEach
     fun setup() {
         milvusRepository.dropCollection(testCollection)
-        neo4jRepository.clearAllData()
     }
 
     @AfterEach
     fun tearDown() {
         milvusRepository.dropCollection(testCollection)
-        neo4jRepository.clearAllData()
+        createdTextNodeIds.forEach { neo4jRepository.hardDeleteTextNodeById(it) }
+        createdFileNodeIds.forEach { neo4jRepository.hardDeleteFileNodeById(it) }
+        createdTextNodeIds.clear()
+        createdFileNodeIds.clear()
     }
 
     @Test
@@ -174,6 +178,11 @@ class RagToolsAdaptorTest {
         child.parentNode = root
         root.fileNode = fileNode
         root.addChild(child)
+        
+        createdFileNodeIds.add(fileNode.id)
+        createdTextNodeIds.add(root.id)
+        createdTextNodeIds.add(child.id)
+        
         adaptor.save(root)
     }
 
