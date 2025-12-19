@@ -32,6 +32,10 @@
         where kb_id=#{kbId}
     </update>
 
+    <delete id="hardDelete">
+        delete from col_kb where kb_id=#{knowledgeCatalogId}
+    </delete>
+
 
     <select id="findAll" resultMap="KnowledgeCatalogResultMap">
         select * from col_kb

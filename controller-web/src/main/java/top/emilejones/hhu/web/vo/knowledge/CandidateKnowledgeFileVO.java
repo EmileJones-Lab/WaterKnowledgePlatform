@@ -9,16 +9,16 @@ import top.emilejones.hhu.web.vo.mission.enums.DocumentSplittingMissionType;
 import java.time.Instant;
 import java.util.List;
 
-@Schema(description = "知识库中的文件的元信息")
-public class KnowledgeFileVO {
+@Schema(description = "候选知识文件的信息")
+public class CandidateKnowledgeFileVO {
     @Schema(description = "知识文件唯一Id")
     private String knowledgeFileId;
     @Schema(description = "文本切割任务类型")
     private DocumentSplittingMissionType type;
     @Schema(description = "文件名称")
     private String fileName;
-    @Schema(description = "加入知识库时间")
-    private Instant bindTime;
+    @Schema(description = "创建时间")
+    private Instant createTime;
     @Schema(description = "OCR任务列表（按照时间倒序排列），如果没有OCR任务，则返回空列表")
     private List<OcrMissionVO> ocrMission;
     @Schema(description = "结构提取任务列表（按照时间倒序排列），如果没有结构提取任务，则返回空列表")
@@ -32,6 +32,30 @@ public class KnowledgeFileVO {
 
     public void setKnowledgeFileId(String knowledgeFileId) {
         this.knowledgeFileId = knowledgeFileId;
+    }
+
+    public DocumentSplittingMissionType getType() {
+        return type;
+    }
+
+    public void setType(DocumentSplittingMissionType type) {
+        this.type = type;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public Instant getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Instant createTime) {
+        this.createTime = createTime;
     }
 
     public List<OcrMissionVO> getOcrMission() {
@@ -56,29 +80,5 @@ public class KnowledgeFileVO {
 
     public void setEmbeddingMission(List<EmbeddingMissionVO> embeddingMission) {
         this.embeddingMission = embeddingMission;
-    }
-
-    public DocumentSplittingMissionType getType() {
-        return type;
-    }
-
-    public void setType(DocumentSplittingMissionType type) {
-        this.type = type;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public Instant getBindTime() {
-        return bindTime;
-    }
-
-    public void setBindTime(Instant bindTime) {
-        this.bindTime = bindTime;
     }
 }

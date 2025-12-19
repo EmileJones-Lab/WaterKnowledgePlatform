@@ -1,5 +1,6 @@
 package top.emilejones.hhu.application.utils;
 
+import top.emilejones.hhu.application.dto.knowledge.CandidateKnowledgeFileDTO;
 import top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryDTO;
 import top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryType;
 import top.emilejones.hhu.application.dto.knowledge.KnowledgeFileDTO;
@@ -15,6 +16,7 @@ import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
+import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
@@ -96,16 +98,32 @@ public class DtoConverter {
         return dto;
     }
 
-    public static KnowledgeFileDTO toKnowledgeFileDTO(KnowledgeDocument document) {
+    public static KnowledgeFileDTO toKnowledgeFileDTO(KnowledgeDocumentWithBindTime document, List<OcrMissionDTO> ocrMission, List<DocumentSplittingMissionDTO> structureExtractionMission, List<EmbeddingMissionDTO> embeddingMission) {
         if (document == null) {
             return null;
         }
         KnowledgeFileDTO dto = new KnowledgeFileDTO();
-        dto.setEmbeddingMissionId(document.getEmbeddingMissionId());
+        dto.setId(document.getKnowledgeDocument().getId());
+        dto.setFileName(document.getKnowledgeDocument().getName());
+        dto.setBindTime(document.getBindTime());
+        dto.setType(mapKnowledgeDocumentType(document.getKnowledgeDocument().getType()));
+
+        dto.setOcrMission(Collections.emptyList());
+        dto.setExtractStructureMission(Collections.emptyList());
+        dto.setEmbeddingMission(Collections.emptyList());
+        return dto;
+    }
+
+    public static CandidateKnowledgeFileDTO toCandidateKnowledgeFileDTO(KnowledgeDocument document, List<OcrMissionDTO> ocrMission, List<DocumentSplittingMissionDTO> structureExtractionMission, List<EmbeddingMissionDTO> embeddingMission) {
+        if (document == null) {
+            return null;
+        }
+        CandidateKnowledgeFileDTO dto = new CandidateKnowledgeFileDTO();
+        dto.setId(document.getId());
         dto.setFileName(document.getName());
         dto.setCreateTime(document.getCreateTime());
         dto.setType(mapKnowledgeDocumentType(document.getType()));
-        // These lists need to be populated separately as they are not in KnowledgeDocument
+
         dto.setOcrMission(Collections.emptyList());
         dto.setExtractStructureMission(Collections.emptyList());
         dto.setEmbeddingMission(Collections.emptyList());
@@ -158,7 +176,7 @@ public class DtoConverter {
         };
     }
 
-    private static DocumentSplittingMissionType mapKnowledgeDocumentType(KnowledgeDocumentType type) {
+    public static DocumentSplittingMissionType mapKnowledgeDocumentType(KnowledgeDocumentType type) {
         return switch (type) {
             case CHAR_LENGTH_SPLITTER_200 -> DocumentSplittingMissionType.CHAR_LENGTH_SPLITTER_200;
             case CHAR_LENGTH_SPLITTER_400 -> DocumentSplittingMissionType.CHAR_LENGTH_SPLITTER_400;

@@ -32,4 +32,10 @@ public interface CollectionDocumentMapper {
     void deleteKnowledgeDocumentFromKnowledgeCatalog(@Param("knowledgeCatalogId") String knowledgeCatalogId, @Param("knowledgeDocumentIdList") List<String> knowledgeDocumentIdList);
 
     List<CollectionDocumentDto> selectByCatalogId(@Param("knowledgeCatalogId") String knowledgeCatalogId);
+
+    /**
+     * 硬删除（物理删除）
+     * @param id
+     */
+    void hardDelete(String id);
 }

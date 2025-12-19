@@ -64,4 +64,24 @@ public interface KnowledgeDocumentMapper {
      * @return
      */
     List<KnowledgeCatalogDto> findKnowledgeCatalogByKnowledgeDocumentId(@Param("knowledgeDocumentId") String knowledgeDocumentId);
+
+    /**
+     * 根据id查询对应的向量化文件
+     * @param knowledgeDocumentId
+     * @return KnowledgeDocument
+     */
+    KnowledgeDocumentDto findKnowledgeDocumentByKnowledgeDocumentId(@Param("knowledgeDocumentId") String knowledgeDocumentId);
+
+    /**
+     * 根据 embedId 查询向量化文件
+     * @param embedId
+     * @return KnowledgeDocumentDto
+     */
+    KnowledgeDocumentDto findByEmbedId(@Param("embedId") String embedId);
+
+    /**
+     * 硬删除向量化文件（物理删除）
+     * @param documentId
+     */
+    void hardDelete(@Param("documentId") String documentId);
 }

@@ -35,6 +35,7 @@ public class DtoToDomainUtil {
                 knowledgeCatalogDto.getKbId(),
                 knowledgeCatalogDto.getKbName(),
                 knowledgeCatalogDto.getColName(),
+                knowledgeCatalogDto.getCreateTime(),
                 knowledgeCatalogDto.getType()
         );
     }

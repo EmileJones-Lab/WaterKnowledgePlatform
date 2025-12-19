@@ -117,6 +117,4 @@ class Neo4jRepositoryImpl(
             }
         }
     }
-
-
 }

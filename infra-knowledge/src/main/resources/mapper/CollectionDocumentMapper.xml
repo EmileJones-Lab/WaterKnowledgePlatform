@@ -30,10 +30,26 @@
         select count(*) from collection_document where document_id=#{documentId} and  kb_id=#{catalogId} and isdelete=1
     </select>
 
-    <select id="selectByCatalogId"
-            resultType="top.emilejones.hhu.knowledge.pojo.dto.CollectionDocumentDto"
-            resultMap="CollectionDocumentResultMap">
-        select * from collection_document where kb_id=#{knowledgeCatalogId} and isdelete=1
-    </select>
+        <select id="selectByCatalogId"
 
-</mapper>
+                resultType="top.emilejones.hhu.knowledge.pojo.dto.CollectionDocumentDto"
+
+                resultMap="CollectionDocumentResultMap">
+
+            select * from collection_document where kb_id=#{knowledgeCatalogId} and isdelete=1
+
+        </select>
+
+    
+
+        <delete id="hardDelete">
+
+            delete from collection_document where id=#{id}
+
+        </delete>
+
+    
+
+    </mapper>
+
+    

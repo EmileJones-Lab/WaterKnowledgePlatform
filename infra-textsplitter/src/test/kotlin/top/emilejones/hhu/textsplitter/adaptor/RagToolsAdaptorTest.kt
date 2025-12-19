@@ -27,9 +27,15 @@ class RagToolsAdaptorTest {
 
     private val testCollection = "test_rag_tools_adaptor"
 
+    @BeforeEach
+    fun setup() {
+        milvusRepository.dropCollection(testCollection)
+        neo4jRepository.clearAllData()
+    }
+
     @AfterEach
-    fun drop() {
-        milvusRepository.clearAllData(testCollection)
+    fun tearDown() {
+        milvusRepository.dropCollection(testCollection)
         neo4jRepository.clearAllData()
     }
 
@@ -37,9 +43,7 @@ class RagToolsAdaptorTest {
     fun `minerU should delegate to data processing service`() {
         val input = javaClass.classLoader.getResourceAsStream("pdf/test.pdf")
         val result = adaptor.minerU(input!!)
-        println("===========================")
-        print(result.markdownContent)
-        println("===========================")
+        assertEquals(4, result.images.size)
     }
 
     @Test
@@ -260,5 +264,17 @@ class RagToolsAdaptorTest {
         // 4. Verify deletion
         results = milvusRepository.searchByVector(testCollection, vector)
         assertFalse(results.any { it.neo4jNodeId == "1" }, "Node should not be found after deletion")
+    }
+
+    @Test
+    fun `createCollection should delegate to repository`() {
+        val newCollection = "new_collection"
+        // Ensure collection doesn't exist or is clean
+        milvusRepository.dropCollection(newCollection)
+        
+        adaptor.createCollection(newCollection)
+        
+        // Clean up
+        milvusRepository.dropCollection(newCollection)
     }
 }

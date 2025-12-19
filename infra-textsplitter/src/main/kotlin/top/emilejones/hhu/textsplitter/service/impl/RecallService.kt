@@ -35,22 +35,25 @@ class RecallService(
         // 从向量数据库中召回数据
         val queryVector: List<Float> = client.embedding(query)
         val searchResults = milvusRepository.searchByVector(collectionName, queryVector, 100)
+
+        // 从Neo4j获取文本节点
+        val neo4jNodes = searchResults.mapNotNull { datum ->
+            neo4jRepository.searchNeo4jTextNodeByNodeId(datum.neo4jNodeId)
+        }
+
         // 重排序结果，并取出得分最高的maxResultNumber个数据
-        val rerankResult = client.rerank(query, searchResults.stream().map(EmbeddingDatum::text).toList())
+        val rerankResult = client.rerank(query, neo4jNodes.map { it.text })
             .stream()
             .limit(maxResultNumber.toLong())
-            .map { rr: RerankResult -> searchResults[rr.index] }.toList()
-        // 将milvus数据转换为neo4j数据
-        val rawData = rerankResult.mapNotNull { denseRecallResult: EmbeddingDatum ->
-            neo4jRepository.searchNeo4jTextNodeByNodeId(denseRecallResult.neo4jNodeId)
-        }.toList()
+            .map { rr: RerankResult -> neo4jNodes[rr.index] }.toList()
+
         logger.debug(
             "查询问题[{}]召回节点的cypher语句为[{}]",
             query,
-            generateCypherByNeo4jTextNodeList(rawData)
+            generateCypherByNeo4jTextNodeList(rerankResult)
         )
-        logger.info("用户问题为：[{}]，召回的节点数量为[{}]个", query, rawData.size)
-        return rawData
+        logger.info("用户问题为：[{}]，召回的节点数量为[{}]个", query, rerankResult.size)
+        return rerankResult
     }
 
     private fun generateCypherByNeo4jTextNodeList(Neo4jTextNodeList: List<Neo4jTextNode>): String {

@@ -37,7 +37,6 @@ class Neo4jNodeRepositoryAdaptorTest {
         createdFileNodeIds.forEach { neo4jRepository.hardDeleteFileNodeById(it) }
         createdTextNodeIds.clear()
         createdFileNodeIds.clear()
-        milvusRepository.clearAllData(testCollection)
     }
 
     @Test
@@ -136,9 +135,7 @@ class Neo4jNodeRepositoryAdaptorTest {
         
         val datum = EmbeddingDatum(
             neo4jNodeId = textNodeId,
-            text = text,
-            vector = vector,
-            type = TextType.COMMON_TEXT
+            vector = vector
         )
         milvusRepository.insert(testCollection, datum)
         

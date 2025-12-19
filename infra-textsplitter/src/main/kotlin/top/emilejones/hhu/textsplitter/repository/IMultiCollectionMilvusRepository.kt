@@ -62,9 +62,19 @@ interface IMultiCollectionMilvusRepository {
     /**
      * 删除指定 collection 中的所有数据。
      *
-     * 具体实现可通过删除 collection 或清空数据实现，调用后 collection 会处于空状态。
+     * 具体实现是通过删除 collection 实现，调用后 collection 会被删除。
      *
      * @param collectionName 需要清空的 collection 名称。
      */
-    fun clearAllData(collectionName: String)
+    fun dropCollection(collectionName: String)
+
+    /**
+     * 创建一个新的 Milvus collection。
+     *
+     * 该方法用于在 Milvus 中创建一个具有指定名称的新 collection。
+     * 如果 collection 已存在，具体实现可能会选择忽略、抛出异常或进行其他处理。
+     *
+     * @param collectionName 要创建的 collection 的名称。
+     */
+    fun createCollection(collectionName: String)
 }

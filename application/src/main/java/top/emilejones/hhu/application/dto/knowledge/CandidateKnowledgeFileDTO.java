@@ -8,7 +8,7 @@ import top.emilejones.hhu.application.dto.mission.enums.DocumentSplittingMission
 import java.time.Instant;
 import java.util.List;
 
-public class KnowledgeFileDTO {
+public class CandidateKnowledgeFileDTO {
     /**
      * 向量化文件id
      */
@@ -22,9 +22,9 @@ public class KnowledgeFileDTO {
      */
     private String fileName;
     /**
-     * 加入知识库的时间
+     * 创建向量化文件的时间
      */
-    private Instant bindTime;
+    private Instant createTime;
     /**
      * ocr任务
      */
@@ -62,12 +62,12 @@ public class KnowledgeFileDTO {
         this.fileName = fileName;
     }
 
-    public Instant getBindTime() {
-        return bindTime;
+    public Instant getCreateTime() {
+        return createTime;
     }
 
-    public void setBindTime(Instant bindTime) {
-        this.bindTime = bindTime;
+    public void setCreateTime(Instant createTime) {
+        this.createTime = createTime;
     }
 
     public List<OcrMissionDTO> getOcrMission() {
