@@ -7,16 +7,29 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+import top.emilejones.hhu.application.KnowledgeApplicationService;
+import top.emilejones.hhu.application.dto.LazyPageDTO;
+import top.emilejones.hhu.application.dto.knowledge.CandidateKnowledgeFileDTO;
+import top.emilejones.hhu.application.dto.knowledge.KnowledgeFileDTO;
+import top.emilejones.hhu.web.utils.VoConverter;
 import top.emilejones.hhu.web.vo.FailureVO;
 import top.emilejones.hhu.web.vo.LazyPageInfoVO;
-import top.emilejones.hhu.web.vo.knowledge.KnowledgeFileVO;
 import top.emilejones.hhu.web.vo.knowledge.CandidateKnowledgeFileVO;
+import top.emilejones.hhu.web.vo.knowledge.KnowledgeFileVO;
 import top.emilejones.hhu.web.vo.knowledge.request.AddKnowledgeFileRequest;
+
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/knowledge-repositories/{dirId}")
 @Tag(name = "KnowledgeFiles", description = "关于知识文件操作的接口说明")
 public class KnowledgeFileController {
+
+    private final KnowledgeApplicationService knowledgeApplicationService;
+
+    public KnowledgeFileController(KnowledgeApplicationService knowledgeApplicationService) {
+        this.knowledgeApplicationService = knowledgeApplicationService;
+    }
 
     @GetMapping("/files")
     @Operation(summary = "获取知识库中的知识文件详细信息列表",
@@ -27,7 +40,8 @@ public class KnowledgeFileController {
             @RequestParam @Schema(name = "pageNum", description = "第几页（从0开始）") Integer pageNum,
             @RequestParam(value = "keyword", required = false) @Schema(name = "keyword", description = "根据文件名模糊匹配，如果为空则返回全部内容。") String keyword
     ) {
-        return null;
+        LazyPageDTO<KnowledgeFileDTO> page = knowledgeApplicationService.getAllKnowledgeFileByDirId(dirId, limit, pageNum, keyword);
+        return new LazyPageInfoVO<>(page.hasNextPage(), VoConverter.toKnowledgeFileVOList(page.data()));
     }
 
     @PostMapping("/files")
@@ -50,7 +64,8 @@ public class KnowledgeFileController {
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId,
             @RequestBody AddKnowledgeFileRequest request
     ) {
-        return null;
+        KnowledgeFileDTO knowledgeFileDTO = knowledgeApplicationService.addKnowledgeFileByDirId(dirId, request.getKnowledgeFileId());
+        return VoConverter.toKnowledgeFileVO(knowledgeFileDTO);
     }
 
     @DeleteMapping("/files/{knowledgeFileId}")
@@ -70,6 +85,7 @@ public class KnowledgeFileController {
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId,
             @PathVariable("knowledgeFileId") @Schema(name = "knowledgeFileId", description = "知识文件唯一Id") String knowledgeFileId
     ) {
+        knowledgeApplicationService.deleteKnowledgeFileByDirId(dirId, Collections.singletonList(knowledgeFileId));
     }
 
     @GetMapping("/candidate-files")
@@ -78,6 +94,7 @@ public class KnowledgeFileController {
     public LazyPageInfoVO<CandidateKnowledgeFileVO> getAllCandidateFiles(
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId
     ) {
-        return null;
+        LazyPageDTO<CandidateKnowledgeFileDTO> page = knowledgeApplicationService.getAllCandidateFiles(dirId, null);
+        return new LazyPageInfoVO<>(page.hasNextPage(), VoConverter.toCandidateKnowledgeFileVOList(page.data()));
     }
 }

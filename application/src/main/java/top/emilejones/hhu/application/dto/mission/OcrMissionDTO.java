@@ -8,6 +8,7 @@ public class OcrMissionDTO {
     private String ocrMissionId;
     private MissionStatus status;
     private String remark;
+    private Instant createTime;
     private Instant startTime;
     private Instant endTime;
 
@@ -33,6 +34,14 @@ public class OcrMissionDTO {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public Instant getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Instant createTime) {
+        this.createTime = createTime;
     }
 
     public Instant getStartTime() {

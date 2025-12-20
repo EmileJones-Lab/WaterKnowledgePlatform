@@ -13,6 +13,8 @@ public class EmbeddingMissionVO {
     private MissionStatus status;
     @Schema(description = "向量化任务失败后详细信息")
     private String remark;
+    @Schema(description = "任务创建时间")
+    private Instant createTime;
     @Schema(description = "任务开始时间")
     private Instant startTime;
     @Schema(description = "任务结束时间")
@@ -40,6 +42,14 @@ public class EmbeddingMissionVO {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public Instant getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Instant createTime) {
+        this.createTime = createTime;
     }
 
     public Instant getStartTime() {

@@ -113,11 +113,19 @@ public class SourceDocumentServiceImpl implements SourceDocumentRepository {
      * 将SourceDocumentPO封装成SourceDocument
      */
     private SourceDocument toDomain(SourceDocumentPO sourceDocumentPO) {
+        String filePath = sourceDocumentPO.getFilepath();
+        if (filePath != null && (filePath.startsWith("http://") || filePath.startsWith("https://"))) {
+            try {
+                filePath = new java.net.URI(filePath).getPath();
+            } catch (Exception e) {
+                // 解析失败则保持原样
+            }
+        }
         return new SourceDocument(
                 String.valueOf(sourceDocumentPO.getId()),
                 sourceDocumentPO.getFilename(),
                 sourceDocumentPO.getCatapath(),
-                sourceDocumentPO.getFilepath(),
+                filePath,
                 parseFileType(sourceDocumentPO.getFiletype())
         );
     }

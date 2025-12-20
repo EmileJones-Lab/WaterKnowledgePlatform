@@ -1,6 +1,7 @@
 package top.emilejones.hhu.application.processor;
 
 import org.springframework.stereotype.Component;
+import top.emilejones.hhu.domain.pipeline.FileNode;
 import top.emilejones.hhu.domain.pipeline.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
@@ -37,9 +38,6 @@ public class EmbeddingProcessor {
         Optional<StructureExtractionMission> succeesfulStructureExtractionOptional = structureExtractionMissions.stream().filter(StructureExtractionMission::isSuccess).findFirst();
         StructureExtractionMission structureExtractionMission = succeesfulStructureExtractionOptional.orElseGet(() -> {
                     StructureExtractionMission newMission = StructureExtractionMission.Companion.create(UUID.randomUUID().toString(), embeddingMission.getSourceDocumentId());
-                    newMission.preparedToExecution();
-                    // 清空领域事件
-                    newMission.pushEvents();
                     return structureExtractionProcessor.process(newMission);
                 }
         );
@@ -56,6 +54,10 @@ public class EmbeddingProcessor {
         try {
             // 成功提取结构后的FileNode唯一Id
             String fileNodeId = Objects.requireNonNull(embeddingMission.getFileNodeId());
+            Optional<FileNode> fileNodeOptional = nodeRepository.findFileNodeByFileNodeId(fileNodeId);
+            if (fileNodeOptional.isEmpty())
+                throw new IllegalAccessException("结构提取任务存在，但是切割后的FileNode不存在");
+            FileNode fileNode = fileNodeOptional.get();
             // 找到所有的TextNode
             List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
             // 向量化所有text属性
@@ -64,8 +66,11 @@ public class EmbeddingProcessor {
             for (int i = 0; i < textNodeList.size(); i++) {
                 textNodeList.get(i).saveVector(vectors.get(i));
             }
+            // 为FileNode标记状态
+            fileNode.setEmbedded(true);
             // 保存
             textNodeList.forEach(nodeRepository::saveTextNode);
+            nodeRepository.saveFileNode(fileNode);
             embeddingMission.success(fileNodeId);
         } catch (Exception ex) {
             String msg = ex.getMessage() != null ? ex.getMessage() : "未知的异常";

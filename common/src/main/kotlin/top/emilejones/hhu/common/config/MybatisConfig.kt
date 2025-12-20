@@ -15,11 +15,7 @@ import top.emilejones.hhu.common.env.pojo.MysqlConfig
 import javax.sql.DataSource
 
 @Configuration
-@MapperScan(
-    basePackages = ["top.emilejones.hhu.**.mapper"],
-    sqlSessionFactoryRef = "sqlSessionFactory",
-    sqlSessionTemplateRef = "sqlSessionTemplate"
-)
+@MapperScan(basePackages = ["top.emilejones.hhu.**.mapper"])
 class MybatisConfig {
 
     @Bean

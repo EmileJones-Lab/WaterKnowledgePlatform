@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 import top.emilejones.hhu.application.processor.EmbeddingProcessor;
 import top.emilejones.hhu.application.processor.StructureExtractionProcessor;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
-import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionReadyEvent;
-import top.emilejones.hhu.domain.pipeline.event.StructureExtractionMissionReadyEvent;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
 @Component
@@ -23,18 +21,16 @@ public class MissionExecutor {
         this.embeddingProcessor = embeddingProcessor;
     }
 
-    @Async("domainEventExecutor")
+    @Async
     @EventListener
-    public void handlerStartStructureExtractionEvent(StructureExtractionMissionReadyEvent event) {
-        StructureExtractionMission structureExtractionMission = event.getStructureExtractionMission();
-        structureExtractionProcessor.process(structureExtractionMission);
+    public void handlerStartStructureExtractionEvent(StructureExtractionMission mission) {
+        structureExtractionProcessor.process(mission);
     }
 
-    @Async("domainEventExecutor")
+    @Async
     @EventListener
-    public void handlerStartEmbeddingMissionEvent(EmbeddingMissionReadyEvent event) {
-        EmbeddingMission embeddingMission = event.getEmbeddingMission();
-        embeddingProcessor.process(embeddingMission);
-        embeddingMission.pushEvents().forEach(publisher::publishEvent);
+    public void handlerStartEmbeddingMissionEvent(EmbeddingMission event) {
+        embeddingProcessor.process(event);
+        event.pushEvents().forEach(publisher::publishEvent);
     }
 }

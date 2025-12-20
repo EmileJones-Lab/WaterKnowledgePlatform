@@ -33,7 +33,6 @@ public class OcrProcessor {
 
     public OcrMission process(String sourceDocumentId) {
         OcrMission ocrMission = OcrMission.Companion.create(UUID.randomUUID().toString(), sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
         ocrMissionRepository.save(ocrMission);
         Optional<SourceDocument> sourceDocumentOptional = sourceDocumentRepository.findSourceDocumentById(ocrMission.getSourceDocumentId());

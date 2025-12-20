@@ -9,14 +9,9 @@ import top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper;
 import top.emilejones.hhu.pipeline.repository.FileStorageRepository;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 /**
@@ -46,8 +41,8 @@ public class ProcessedDocumentService {
      * @param content           Markdown 正文内容流；调用方负责在写入完成后关闭流
      */
     public void save(@NotNull ProcessedDocument processedDocument, @NotNull InputStream content) {
-        // 1. 业务逻辑决定文件名
-        String objectName = processedDocument.getId() + ".md";
+        // 1. 从文件路径中提取文件名
+        String objectName = resolveObjectName(processedDocument.getFilePath());
 
         // 2. 调用仓储存入 MinIO，获取路径
         String minioPath = fileStorageRepository.save(content, objectName);
@@ -106,9 +101,24 @@ public class ProcessedDocumentService {
         po.setIsDelete(DeleteConstant.EXIST);
 
         // 从文件路径中提取文件名
-        Path path = Paths.get(processedDocument.getFilePath());
-        po.setFileName(path.getFileName().toString());
+        String s = resolveObjectName(processedDocument.getFilePath());
+        po.setFileName(s);
 
         return po;
+    }
+
+    public static String resolveObjectName(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return null;
+        }
+
+        String fileName = Paths.get(filePath).getFileName().toString();
+
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex > 0 && fileName.substring(lastDotIndex).equalsIgnoreCase(".pdf")) {
+            return fileName.substring(0, lastDotIndex) + ".md";
+        }
+
+        return fileName;
     }
 }

@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+import top.emilejones.hhu.application.KnowledgeApplicationService;
+import top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryDTO;
+import top.emilejones.hhu.web.utils.VoConverter;
 import top.emilejones.hhu.web.vo.FailureVO;
 import top.emilejones.hhu.web.vo.knowledge.KnowledgeDirectoryVO;
 import top.emilejones.hhu.web.vo.knowledge.request.AddKnowledgeDirectoryRequest;
@@ -19,12 +22,19 @@ import java.util.List;
 @Tag(name = "KnowledgeRepositories", description = "关于知识库操作的接口说明")
 public class KnowledgeDirectoryController {
 
+    private final KnowledgeApplicationService knowledgeApplicationService;
+
+    public KnowledgeDirectoryController(KnowledgeApplicationService knowledgeApplicationService) {
+        this.knowledgeApplicationService = knowledgeApplicationService;
+    }
+
     @GetMapping
     @Operation(summary = "获取知识库列表",
             description = "此接口会返回知识库列表，如果没有数据，则会返回空列表")
     @ApiResponse(responseCode = "200", description = "成功获取知识库列表")
     public List<KnowledgeDirectoryVO> getAllKnowledgeDirectories() {
-        return null;
+        List<KnowledgeDirectoryDTO> allKnowledgeDirectories = knowledgeApplicationService.getAllKnowledgeDirectories();
+        return VoConverter.toKnowledgeDirectoryVOList(allKnowledgeDirectories);
     }
 
     @PostMapping
@@ -34,7 +44,8 @@ public class KnowledgeDirectoryController {
     public KnowledgeDirectoryVO addKnowledgeDirectory(
             @RequestBody AddKnowledgeDirectoryRequest request
     ) {
-        return null;
+        KnowledgeDirectoryDTO knowledgeDirectoryDTO = knowledgeApplicationService.addKnowledgeDirectory(VoConverter.toAddKnowledgeDirectoryDTO(request));
+        return VoConverter.toKnowledgeDirectoryVO(knowledgeDirectoryDTO);
     }
 
     @PutMapping("/{dirId}")
@@ -45,7 +56,8 @@ public class KnowledgeDirectoryController {
             @RequestBody UpdateKnowledgeDirectoryRequest request,
             @PathVariable("dirId") @Schema(description = "知识库唯一Id") String id
     ) {
-        return null;
+        KnowledgeDirectoryDTO knowledgeDirectoryDTO = knowledgeApplicationService.updateKnowledgeDirectory(id, request.getDirName());
+        return VoConverter.toKnowledgeDirectoryVO(knowledgeDirectoryDTO);
     }
 
     @DeleteMapping("/{dirId}")
@@ -64,6 +76,6 @@ public class KnowledgeDirectoryController {
     public void deleteKnowledgeDirectory(
             @PathVariable("dirId") @Schema(description = "知识库唯一Id") String id
     ) {
-
+        knowledgeApplicationService.deleteKnowledgeDirectory(id);
     }
 }

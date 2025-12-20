@@ -68,4 +68,13 @@ interface NodeRepository {
      * @param id FileNode唯一Id
      */
     fun deleteAllNodeByFileNodeId(id: String)
+
+    /**
+     * 保存文件节点信息，存在则更新，不存在则创建。
+     *
+     * 约定：采用 upsert 语义。
+     *
+     * @param fileNode 需要保存或更新的文件节点
+     */
+    fun saveFileNode(fileNode: FileNode)
 }

@@ -35,21 +35,13 @@ class OcrMission(
             return OcrMission(
                 id = id,
                 sourceDocumentId = sourceDocumentId,
-                status = MissionStatus.CREATED,
+                status = MissionStatus.PENDING,
                 result = null,
                 createTime = Instant.now(),
                 startTime = null,
                 endTime = null
             )
         }
-    }
-
-    /**
-     * 置为可调度状态并发布就绪事件。
-     */
-    fun preparedToExecution() {
-        require(status == MissionStatus.CREATED) { "OcrMission can only ready from CREATED" }
-        status = MissionStatus.PENDING
     }
 
     /**

@@ -2,7 +2,6 @@ package top.emilejones.hhu.domain.pipeline.embedding
 
 import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.pipeline.MissionStatus
-import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionReadyEvent
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent
 import java.time.Instant
 
@@ -36,22 +35,13 @@ class EmbeddingMission(
                 id = id,
                 sourceDocumentId = sourceDocumentId,
                 fileNodeId = null,
-                status = MissionStatus.CREATED,
+                status = MissionStatus.PENDING,
                 result = null,
                 createTime = Instant.now(),
                 startTime = null,
                 endTime = null
             )
         }
-    }
-
-    /**
-     * 将任务置为可调度状态并发布就绪事件。
-     */
-    fun preparedToExecution() {
-        require(status == MissionStatus.CREATED) { "EmbeddingMission can only ready from CREATED" }
-        status = MissionStatus.PENDING
-        raiseEvent(EmbeddingMissionReadyEvent(this))
     }
 
     /**

@@ -33,9 +33,10 @@ public class DtoConverter {
         }
         DocumentSplittingMissionDTO dto = new DocumentSplittingMissionDTO();
         dto.setExtractStructureMissionId(mission.getId());
+        dto.setCreateTime(mission.getCreateTime());
         dto.setStartTime(mission.getStartTime());
         dto.setEndTime(mission.getEndTime());
-        dto.setType(null); // Not directly available from domain mission
+        dto.setType(DocumentSplittingMissionType.STRUCTURE_SPLITTER);
         dto.setStatus(mapMissionStatus(mission.getStatus()));
         if (mission.getStatus() == top.emilejones.hhu.domain.pipeline.MissionStatus.ERROR) {
             try {
@@ -53,6 +54,7 @@ public class DtoConverter {
         }
         EmbeddingMissionDTO dto = new EmbeddingMissionDTO();
         dto.setEmbeddingMissionId(mission.getId());
+        dto.setCreateTime(mission.getCreateTime());
         dto.setStartTime(mission.getStartTime());
         dto.setEndTime(mission.getEndTime());
         dto.setStatus(mapMissionStatus(mission.getStatus()));
@@ -72,6 +74,7 @@ public class DtoConverter {
         }
         OcrMissionDTO dto = new OcrMissionDTO();
         dto.setOcrMissionId(mission.getId());
+        dto.setCreateTime(mission.getCreateTime());
         dto.setStartTime(mission.getStartTime());
         dto.setEndTime(mission.getEndTime());
         dto.setStatus(mapMissionStatus(mission.getStatus()));

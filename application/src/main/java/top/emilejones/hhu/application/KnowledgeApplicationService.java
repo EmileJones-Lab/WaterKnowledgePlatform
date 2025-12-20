@@ -1,7 +1,5 @@
 package top.emilejones.hhu.application;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -139,7 +137,7 @@ public class KnowledgeApplicationService {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(id);
 
         // 如果不存在就报错
-        if (knowledgeCatalog == null){
+        if (knowledgeCatalog == null) {
             throw new NullPointerException("当前知识库不存在！");
         }
 
@@ -183,11 +181,11 @@ public class KnowledgeApplicationService {
 
         // 2.分页查询知识库中的向量化文件，这里需要多查一条用于判断是否存在下一页
         List<KnowledgeDocumentWithBindTime> knowledgeDocumentWithBindTimeList = knowledgeDocumentRepository
-                                                                                .findDocumentsWithBindInfoByCatalogId(dirId, limit + 1, offset, keyword);
+                .findDocumentsWithBindInfoByCatalogId(dirId, limit + 1, offset, keyword);
 
         // 3.判断是否存在下一页
         Boolean hasNextPage = false;
-        if (knowledgeDocumentWithBindTimeList.size() > limit){
+        if (knowledgeDocumentWithBindTimeList.size() > limit) {
             // 如果存在下一页就设置变量为ture，并移除最后一个数据
             hasNextPage = true;
             knowledgeDocumentWithBindTimeList.remove(knowledgeDocumentWithBindTimeList.size() - 1);
@@ -206,7 +204,7 @@ public class KnowledgeApplicationService {
                 .toList();
 
         // 4.2判断当前的nullEmbeddingMissionIds是否为空
-        if (!nullEmbeddingMissionIds.isEmpty()){
+        if (!nullEmbeddingMissionIds.isEmpty()) {
             // 不为空报错
             throw new NullPointerException("找不到下列的EmbeddingMission：" + String.join(",", nullEmbeddingMissionIds));
         }
@@ -275,7 +273,7 @@ public class KnowledgeApplicationService {
     /**
      * 向知识库中添加一个知识文件
      *
-     * @param dirId   知识库唯一Id
+     * @param dirId      知识库唯一Id
      * @param documentId 向量化文件唯一Id
      * @return 知识文件的元信息
      */
@@ -288,7 +286,7 @@ public class KnowledgeApplicationService {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(dirId);
 
         // 判空
-        if (knowledgeCatalog == null){
+        if (knowledgeCatalog == null) {
             throw new NullPointerException("当前知识库不存在！");
         }
 
@@ -302,7 +300,7 @@ public class KnowledgeApplicationService {
         EmbeddingMission embeddingMission = embeddingMissionRepository.findById(knowledgeDocument.getEmbeddingMissionId());
 
         // 判空
-        if (embeddingMission == null){
+        if (embeddingMission == null) {
             throw new NullPointerException("当前embeddingMission不存在！");
         }
 
@@ -372,7 +370,7 @@ public class KnowledgeApplicationService {
                 .toList();
 
         // 4.判断当前nullEmbeddingMissionIds是否为空
-        if (!nullEmbeddingMissionIds.isEmpty()){
+        if (!nullEmbeddingMissionIds.isEmpty()) {
             // 不空就报错
             throw new NullPointerException("找不到下列的EmbeddingMission：" + String.join(",", nullEmbeddingMissionIds));
         }
@@ -451,7 +449,7 @@ public class KnowledgeApplicationService {
         MissionStatus status = embeddingMission.getStatus();
 
         // 判断当前状态是否成功
-        if (status != MissionStatus.SUCCESS){
+        if (status != MissionStatus.SUCCESS) {
             // 不成功，就报错
             throw new IllegalArgumentException("EmbddingMission失败或还在执行中。");
         }

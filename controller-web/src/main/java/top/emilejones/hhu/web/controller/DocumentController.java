@@ -7,6 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
+import top.emilejones.hhu.application.DocumentApplicationService;
+import top.emilejones.hhu.application.dto.LazyPageDTO;
+import top.emilejones.hhu.application.dto.mission.MissionsDTO;
+import top.emilejones.hhu.application.dto.retrieval.TextNodeDTO;
+import top.emilejones.hhu.web.utils.VoConverter;
 import top.emilejones.hhu.web.vo.FailureVO;
 import top.emilejones.hhu.web.vo.LazyPageInfoVO;
 import top.emilejones.hhu.web.vo.mission.MissionsVO;
@@ -18,6 +23,12 @@ import java.util.List;
 @RequestMapping("/source-documents")
 @Tag(name = "DocumentManager", description = "关于文件管理的相关接口")
 public class DocumentController {
+
+    private final DocumentApplicationService documentApplicationService;
+
+    public DocumentController(DocumentApplicationService documentApplicationService) {
+        this.documentApplicationService = documentApplicationService;
+    }
 
     @GetMapping("/{fileId}/structure")
     @Operation(summary = "获取一个文件的层次结构",
@@ -37,7 +48,8 @@ public class DocumentController {
     public List<TextNodeVO> getFileStructureByFileId(
             @PathVariable("fileId") @Schema(description = "文件的唯一Id") String fileId
     ) {
-        return null;
+        List<TextNodeDTO> textNodeDTOList = documentApplicationService.getFileStructureByFileId(fileId);
+        return VoConverter.toTextNodeVOList(textNodeDTOList);
     }
 
     @GetMapping
@@ -61,6 +73,7 @@ public class DocumentController {
             @RequestParam(required = false) @Schema(name = "keyword", description = "模糊匹配文件名，如果为空则返回全部数据") String keyword,
             @RequestParam("hasMission") @Schema(name = "hasMission", description = "是否只返回有任务开启的文件列表？（目前只支持true）") Boolean hasMission
     ) {
-        return null;
+        LazyPageDTO<MissionsDTO> missionsList = documentApplicationService.getMissionsList(limit, pageNum, keyword, hasMission);
+        return new LazyPageInfoVO<>(missionsList.hasNextPage(), VoConverter.toMissionsVOList(missionsList.data()));
     }
 }

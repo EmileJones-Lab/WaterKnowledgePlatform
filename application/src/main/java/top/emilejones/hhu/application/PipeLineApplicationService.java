@@ -56,43 +56,47 @@ public class PipeLineApplicationService {
     /**
      * 删除指定的结构提取任务。
      *
-     * @param documentSplittingMissionId 结构提取任务的唯一标识。
+     * @param fileId 文件唯一Id。
      */
-    public void deleteExtractStructureMission(String documentSplittingMissionId) {
+    public void deleteExtractStructureMission(String fileId) {
         // 找到结构提取任务
-        Optional<StructureExtractionMission> successSplitterMissionOptional = structureExtractionMissionRepository.findBySourceDocumentId(documentSplittingMissionId)
-                .stream()
+        List<StructureExtractionMission> allSplitterMission = structureExtractionMissionRepository.findBySourceDocumentId(fileId);
+
+        Optional<StructureExtractionMission> successSplitterMissionOptional = allSplitterMission.stream()
                 .filter(mission ->
                         MissionStatus.SUCCESS.equals(mission.getStatus())
                 ).findFirst();
         if (successSplitterMissionOptional.isEmpty())
-            throw new IllegalStateException("文件 [" + documentSplittingMissionId + "] 不存在结构提取任务");
+            throw new IllegalStateException("文件 [" + fileId + "] 不存在结构提取任务");
         StructureExtractionMission successSplitterMission = successSplitterMissionOptional.get();
 
         // 找到OCR任务
-        Optional<OcrMission> successOcrMissionOptional = ocrMissionRepository.findBySourceDocumentId(documentSplittingMissionId)
-                .stream()
+        List<OcrMission> allOcrMission = ocrMissionRepository.findBySourceDocumentId(fileId);
+
+        Optional<OcrMission> successOcrMissionOptional = allOcrMission.stream()
                 .filter(mission ->
                         MissionStatus.SUCCESS.equals(mission.getStatus())
                 ).findFirst();
         if (successOcrMissionOptional.isEmpty())
-            throw new IllegalStateException("文件 [" + documentSplittingMissionId + "] 存在结构提取任务当不存在OCR任务");
+            throw new IllegalStateException("文件 [" + fileId + "] 存在结构提取任务当不存在OCR任务");
 
         OcrMission successOcrMission = successOcrMissionOptional.get();
 
         // 找到向量化任务
-        Optional<EmbeddingMission> successEmbeddingMissionOptional = embeddingMissionRepository.findBySourceDocumentId(documentSplittingMissionId)
-                .stream()
+        List<EmbeddingMission> allEmbeddingMission = embeddingMissionRepository.findBySourceDocumentId(fileId);
+
+        Optional<EmbeddingMission> successEmbeddingMissionOptional = allEmbeddingMission.stream()
                 .filter(mission ->
                         MissionStatus.SUCCESS.equals(mission.getStatus())
                 ).findFirst();
 
 
         // 删除OCR任务
-        ocrMissionRepository.delete(successOcrMission.getId());
+        allOcrMission.stream().map(OcrMission::getId).forEach(ocrMissionRepository::delete);
 
         // 删除向量化任务和结构提取任务
         String fileNodeId = successSplitterMission.getSuccessResult().getFileNodeId();
+        allEmbeddingMission.stream().map(EmbeddingMission::getId).forEach(embeddingMissionRepository::delete);
         // 删除向量化任务
         if (successEmbeddingMissionOptional.isPresent()) {
             EmbeddingMission successEmbeddingMission = successEmbeddingMissionOptional.get();
@@ -107,7 +111,7 @@ public class PipeLineApplicationService {
         }
         // 删除结构提取任务
         nodeRepository.deleteAllNodeByFileNodeId(fileNodeId);
-        structureExtractionMissionRepository.delete(successSplitterMission.getId());
+        allSplitterMission.stream().map(StructureExtractionMission::getId).forEach(structureExtractionMissionRepository::delete);
     }
 
     /**
@@ -121,7 +125,9 @@ public class PipeLineApplicationService {
         List<StructureExtractionMission> missions = sourceDocumentIdList.stream()
                 .map(this::findExistingOrCreateStructureExtractionMission)
                 .toList();
-        missions.forEach(mission -> mission.pushEvents().forEach(publisher::publishEvent));
+        missions.stream()
+                .filter(mission -> MissionStatus.PENDING.equals(mission.getStatus()))
+                .forEach(publisher::publishEvent);
         return missions.stream()
                 .map(DtoConverter::toDocumentSplittingMissionDTO)
                 .collect(Collectors.toList());
@@ -138,7 +144,9 @@ public class PipeLineApplicationService {
         List<EmbeddingMission> missions = sourceDocumentIdList.stream()
                 .map(this::findExistingOrCreateEmbeddingMission)
                 .toList();
-        missions.forEach(mission -> mission.pushEvents().forEach(publisher::publishEvent));
+        missions.stream()
+                .filter(mission -> MissionStatus.PENDING.equals(mission.getStatus()))
+                .forEach(publisher::publishEvent);
         return missions.stream()
                 .map(DtoConverter::toEmbeddingMissionDTO)
                 .collect(Collectors.toList());
@@ -153,7 +161,7 @@ public class PipeLineApplicationService {
                             UUID.randomUUID().toString(),
                             sourceDocumentId
                     );
-                    mission.preparedToExecution();
+                    structureExtractionMissionRepository.save(mission);
                     return mission;
                 });
     }
@@ -167,7 +175,7 @@ public class PipeLineApplicationService {
                             UUID.randomUUID().toString(),
                             sourceDocumentId
                     );
-                    mission.preparedToExecution();
+                    embeddingMissionRepository.save(mission);
                     return mission;
                 });
     }

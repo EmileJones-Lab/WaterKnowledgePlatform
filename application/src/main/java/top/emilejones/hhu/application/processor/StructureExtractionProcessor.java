@@ -1,6 +1,7 @@
 package top.emilejones.hhu.application.processor;
 
 import org.springframework.stereotype.Component;
+import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.StructureExtractionGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO;
@@ -39,18 +40,21 @@ public class StructureExtractionProcessor {
         OcrMission ocrMission = succeesfulOcrMissionOptional.orElseGet(() -> ocrProcessor.process(structureExtractionMission.getSourceDocumentId()));
         if (!ocrMission.isSuccess()) {
             structureExtractionMission.failure("OCR失败，无法开启结构提取任务");
-            ocrMissionRepository.save(ocrMission);
+            structureExtractionMissionRepository.save(structureExtractionMission);
             return structureExtractionMission;
         }
         // 开始根据之前的OCR结果进行结构提取
         OcrMissionResult.Success successResult = ocrMission.getSuccessResult();
         String markdownDocumentId =
-                Objects.requireNonNull(structureExtractionMission.getProcessedDocumentId());
+                Objects.requireNonNull(successResult.getMarkdownDocumentId());
         structureExtractionMission.start(markdownDocumentId);
         structureExtractionMissionRepository.save(structureExtractionMission);
         try {
             // 获取markdown文件内容
-            InputStream inputStream = processedDocumentRepository.openContent(markdownDocumentId);
+            Optional<ProcessedDocument> processedDocumentOptional = processedDocumentRepository.findById(markdownDocumentId);
+            if (processedDocumentOptional.isEmpty())
+                throw new IllegalAccessException("OCR任务存在，但是提取出来的markdown文件却不存在");
+            InputStream inputStream = processedDocumentRepository.openContent(processedDocumentOptional.get().getFilePath());
             // 提取markdown文件结构
             TextNodeDTO structure = structureExtractionGateway.extract(inputStream);
             // 为这个树状结构和源文件绑定

@@ -5,10 +5,7 @@ import top.emilejones.hhu.domain.pipeline.FileNode
 import top.emilejones.hhu.domain.pipeline.TextNode
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
-import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.asFileNode
-import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.asTextNode
-import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.diff
-import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.toNeo4jTextNode
+import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.*
 import top.emilejones.hhu.textsplitter.service.IRecallService
 import java.util.*
 
@@ -58,5 +55,15 @@ class Neo4jNodeRepositoryAdaptor(
             neo4jRepository.deleteTextNodeById(it.id)
         }
         neo4jRepository.deleteFileNodeById(fileNode.id)
+    }
+
+    override fun saveFileNode(fileNode: FileNode) {
+        val dbDatum = neo4jRepository.searchNeo4jFileNodeByNodeId(fileNode.id)
+        val newDatum = fileNode.toNeo4jFileNode()
+        if (dbDatum == null) {
+            neo4jRepository.insertNeo4jFileNode(newDatum)
+            return
+        }
+        neo4jRepository.updateNodeByElementId(dbDatum.elementId!!, dbDatum.diff(newDatum))
     }
 }

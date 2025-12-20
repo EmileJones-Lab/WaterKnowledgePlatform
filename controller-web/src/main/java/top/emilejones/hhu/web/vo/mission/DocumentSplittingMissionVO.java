@@ -16,6 +16,8 @@ public class DocumentSplittingMissionVO {
     private DocumentSplittingMissionType type;
     @Schema(description = "结构任务提取失败后详细说明")
     private String remark;
+    @Schema(description = "任务创建时间")
+    private Instant createTime;
     @Schema(description = "任务开始时间")
     private Instant startTime;
     @Schema(description = "任务结束时间")
@@ -43,6 +45,14 @@ public class DocumentSplittingMissionVO {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public Instant getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Instant createTime) {
+        this.createTime = createTime;
     }
 
     public Instant getStartTime() {
