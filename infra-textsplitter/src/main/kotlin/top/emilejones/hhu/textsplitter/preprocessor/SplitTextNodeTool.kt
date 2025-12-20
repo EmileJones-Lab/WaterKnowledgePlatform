@@ -135,7 +135,7 @@ class SplitTextNodeTool(
             ?: throw IllegalArgumentException("此文件没有标题，请检查此文件: [${oldNode.fileNode?.id}]")
 
         if (oldNode.childNum() != 0)
-            throw IllegalArgumentException("不能切分非叶子节点")
+            throw IllegalStateException("不能切分非叶子节点")
 
         // 找到当前节点是父亲的第几个孩子
         var index = -1

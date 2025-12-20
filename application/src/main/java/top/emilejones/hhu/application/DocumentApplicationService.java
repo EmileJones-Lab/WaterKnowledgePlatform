@@ -55,6 +55,8 @@ public class DocumentApplicationService {
 
         String fileNodeId = successStructureExtractionMissionOptional.get().getSuccessResult().getFileNodeId();
         List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
+        if (textNodeList.isEmpty())
+            throw new IllegalStateException("还没有提取出结构化文本");
         return ListDtoConverter.toTextNodeDTOList(textNodeList);
     }
 
@@ -69,7 +71,7 @@ public class DocumentApplicationService {
      */
     public LazyPageDTO<MissionsDTO> getMissionsList(Integer limit, Integer pageNum, String keyword, Boolean hasMission) {
         if (!hasMission)
-            throw new IllegalArgumentException("目前只支持查询开启任务的文件信息列表");
+            throw new UnsupportedOperationException("目前只支持查询开启任务的文件信息列表");
         List<String> fileIdList = ocrMissionRepository.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit + 1, pageNum * limit, keyword);
         boolean hasNextPage = false;
         if (fileIdList.size() > limit){

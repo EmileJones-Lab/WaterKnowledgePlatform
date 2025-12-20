@@ -179,13 +179,12 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * 这实质上是一个“unbind”操作，通过软删除（更新collection_document的isDelete字段）来解除绑定。
      * @param knowledgeCatalogId 知识库的ID。
      * @param knowledgeDocumentIdList 待解绑的向量化文件ID列表。
-     * @throws IllegalArgumentException 如果知识文档ID列表为null或为空。
      */
     @Override
     public void deleteKnowledgeDocumentFromKnowledgeCatalog(@NotNull String knowledgeCatalogId, @NotNull List<String> knowledgeDocumentIdList) {
-        // 做非法判断
-        if (knowledgeDocumentIdList == null || knowledgeDocumentIdList.isEmpty()){
-            throw new IllegalArgumentException("清选择你要删除的向量化文件");
+        // 静默处理
+        if (knowledgeDocumentIdList.isEmpty()){
+            return;
         }
 
         // 进行解绑，软删除操作，实质就是更新collection_document的isdelete字段
@@ -211,7 +210,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
      * 如果类型不匹配，则抛出 IllegalArgumentException。
      * @param knowledgeDocument 待验证的知识文档。
      * @param knowledgeCatalog 待验证的目标知识库。
-     * @throws IllegalArgumentException 如果文档类型和知识库类型不兼容。
+     * @throws IllegalStateException 如果文档类型和知识库类型不兼容。
      */
     private void validateDocumentAndCatalogType(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog) {
         KnowledgeDocumentType documentType = knowledgeDocument.getType();
@@ -224,17 +223,17 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
 
         // 结构切割的文件绑定到非结构知识库
         if (documentType == KnowledgeDocumentType.STRUCTURE_SPLITTER && catalogType != KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR) {
-            throw new IllegalArgumentException("根据文本结构切割的文件必须绑定到基于文本层次结构的知识库");
+            throw new IllegalStateException("根据文本结构切割的文件必须绑定到基于文本层次结构的知识库");
         }
 
         // 字符切割的文件绑定到非字符知识库
         if (charTypes.contains(documentType) && catalogType != KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR) {
-            throw new IllegalArgumentException("字符长度切割类型的文件必须绑定到字符长度切割的知识库");
+            throw new IllegalStateException("字符长度切割类型的文件必须绑定到字符长度切割的知识库");
         }
 
         // 未知的切割类型
         if (!charTypes.contains(documentType) && documentType != KnowledgeDocumentType.STRUCTURE_SPLITTER) {
-            throw new IllegalArgumentException("未知的知识文档类型，无法绑定");
+            throw new IllegalStateException("未知的知识文档类型，无法绑定");
         }
     }
 

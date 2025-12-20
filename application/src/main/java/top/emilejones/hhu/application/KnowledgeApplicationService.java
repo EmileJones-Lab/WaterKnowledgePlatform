@@ -451,7 +451,7 @@ public class KnowledgeApplicationService {
         // 判断当前状态是否成功
         if (status != MissionStatus.SUCCESS) {
             // 不成功，就报错
-            throw new IllegalArgumentException("EmbddingMission失败或还在执行中。");
+            throw new IllegalStateException("失败的EmbeddingMission无法成为一个KnowledgeDocument");
         }
 
         // 成功就保存产生的向量化文件
