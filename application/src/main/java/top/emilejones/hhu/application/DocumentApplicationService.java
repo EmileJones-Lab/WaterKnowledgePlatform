@@ -51,12 +51,10 @@ public class DocumentApplicationService {
                 .findFirst();
 
         if (successStructureExtractionMissionOptional.isEmpty())
-            return List.of();
+            throw new IllegalStateException("还没有提取出结构化文本");
 
         String fileNodeId = successStructureExtractionMissionOptional.get().getSuccessResult().getFileNodeId();
         List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
-        if (textNodeList.isEmpty())
-            throw new IllegalStateException("还没有提取出结构化文本");
         return ListDtoConverter.toTextNodeDTOList(textNodeList);
     }
 

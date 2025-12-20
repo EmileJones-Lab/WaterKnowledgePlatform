@@ -70,7 +70,7 @@ public class DocumentController {
     public LazyPageInfoVO<MissionsVO> getMissionsList(
             @RequestParam("limit") @Schema(name = "limit", description = "每页多少个数据") Integer limit,
             @RequestParam("pageNum") @Schema(name = "pageNum", description = "第几页（从0开始）") Integer pageNum,
-            @RequestParam(required = false) @Schema(name = "keyword", description = "模糊匹配文件名，如果为空则返回全部数据") String keyword,
+            @RequestParam(name = "keyword", required = false) @Schema(name = "keyword", description = "模糊匹配文件名，如果为空则返回全部数据") String keyword,
             @RequestParam("hasMission") @Schema(name = "hasMission", description = "是否只返回有任务开启的文件列表？（目前只支持true）") Boolean hasMission
     ) {
         LazyPageDTO<MissionsDTO> missionsList = documentApplicationService.getMissionsList(limit, pageNum, keyword, hasMission);

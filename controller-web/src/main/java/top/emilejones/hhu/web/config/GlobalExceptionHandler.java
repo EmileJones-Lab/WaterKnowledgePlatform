@@ -15,7 +15,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * 处理 IllegalArgumentException 异常，返回 400
+     * 处理 IllegalArgumentException 异常，返回 500
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
@@ -44,14 +44,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<Map<String, String>> handleNullPointerException(NullPointerException e) {
         return buildResponse(e.getMessage() != null ? e.getMessage() : "Null Pointer Exception", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    /**
-     * 处理所有其他异常，返回 500
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleException(Exception e) {
-        return buildResponse(e.getMessage() != null ? e.getMessage() : "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity<Map<String, String>> buildResponse(String message, HttpStatus status) {
