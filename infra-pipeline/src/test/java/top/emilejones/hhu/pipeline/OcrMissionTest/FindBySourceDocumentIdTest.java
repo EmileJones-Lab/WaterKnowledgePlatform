@@ -158,19 +158,15 @@ public class FindBySourceDocumentIdTest {
                     // 保持CREATED状态
                     break;
                 case 1:
-                    ocrMission.preparedToExecution();
                     break;
                 case 2:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     break;
                 case 3:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     ocrMission.success("processed-doc-" + i);
                     break;
                 case 4:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     ocrMission.failure("Test error"); // ERROR状态
                     break;
@@ -264,7 +260,6 @@ public class FindBySourceDocumentIdTest {
         // 创建成功的任务
         String successMissionId = UUID.randomUUID().toString();
         OcrMission successMission = OcrMission.Companion.create(successMissionId, sourceDocumentId);
-        successMission.preparedToExecution();
         successMission.start();
         successMission.success("processed-doc-success");
         ocrMissionService.save(successMission);
@@ -273,7 +268,6 @@ public class FindBySourceDocumentIdTest {
         // 创建失败的任务
         String failedMissionId = UUID.randomUUID().toString();
         OcrMission failedMission = OcrMission.Companion.create(failedMissionId, sourceDocumentId);
-        failedMission.preparedToExecution();
         failedMission.start();
         failedMission.failure("Test failure reason");
         ocrMissionService.save(failedMission);

@@ -94,7 +94,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
         ocrMission.success(UUID.randomUUID().toString());
 
@@ -125,7 +124,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
         ocrMission.failure("Test failure for deletion");
 
@@ -157,7 +155,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
 
         ocrMissionService.save(ocrMission);
@@ -235,7 +232,6 @@ public class DeleteTest {
         OcrMission ocrMission2 = OcrMission.Companion.create(missionId2, sourceDocumentId);
         OcrMission ocrMission3 = OcrMission.Companion.create(missionId3, sourceDocumentId);
 
-        ocrMission1.preparedToExecution();
         ocrMission1.start();
         ocrMission1.success(UUID.randomUUID().toString());
 
@@ -316,7 +312,6 @@ public class DeleteTest {
             sourceDocumentIds.add(sourceDocumentId);
 
             OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-            ocrMission.preparedToExecution();
             ocrMissionService.save(ocrMission);
             createdMissionIds.add(missionId);
         }

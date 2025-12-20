@@ -106,14 +106,11 @@ public class SaveBatchTest {
                     // 保持CREATED状态
                     break;
                 case 1:
-                    ocrMission.preparedToExecution();
                     break;
                 case 2:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     break;
                 case 3:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     ocrMission.success(UUID.randomUUID().toString());
                     break;
@@ -184,7 +181,6 @@ public class SaveBatchTest {
             OcrMission existingMission = ocrMissionService.findById(missionId);
             assertNotNull(existingMission);
 
-            existingMission.preparedToExecution();
             existingMission.start();
 
             if (i % 2 == 0) {

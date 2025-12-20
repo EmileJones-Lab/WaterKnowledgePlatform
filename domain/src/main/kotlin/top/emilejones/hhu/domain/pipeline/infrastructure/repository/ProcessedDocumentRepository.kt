@@ -43,4 +43,15 @@ interface ProcessedDocumentRepository {
      * @return 文档内容流，调用方负责关闭
      */
     fun openContent(filePath: String): InputStream
+
+    /**
+     * 删除处理后文档（软删除）。
+     *
+     * 约定：
+     * - 仅标记元数据为删除状态，保留物理文件与记录。
+     * - 若 ID 不存在，实现应静默处理或抛出特定异常（视业务需求定，此处建议静默）。
+     *
+     * @param markdownDocumentId 处理后文档的唯一标识
+     */
+    fun delete(markdownDocumentId: String)
 }

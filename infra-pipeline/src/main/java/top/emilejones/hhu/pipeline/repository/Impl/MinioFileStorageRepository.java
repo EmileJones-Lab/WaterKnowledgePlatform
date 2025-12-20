@@ -16,27 +16,36 @@ import java.io.InputStream;
 public class MinioFileStorageRepository implements FileStorageRepository {
 
     private final MinioClient minioClient;
-    private final String bucketName = "bamboo"; // 建议从配置类读取
 
     public MinioFileStorageRepository(MinioClient minioClient) {
         this.minioClient = minioClient;
     }
 
     @Override
-    public String save(InputStream content, String objectName) {
+    public String save(InputStream content, String path) {
         try {
-            // 使用自定义的 MinioClient 配置进行保存
+            // 解析路径以获取 bucketName 和 objectKey
+            // 输入格式如：/bamboo/OCR/2025/11/sdf.md
+            String clean = path.startsWith("/") ? path.substring(1) : path;
+            int slashIndex = clean.indexOf("/");
+            if (slashIndex == -1) {
+                throw new IllegalArgumentException("路径格式错误，必须包含 bucketName: " + path);
+            }
+            String bucketName = clean.substring(0, slashIndex);
+            String objectKey = clean.substring(slashIndex + 1);
+
+            // 使用解析出的 bucketName 和 objectKey 进行保存
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
-                            .object(objectName)
+                            .object(objectKey)
                             .stream(content, content.available(), -1)
                             .build()
             );
-            // 返回符合约定的路径格式：/bucket/objectKey
-            return "/" + bucketName + "/" + objectName;
+            // 返回原始路径格式 /bucket/objectKey
+            return path.startsWith("/") ? path : "/" + path;
         } catch (Exception e) {
-            throw new RuntimeException("MinIO 保存失败: " + objectName, e);
+            throw new RuntimeException("MinIO 保存失败: " + path, e);
         }
     }
 

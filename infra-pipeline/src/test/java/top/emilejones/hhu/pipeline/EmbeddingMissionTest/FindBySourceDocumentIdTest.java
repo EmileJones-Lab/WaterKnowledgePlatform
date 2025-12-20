@@ -140,19 +140,15 @@ public class FindBySourceDocumentIdTest {
                     // 保持CREATED状态
                     break;
                 case 1:
-                    embeddingMission.preparedToExecution();
                     break;
                 case 2:
-                    embeddingMission.preparedToExecution();
                     embeddingMission.start(UUID.randomUUID().toString());
                     break;
                 case 3:
-                    embeddingMission.preparedToExecution();
                     embeddingMission.start(UUID.randomUUID().toString());
                     embeddingMission.success(UUID.randomUUID().toString());
                     break;
                 case 4:
-                    embeddingMission.preparedToExecution();
                     embeddingMission.start(UUID.randomUUID().toString());
                     embeddingMission.failure("向量化处理失败");
                     break;
@@ -237,7 +233,6 @@ public class FindBySourceDocumentIdTest {
         // 创建成功的任务
         String successMissionId = UUID.randomUUID().toString();
         EmbeddingMission successMission = EmbeddingMission.Companion.create(successMissionId, sourceDocumentId);
-        successMission.preparedToExecution();
         successMission.start(UUID.randomUUID().toString());
         successMission.success(UUID.randomUUID().toString());
         embeddingMissionService.save(successMission);
@@ -246,7 +241,6 @@ public class FindBySourceDocumentIdTest {
         // 创建失败的任务
         String failedMissionId = UUID.randomUUID().toString();
         EmbeddingMission failedMission = EmbeddingMission.Companion.create(failedMissionId, sourceDocumentId);
-        failedMission.preparedToExecution();
         failedMission.start(UUID.randomUUID().toString());
         failedMission.failure("向量化服务连接失败");
         embeddingMissionService.save(failedMission);

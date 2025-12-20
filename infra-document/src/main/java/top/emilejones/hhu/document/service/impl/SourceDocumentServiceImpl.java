@@ -122,7 +122,7 @@ public class SourceDocumentServiceImpl implements SourceDocumentRepository {
             }
         }
         return new SourceDocument(
-                String.valueOf(sourceDocumentPO.getId()),
+                sourceDocumentPO.getFileId(),
                 sourceDocumentPO.getFilename(),
                 sourceDocumentPO.getCatapath(),
                 filePath,

@@ -81,7 +81,6 @@ public class SaveTest {
         assertEquals(MissionStatus.CREATED, saved.getStatus());
 
         String processedDocumentId = UUID.randomUUID().toString();
-        saved.preparedToExecution();
         saved.start(processedDocumentId);
         structureExtractionMissionService.save(saved);
 
@@ -114,7 +113,6 @@ public class SaveTest {
         String processedDocumentId = UUID.randomUUID().toString();
 
         StructureExtractionMission mission = StructureExtractionMission.Companion.create(missionId, sourceDocumentId);
-        mission.preparedToExecution();
         mission.start(processedDocumentId);
 
         String errorMessage = "Structure extraction failed due to invalid structure";

@@ -90,7 +90,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentId);
-        embeddingMission.preparedToExecution();
         embeddingMission.start(UUID.randomUUID().toString());
         embeddingMission.success(UUID.randomUUID().toString());
 
@@ -120,7 +119,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentId);
-        embeddingMission.preparedToExecution();
         embeddingMission.start(UUID.randomUUID().toString());
         embeddingMission.failure("向量化服务连接失败");
 
@@ -151,7 +149,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentId);
-        embeddingMission.preparedToExecution();
         embeddingMission.start(UUID.randomUUID().toString());
 
         embeddingMissionService.save(embeddingMission);
@@ -228,7 +225,6 @@ public class DeleteTest {
         EmbeddingMission embeddingMission2 = EmbeddingMission.Companion.create(missionId2, sourceDocumentId);
         EmbeddingMission embeddingMission3 = EmbeddingMission.Companion.create(missionId3, sourceDocumentId);
 
-        embeddingMission1.preparedToExecution();
         embeddingMission1.start(UUID.randomUUID().toString());
         embeddingMission1.success(UUID.randomUUID().toString());
 

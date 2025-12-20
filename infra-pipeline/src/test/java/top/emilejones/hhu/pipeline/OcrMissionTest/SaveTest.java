@@ -90,7 +90,6 @@ public class SaveTest {
         assertEquals(MissionStatus.CREATED, savedMission.getStatus());
 
         // 更新任务状态为执行中
-        savedMission.preparedToExecution();
         savedMission.start();
         ocrMissionService.save(savedMission);
 
@@ -123,7 +122,6 @@ public class SaveTest {
 
         // 创建任务
         OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
 
         // 设置为失败状态

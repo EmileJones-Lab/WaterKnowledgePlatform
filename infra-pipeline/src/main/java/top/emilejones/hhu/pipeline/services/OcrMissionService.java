@@ -116,7 +116,7 @@ public class OcrMissionService {
 
 
     /**
-     * 删除指定的OCR任务（物理删除）。
+     * 删除指定的OCR任务（软删除）。
      *
      * @param ocrMissionId 待删除OCR任务的ID。
      */
@@ -125,8 +125,13 @@ public class OcrMissionService {
             throw new IllegalArgumentException("Ocr mission ID cannot be blank");
         }
 
-        // 物理删除对应的OCR任务
-        ocrMissionMapper.hardDelete(ocrMissionId);
+        OcrMissionPo ocrMissionPo = new OcrMissionPo();
+        // 对需要删除的信息封装成OcrMissionPo对象
+        ocrMissionPo.setOcrMissionId(ocrMissionId);
+        ocrMissionPo.setIsDelete(DeleteConstant.DELETE);
+
+        // 删除对应的OCR任务，因为这里是软删除所以调用的是update方法
+        ocrMissionMapper.softDelete(ocrMissionPo);
     }
 
 

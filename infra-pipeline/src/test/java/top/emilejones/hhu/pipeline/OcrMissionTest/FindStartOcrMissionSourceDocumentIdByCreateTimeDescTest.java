@@ -63,7 +63,6 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
             String sourceDocumentId = UUID.randomUUID().toString();
 
             OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-            ocrMission.preparedToExecution();
 
             if (i % 2 == 0) {
                 ocrMission.start();
@@ -108,7 +107,6 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
             allSourceDocIds.add(sourceDocumentId);
 
             OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-            ocrMission.preparedToExecution();
             ocrMission.start();
 
             ocrMissionService.save(ocrMission);
@@ -136,7 +134,6 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
         // 1. 创建一个较早的、状态优先级较低的任务 (SUCCESS - 5)
         String missionId1 = UUID.randomUUID().toString();
         OcrMission oldMission = OcrMission.Companion.create(missionId1, sharedFileId);
-        oldMission.preparedToExecution();
         oldMission.start();
         oldMission.success("doc1");
         // 模拟较早创建时间（通过先保存）
@@ -148,7 +145,6 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
         // 这里测试 PENDING (2)
         String missionId2 = UUID.randomUUID().toString();
         OcrMission newMission = OcrMission.Companion.create(missionId2, sharedFileId);
-        newMission.preparedToExecution(); // PENDING
         
         ocrMissionService.save(newMission);
         createdMissionIds.add(missionId2);
@@ -157,7 +153,6 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
         String otherFileId = UUID.randomUUID().toString();
         String missionId3 = UUID.randomUUID().toString();
         OcrMission otherMission = OcrMission.Companion.create(missionId3, otherFileId);
-        otherMission.preparedToExecution();
         ocrMissionService.save(otherMission);
         createdMissionIds.add(missionId3);
 
@@ -201,14 +196,12 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
         // 目标任务
         String missionId1 = UUID.randomUUID().toString();
         OcrMission targetMission = OcrMission.Companion.create(missionId1, targetFileId);
-        targetMission.preparedToExecution();
         ocrMissionService.save(targetMission);
         createdMissionIds.add(missionId1);
 
         // 干扰任务
         String missionId2 = UUID.randomUUID().toString();
         OcrMission otherMission = OcrMission.Companion.create(missionId2, otherFileId);
-        otherMission.preparedToExecution();
         ocrMissionService.save(otherMission);
         createdMissionIds.add(missionId2);
 
@@ -231,7 +224,6 @@ public class FindStartOcrMissionSourceDocumentIdByCreateTimeDescTest {
     public void findStartOcrMissionBoundaryTest() {
         String missionId = UUID.randomUUID().toString();
         OcrMission m = OcrMission.Companion.create(missionId, UUID.randomUUID().toString());
-        m.preparedToExecution();
         ocrMissionService.save(m);
         createdMissionIds.add(missionId);
 

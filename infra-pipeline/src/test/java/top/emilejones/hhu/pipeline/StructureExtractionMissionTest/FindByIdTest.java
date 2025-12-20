@@ -79,7 +79,6 @@ public class FindByIdTest {
         String processedDocumentId = UUID.randomUUID().toString();
 
         StructureExtractionMission mission = StructureExtractionMission.Companion.create(missionId, sourceDocumentId);
-        mission.preparedToExecution();
         mission.start(processedDocumentId);
         structureExtractionMissionService.save(mission);
         createdMissionIds.add(missionId);
@@ -100,7 +99,6 @@ public class FindByIdTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         StructureExtractionMission mission = StructureExtractionMission.Companion.create(missionId, sourceDocumentId);
-        mission.preparedToExecution();
         mission.start(UUID.randomUUID().toString());
         mission.success(UUID.randomUUID().toString());
         structureExtractionMissionService.save(mission);
@@ -122,7 +120,6 @@ public class FindByIdTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         StructureExtractionMission mission = StructureExtractionMission.Companion.create(missionId, sourceDocumentId);
-        mission.preparedToExecution();
         mission.start(UUID.randomUUID().toString());
         mission.failure("Test failure");
         structureExtractionMissionService.save(mission);

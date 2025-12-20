@@ -82,7 +82,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         StructureExtractionMission mission = StructureExtractionMission.Companion.create(missionId, sourceDocumentId);
-        mission.preparedToExecution();
         mission.start(UUID.randomUUID().toString());
         mission.success(UUID.randomUUID().toString());
 
@@ -109,7 +108,6 @@ public class DeleteTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         StructureExtractionMission mission = StructureExtractionMission.Companion.create(missionId, sourceDocumentId);
-        mission.preparedToExecution();
         mission.start(UUID.randomUUID().toString());
         mission.failure("Test failure for deletion");
 

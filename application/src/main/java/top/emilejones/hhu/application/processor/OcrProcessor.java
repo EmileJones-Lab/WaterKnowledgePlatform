@@ -14,6 +14,7 @@ import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,10 +47,11 @@ public class OcrProcessor {
             SourceDocument sourceDocument = sourceDocumentOptional.get();
             InputStream content = sourceDocumentRepository.openContent(sourceDocument.getFilePath());
             MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(content);
-            ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + sourceDocument.getName(), ProcessedDocumentType.MARKDOWN);
+            String markdownProcessedFileId = UUID.randomUUID().toString();
+            ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(markdownProcessedFileId, sourceDocument.getId(), generateFilePath(markdownProcessedFileId + ".md"), ProcessedDocumentType.MARKDOWN);
             minerUMarkdownFile.getImages()
                     .forEach(minerUImage -> {
-                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), "/StructureExtraction/MarkdownOCR/" + minerUImage.getRelativePath(), ProcessedDocumentType.PNG);
+                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), generateFilePath(minerUImage.getRelativePath()), ProcessedDocumentType.PNG);
                         processedDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
                     });
             processedDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));
@@ -62,5 +64,14 @@ public class OcrProcessor {
 
         ocrMissionRepository.save(ocrMission);
         return ocrMission;
+    }
+
+    private String generateFilePath(String relativePath) {
+        LocalDate now = LocalDate.now();
+        return String.format("/bamboo/StructureExtraction/%d/%d/%d/%s",
+                now.getYear(),
+                now.getMonthValue(),
+                now.getDayOfMonth(),
+                relativePath);
     }
 }

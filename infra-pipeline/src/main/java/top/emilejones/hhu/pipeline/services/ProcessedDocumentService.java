@@ -41,15 +41,11 @@ public class ProcessedDocumentService {
      * @param content           Markdown 正文内容流；调用方负责在写入完成后关闭流
      */
     public void save(@NotNull ProcessedDocument processedDocument, @NotNull InputStream content) {
-        // 1. 从文件路径中提取文件名
-        String objectName = resolveObjectName(processedDocument.getFilePath());
+        // 1. 存入 MinIO
+        fileStorageRepository.save(content, processedDocument.getFilePath());
 
-        // 2. 调用仓储存入 MinIO，获取路径
-        String minioPath = fileStorageRepository.save(content, objectName);
-
-        // 3. 将 MinIO 路径写回 PO 并存入数据库
+        // 2. 记录元数据
         ProcessedDocumentPo po = convertToPo(processedDocument);
-        po.setFilePath(minioPath);
         processedDocumentMapper.upsertProcessedDocument(po);
     }
 
@@ -67,6 +63,23 @@ public class ProcessedDocumentService {
 
         ProcessedDocumentPo po = processedDocumentMapper.findById(id);
         return po != null ? Optional.of(PoToDomainUtil.toProcessedDocumentDomain(po)) : Optional.empty();
+    }
+
+    /**
+     * 删除指定的处理后文档（软删除）。
+     *
+     * @param processedDocumentId 待删除处理后文档的ID。
+     */
+    public void delete(String processedDocumentId) {
+        if (processedDocumentId == null || processedDocumentId.isBlank()) {
+            throw new IllegalArgumentException("Processed document ID cannot be blank");
+        }
+
+        ProcessedDocumentPo po = new ProcessedDocumentPo();
+        po.setProcessedDocumentId(processedDocumentId);
+        po.setIsDelete(DeleteConstant.DELETE);
+
+        processedDocumentMapper.softDelete(po);
     }
 
     /**

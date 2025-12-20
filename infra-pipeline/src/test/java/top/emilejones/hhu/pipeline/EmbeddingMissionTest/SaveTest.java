@@ -83,7 +83,6 @@ public class SaveTest {
         assertEquals(MissionStatus.CREATED, saved.getStatus());
 
         String fileNodeId = UUID.randomUUID().toString();
-        saved.preparedToExecution();
         saved.start(fileNodeId);
         embeddingMissionService.save(saved);
 
@@ -116,7 +115,6 @@ public class SaveTest {
         String fileNodeId = UUID.randomUUID().toString();
 
         EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentId);
-        embeddingMission.preparedToExecution();
         embeddingMission.start(fileNodeId);
 
         String errorMessage = "向量化处理失败，Milvus连接超时";

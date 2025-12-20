@@ -90,7 +90,6 @@ public class FindByIdTest {
         String processedDocumentId = UUID.randomUUID().toString();
 
         OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
         ocrMission.success(processedDocumentId);
 
@@ -126,7 +125,6 @@ public class FindByIdTest {
         String errorMessage = "Test error message: file format not supported";
 
         OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
         ocrMission.failure(errorMessage);
 
@@ -161,7 +159,6 @@ public class FindByIdTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         OcrMission ocrMission = OcrMission.Companion.create(missionId, sourceDocumentId);
-        ocrMission.preparedToExecution();
         ocrMission.start();
 
         ocrMissionService.save(ocrMission);
@@ -204,19 +201,15 @@ public class FindByIdTest {
                     // 保持CREATED状态
                     break;
                 case 1:
-                    ocrMission.preparedToExecution();
                     break;
                 case 2:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     break;
                 case 3:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     ocrMission.success(UUID.randomUUID().toString());
                     break;
                 case 4:
-                    ocrMission.preparedToExecution();
                     ocrMission.start();
                     ocrMission.failure("Error for test " + i);
                     break;

@@ -123,13 +123,10 @@ public class FindBySourceDocumentIdTest {
             missionIds[i] = UUID.randomUUID().toString();
             StructureExtractionMission mission = StructureExtractionMission.Companion.create(missionIds[i], sourceDocumentId);
             switch (i) {
-                case 1 -> mission.preparedToExecution();
                 case 2 -> {
-                    mission.preparedToExecution();
                     mission.start(UUID.randomUUID().toString());
                 }
                 case 3 -> {
-                    mission.preparedToExecution();
                     mission.start(UUID.randomUUID().toString());
                     mission.success(UUID.randomUUID().toString());
                 }

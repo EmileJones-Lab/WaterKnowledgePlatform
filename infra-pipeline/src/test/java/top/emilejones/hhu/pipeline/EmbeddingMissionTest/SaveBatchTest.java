@@ -101,14 +101,11 @@ public class SaveBatchTest {
                     // 保持CREATED状态
                     break;
                 case 1:
-                    embeddingMission.preparedToExecution();
                     break;
                 case 2:
-                    embeddingMission.preparedToExecution();
                     embeddingMission.start(UUID.randomUUID().toString());
                     break;
                 case 3:
-                    embeddingMission.preparedToExecution();
                     embeddingMission.start(UUID.randomUUID().toString());
                     embeddingMission.success(UUID.randomUUID().toString());
                     break;
@@ -175,7 +172,6 @@ public class SaveBatchTest {
             EmbeddingMission existingMission = embeddingMissionService.findById(missionId);
             assertNotNull(existingMission);
 
-            existingMission.preparedToExecution();
             existingMission.start(UUID.randomUUID().toString());
 
             if (i % 2 == 0) {

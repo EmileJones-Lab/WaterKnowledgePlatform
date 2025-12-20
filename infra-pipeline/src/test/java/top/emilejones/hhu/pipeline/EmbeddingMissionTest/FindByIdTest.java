@@ -82,7 +82,6 @@ public class FindByIdTest {
         String fileNodeId = UUID.randomUUID().toString();
 
         EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentId);
-        embeddingMission.preparedToExecution();
         embeddingMission.start(fileNodeId);
         embeddingMissionService.save(embeddingMission);
         createdMissionIds.add(missionId);
@@ -103,7 +102,6 @@ public class FindByIdTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentId);
-        embeddingMission.preparedToExecution();
         embeddingMission.start(UUID.randomUUID().toString());
         embeddingMission.success(UUID.randomUUID().toString());
         embeddingMissionService.save(embeddingMission);
@@ -125,7 +123,6 @@ public class FindByIdTest {
         String sourceDocumentId = UUID.randomUUID().toString();
 
         EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentId);
-        embeddingMission.preparedToExecution();
         embeddingMission.start(UUID.randomUUID().toString());
         embeddingMission.failure("向量化处理失败");
         embeddingMissionService.save(embeddingMission);

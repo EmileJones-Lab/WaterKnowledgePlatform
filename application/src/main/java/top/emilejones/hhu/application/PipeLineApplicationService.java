@@ -18,10 +18,7 @@ import top.emilejones.hhu.domain.pipeline.MissionStatus;
 import top.emilejones.hhu.domain.pipeline.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.*;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
@@ -41,8 +38,9 @@ public class PipeLineApplicationService {
     private final OcrMissionRepository ocrMissionRepository;
     private final KnowledgeDocumentRepository knowledgeDocumentRepository;
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;
+    private final ProcessedDocumentRepository processedDocumentRepository;
 
-    public PipeLineApplicationService(ApplicationEventPublisher publisher, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository) {
+    public PipeLineApplicationService(ApplicationEventPublisher publisher, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository, ProcessedDocumentRepository processedDocumentRepository) {
         this.publisher = publisher;
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.embeddingMissionRepository = embeddingMissionRepository;
@@ -51,6 +49,7 @@ public class PipeLineApplicationService {
         this.ocrMissionRepository = ocrMissionRepository;
         this.knowledgeDocumentRepository = knowledgeDocumentRepository;
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
+        this.processedDocumentRepository = processedDocumentRepository;
     }
 
     /**
@@ -92,7 +91,10 @@ public class PipeLineApplicationService {
 
 
         // 删除OCR任务
+        String markdownDocumentId = successOcrMission.getSuccessResult().getMarkdownDocumentId();
+        processedDocumentRepository.delete(markdownDocumentId);
         allOcrMission.stream().map(OcrMission::getId).forEach(ocrMissionRepository::delete);
+
 
         // 删除向量化任务和结构提取任务
         String fileNodeId = successSplitterMission.getSuccessResult().getFileNodeId();
@@ -109,6 +111,7 @@ public class PipeLineApplicationService {
                 embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
             });
         }
+
         // 删除结构提取任务
         nodeRepository.deleteAllNodeByFileNodeId(fileNodeId);
         allSplitterMission.stream().map(StructureExtractionMission::getId).forEach(structureExtractionMissionRepository::delete);

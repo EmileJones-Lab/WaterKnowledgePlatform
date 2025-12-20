@@ -185,11 +185,9 @@ public class FindBatchBySourceDocumentIdTest {
             EmbeddingMission embeddingMission = EmbeddingMission.Companion.create(missionId, sourceDocumentIds[0]);
 
             if (i == 1) {
-                embeddingMission.preparedToExecution();
                 embeddingMission.start(UUID.randomUUID().toString());
                 embeddingMission.success(UUID.randomUUID().toString());
             } else if (i == 2) {
-                embeddingMission.preparedToExecution();
                 embeddingMission.start(UUID.randomUUID().toString());
                 embeddingMission.failure("处理失败");
             }
@@ -204,7 +202,6 @@ public class FindBatchBySourceDocumentIdTest {
         // 第三个源文档：1个运行中的任务
         String runningMissionId = UUID.randomUUID().toString();
         EmbeddingMission runningMission = EmbeddingMission.Companion.create(runningMissionId, sourceDocumentIds[2]);
-        runningMission.preparedToExecution();
         runningMission.start(UUID.randomUUID().toString());
         embeddingMissionService.save(runningMission);
         createdMissionIds.add(runningMissionId);

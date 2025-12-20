@@ -93,13 +93,10 @@ public class SaveBatchTest {
                 case 0 -> {
                     // CREATED
                 }
-                case 1 -> mission.preparedToExecution();
                 case 2 -> {
-                    mission.preparedToExecution();
                     mission.start(UUID.randomUUID().toString());
                 }
                 case 3 -> {
-                    mission.preparedToExecution();
                     String processedId = UUID.randomUUID().toString();
                     mission.start(processedId);
                     mission.success(UUID.randomUUID().toString());
@@ -157,7 +154,6 @@ public class SaveBatchTest {
             StructureExtractionMission existing = structureExtractionMissionService.findById(missionIds.get(i));
             assertNotNull(existing);
 
-            existing.preparedToExecution();
             existing.start(UUID.randomUUID().toString());
 
             if (i % 2 == 0) {

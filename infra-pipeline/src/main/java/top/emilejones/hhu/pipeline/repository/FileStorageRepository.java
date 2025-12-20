@@ -10,7 +10,7 @@ import java.io.InputStream;
 public interface FileStorageRepository {
 
     // 保存并返回最终在存储系统里的路径/Key
-    String save(InputStream content, String objectName);
+    String save(InputStream content, String path);
 
     // 打开存储系统里的流
     InputStream open(String path);

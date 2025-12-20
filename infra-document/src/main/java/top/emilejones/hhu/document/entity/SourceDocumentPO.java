@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class SourceDocumentPO {
     private int id;
-    private String fileid;
+    private String fileId;
     private String filename;
     private String catapath;
     private String filepath;

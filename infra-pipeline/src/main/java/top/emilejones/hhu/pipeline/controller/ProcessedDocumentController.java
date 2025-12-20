@@ -41,4 +41,9 @@ public class ProcessedDocumentController implements ProcessedDocumentRepository 
         return processedDocumentService.openContent(filePath);
     }
 
+    @Override
+    public void delete(@NotNull String markdownDocumentId) {
+        processedDocumentService.delete(markdownDocumentId);
+    }
+
 }

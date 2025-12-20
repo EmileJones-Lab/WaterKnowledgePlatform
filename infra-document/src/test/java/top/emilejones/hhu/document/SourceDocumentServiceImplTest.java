@@ -37,6 +37,7 @@ public class SourceDocumentServiceImplTest {
         assertTrue(doc.isPresent());
 
         doc.ifPresent(d -> {
+            System.out.println("文件ID: " + d.getId());
             System.out.println("文件名: " + d.getName());
             System.out.println("文件路径: " + d.getFilePath());
             System.out.println("类型: " + d.getType());

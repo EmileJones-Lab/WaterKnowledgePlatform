@@ -78,6 +78,7 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
         """
             CREATE (n:FileNode {
                 id: ${'$'}id,
+                name: ${'$'}fileId,
                 fileId: ${'$'}fileId,
                 isEmbedded: ${'$'}isEmbedded,
                 isDelete: ${'$'}isDelete
@@ -86,6 +87,7 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
         """,
         Values.parameters(
             "fileId", neo4jFileNode.fileId,
+            "name", neo4jFileNode.fileId,
             "isEmbedded", neo4jFileNode.isEmbedded,
             "id", neo4jFileNode.id,
             "isDelete", neo4jFileNode.isDelete

@@ -212,7 +212,6 @@ public class FindBatchBySourceDocumentIdTest {
         // source-1: 成功的任务
         String successMissionId = UUID.randomUUID().toString();
         OcrMission successMission = OcrMission.Companion.create(successMissionId, sourceDocumentIds.get(0));
-        successMission.preparedToExecution();
         successMission.start();
         successMission.success("processed-doc-success");
         ocrMissionService.save(successMission);
@@ -221,7 +220,6 @@ public class FindBatchBySourceDocumentIdTest {
         // source-2: 失败的任务
         String failedMissionId = UUID.randomUUID().toString();
         OcrMission failedMission = OcrMission.Companion.create(failedMissionId, sourceDocumentIds.get(1));
-        failedMission.preparedToExecution();
         failedMission.start();
         failedMission.failure("Test failure");
         ocrMissionService.save(failedMission);
@@ -230,7 +228,6 @@ public class FindBatchBySourceDocumentIdTest {
         // source-3: 运行中和已创建的任务
         String runningMissionId = UUID.randomUUID().toString();
         OcrMission runningMission = OcrMission.Companion.create(runningMissionId, sourceDocumentIds.get(2));
-        runningMission.preparedToExecution();
         runningMission.start();
         ocrMissionService.save(runningMission);
         createdMissionIds.add(runningMissionId);
