@@ -11,12 +11,13 @@
         <result column="type" property="type" typeHandler="top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler" />
         <result column="createtime" property="createTime" />
         <result column="permission" property="permission" />
+        <result column="isdelete" property="isDelete" />
     </resultMap>
 
 
     <insert id="save">
-        insert into col_kb (kb_id, kbname, colname, type, createtime, permission)
-        values (#{kbId}, #{kbName}, #{colName}, #{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler}, #{createTime}, #{permission})
+        insert into col_kb (kb_id, kbname, colname, type, createtime, permission, isdelete)
+        values (#{kbId}, #{kbName}, #{colName}, #{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler}, #{createTime}, #{permission}, #{isDelete})
     </insert>
 
     <update id="update">
@@ -35,7 +36,6 @@
     <delete id="hardDelete">
         delete from col_kb where kb_id=#{knowledgeCatalogId}
     </delete>
-
 
     <select id="findAll" resultMap="KnowledgeCatalogResultMap">
         select * from col_kb

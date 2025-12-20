@@ -103,7 +103,7 @@ public class KnowledgeApplicationService {
         String kbId = UUID.randomUUID().toString();
 
         // 1.2 用UUID获取milvusCollectionName，并将 - 转成 _
-        String milvusCollectionName = UUID.randomUUID().toString().replace("-", "_");
+        String milvusCollectionName = "_" + UUID.randomUUID().toString().replace("-", "_");
 
         // 2.将AddKnowledgeDirectoryDTO封装为KnowledgeCatalog
         KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(
@@ -333,6 +333,8 @@ public class KnowledgeApplicationService {
         knowledgeFileDTO.setExtractStructureMission(documentSplittingMissionDTOList);
         knowledgeFileDTO.setEmbeddingMission(embeddingMissionDTOList);
 
+        publisher.publishEvent(knowledgeDocumentAddedToCatalogEvent);
+
         return knowledgeFileDTO;
     }
 
@@ -353,7 +355,7 @@ public class KnowledgeApplicationService {
      * @param dirId 知识库唯一Id
      * @return 文件列表
      */
-    public LazyPageDTO<CandidateKnowledgeFileDTO> getAllCandidateFiles(String dirId, String keyWord) {
+    public LazyPageDTO<CandidateKnowledgeFileDTO> getAllCandidateFiles(String dirId, Integer limit, Integer pageNum, String keyWord) {
         // 1.查询所有候选向量化文件
         List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentRepository.findCandidateKnowledgeDocumentKnowledgeCatalogId(dirId, keyWord);
 

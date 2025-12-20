@@ -37,8 +37,7 @@
         </where>
     </select>
 
-    <select id="findByKnowledgeCatalogId" resultMap="KnowledgeDocumentResultMap"
-            resultType="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto">
+    <select id="findByKnowledgeCatalogId" resultMap="KnowledgeDocumentResultMap">
         select * from knowledge_document where document_id in (
             select document_id from collection_document where kb_id=#{knowledgeCatalogId}
         )
@@ -69,7 +68,6 @@
     </select>
 
     <select id="findKnowledgeCatalogByKnowledgeDocumentId"
-            resultType="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto"
             resultMap="top.emilejones.hhu.knowledge.mapper.KnowledgeCatalogMapper.KnowledgeCatalogResultMap">
         select * from col_kb where kb_id
         in
@@ -77,9 +75,8 @@
     </select>
 
     <select id="findKnowledgeDocumentByKnowledgeDocumentId"
-            resultType="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeDocumentDto"
-            resultMap="top.emilejones.hhu.knowledge.mapper.KnowledgeCatalogMapper.KnowledgeCatalogResultMap">
-        select * from knowledge_document where document=#{knowledgeDocumentId}
+            resultMap="KnowledgeDocumentResultMap">
+        select * from knowledge_document where document_id=#{knowledgeDocumentId}
     </select>
 
     <select id="findByEmbedId" resultMap="KnowledgeDocumentResultMap">

@@ -75,6 +75,7 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         knowledgeCatalogDto.setColName(knowledgeCatalog.getMilvusCollectionName());
         knowledgeCatalogDto.setCreateTime(knowledgeCatalog.getCreateTime());
         knowledgeCatalogDto.setType(knowledgeCatalog.getType());
+        knowledgeCatalogDto.setIsDelete(1);
 
         // 设置知识库权限(默认就是public)
         knowledgeCatalogDto.setPermission("public");

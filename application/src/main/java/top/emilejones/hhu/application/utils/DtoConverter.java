@@ -111,9 +111,9 @@ public class DtoConverter {
         dto.setBindTime(document.getBindTime());
         dto.setType(mapKnowledgeDocumentType(document.getKnowledgeDocument().getType()));
 
-        dto.setOcrMission(Collections.emptyList());
-        dto.setExtractStructureMission(Collections.emptyList());
-        dto.setEmbeddingMission(Collections.emptyList());
+        dto.setOcrMission(ocrMission);
+        dto.setExtractStructureMission(structureExtractionMission);
+        dto.setEmbeddingMission(embeddingMission);
         return dto;
     }
 
@@ -127,9 +127,9 @@ public class DtoConverter {
         dto.setCreateTime(document.getCreateTime());
         dto.setType(mapKnowledgeDocumentType(document.getType()));
 
-        dto.setOcrMission(Collections.emptyList());
-        dto.setExtractStructureMission(Collections.emptyList());
-        dto.setEmbeddingMission(Collections.emptyList());
+        dto.setOcrMission(ocrMission);
+        dto.setExtractStructureMission(structureExtractionMission);
+        dto.setEmbeddingMission(embeddingMission);
         return dto;
     }
 
