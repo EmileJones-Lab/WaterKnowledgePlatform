@@ -33,6 +33,7 @@ public class EmbeddingProcessor {
     }
 
     public EmbeddingMission process(EmbeddingMission embeddingMission) {
+        embeddingMissionRepository.save(embeddingMission);
         // 获取曾经执行过的结构提取任务，如果没有执行成功的结构提取任务，则开启一个新的结构提取任务。
         List<StructureExtractionMission> structureExtractionMissions = structureExtractionMissionRepository.findBySourceDocumentId(embeddingMission.getSourceDocumentId());
         Optional<StructureExtractionMission> succeesfulStructureExtractionOptional = structureExtractionMissions.stream().filter(StructureExtractionMission::isSuccess).findFirst();
@@ -50,7 +51,6 @@ public class EmbeddingProcessor {
         // 根据之前的结构提取结果进行向量化任务
         StructureExtractionMissionResult.Success successResult = structureExtractionMission.getSuccessResult();
         embeddingMission.start(successResult.getFileNodeId());
-        embeddingMissionRepository.save(embeddingMission);
         try {
             // 成功提取结构后的FileNode唯一Id
             String fileNodeId = Objects.requireNonNull(embeddingMission.getFileNodeId());

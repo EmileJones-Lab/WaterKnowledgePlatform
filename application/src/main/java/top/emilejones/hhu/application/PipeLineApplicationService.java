@@ -91,8 +91,7 @@ public class PipeLineApplicationService {
 
 
         // 删除OCR任务
-        String markdownDocumentId = successOcrMission.getSuccessResult().getMarkdownDocumentId();
-        processedDocumentRepository.delete(markdownDocumentId);
+        processedDocumentRepository.deleteBySourceDocumentId(fileId);
         allOcrMission.stream().map(OcrMission::getId).forEach(ocrMissionRepository::delete);
 
 
@@ -164,7 +163,6 @@ public class PipeLineApplicationService {
                             UUID.randomUUID().toString(),
                             sourceDocumentId
                     );
-                    structureExtractionMissionRepository.save(mission);
                     return mission;
                 });
     }
@@ -178,7 +176,6 @@ public class PipeLineApplicationService {
                             UUID.randomUUID().toString(),
                             sourceDocumentId
                     );
-                    embeddingMissionRepository.save(mission);
                     return mission;
                 });
     }

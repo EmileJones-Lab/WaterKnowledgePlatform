@@ -158,7 +158,7 @@ public class FindByIdTest {
                 sourceDocumentId,
                 filePath,
                 Instant.now(),
-                ProcessedDocumentType.PNG
+                ProcessedDocumentType.IMAGE
         );
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(imageContent);
@@ -178,7 +178,7 @@ public class FindByIdTest {
         assertEquals(documentId, foundDocument.getId());
         assertEquals(sourceDocumentId, foundDocument.getSourceDocumentId());
         assertEquals(expectedMinioPath, foundDocument.getFilePath());
-        assertEquals(ProcessedDocumentType.PNG, foundDocument.getProcessedDocumentType());
+        assertEquals(ProcessedDocumentType.IMAGE, foundDocument.getProcessedDocumentType());
         assertNotNull(foundDocument.getCreateTime());
     }
 

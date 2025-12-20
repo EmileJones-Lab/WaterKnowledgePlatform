@@ -34,6 +34,7 @@ public class StructureExtractionProcessor {
     }
 
     public StructureExtractionMission process(StructureExtractionMission structureExtractionMission) {
+        structureExtractionMissionRepository.save(structureExtractionMission);
         // 获取曾经执行过的OCR任务，如果曾经没有执行成功的OCR任务，那么就执行OCR任务
         List<OcrMission> ocrMissions = ocrMissionRepository.findBySourceDocumentId(structureExtractionMission.getSourceDocumentId());
         Optional<OcrMission> succeesfulOcrMissionOptional = ocrMissions.stream().filter(OcrMission::isSuccess).findFirst();

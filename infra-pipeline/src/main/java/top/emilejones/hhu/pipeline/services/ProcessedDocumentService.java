@@ -83,6 +83,19 @@ public class ProcessedDocumentService {
     }
 
     /**
+     * 根据源文档标识删除处理后文档（软删除）。
+     *
+     * @param sourceDocumentId 源文档的唯一标识
+     */
+    public void deleteBySourceDocumentId(String sourceDocumentId) {
+        if (sourceDocumentId == null || sourceDocumentId.isBlank()) {
+            throw new IllegalArgumentException("Source document ID cannot be blank");
+        }
+
+        processedDocumentMapper.softDeleteBySourceDocumentId(sourceDocumentId, DeleteConstant.DELETE);
+    }
+
+    /**
      * 打开文档内容流，用于上层读取内容。
      * 约定：
      * - 返回的流需由调用方关闭；未找到内容时应抛出可定位的异常。

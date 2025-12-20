@@ -51,7 +51,7 @@ public class OcrProcessor {
             ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(markdownProcessedFileId, sourceDocument.getId(), generateFilePath(markdownProcessedFileId + ".md"), ProcessedDocumentType.MARKDOWN);
             minerUMarkdownFile.getImages()
                     .forEach(minerUImage -> {
-                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), generateFilePath(minerUImage.getRelativePath()), ProcessedDocumentType.PNG);
+                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), generateFilePath(minerUImage.getRelativePath()), ProcessedDocumentType.IMAGE);
                         processedDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
                     });
             processedDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));

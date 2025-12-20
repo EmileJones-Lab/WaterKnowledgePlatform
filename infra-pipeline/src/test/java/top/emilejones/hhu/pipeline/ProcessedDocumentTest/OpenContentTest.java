@@ -161,7 +161,7 @@ public class OpenContentTest {
                 sourceDocumentId,
                 filePath,
                 Instant.now(),
-                ProcessedDocumentType.PNG
+                ProcessedDocumentType.IMAGE
         );
 
         // 获取预期保存后在Minio中的路径

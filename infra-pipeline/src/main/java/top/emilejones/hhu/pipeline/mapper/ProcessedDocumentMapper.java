@@ -44,4 +44,11 @@ public interface ProcessedDocumentMapper {
      * @param processedDocumentId 处理后文档ID
      */
     void hardDelete(@Param("processedDocumentId") String processedDocumentId);
+
+    /**
+     * 根据源文档ID软删除处理后文档
+     * @param sourceDocumentId 源文档ID
+     * @param isDelete 删除状态
+     */
+    void softDeleteBySourceDocumentId(@Param("sourceDocumentId") String sourceDocumentId, @Param("isDelete") Integer isDelete);
 }

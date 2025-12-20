@@ -46,4 +46,9 @@ public class ProcessedDocumentController implements ProcessedDocumentRepository 
         processedDocumentService.delete(markdownDocumentId);
     }
 
+    @Override
+    public void deleteBySourceDocumentId(@NotNull String sourceDocumentId) {
+        processedDocumentService.deleteBySourceDocumentId(sourceDocumentId);
+    }
+
 }

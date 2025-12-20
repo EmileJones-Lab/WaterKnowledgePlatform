@@ -163,7 +163,7 @@ public class SaveTest {
                 sourceDocumentId,
                 filePath,
                 Instant.now(),
-                ProcessedDocumentType.PNG
+                ProcessedDocumentType.IMAGE
         );
 
         // 预期的Minio路径
@@ -184,7 +184,7 @@ public class SaveTest {
         assertEquals(documentId, savedDocument.getId());
         assertEquals(sourceDocumentId, savedDocument.getSourceDocumentId());
         assertEquals(expectedMinioPath, savedDocument.getFilePath());
-        assertEquals(ProcessedDocumentType.PNG, savedDocument.getProcessedDocumentType());
+        assertEquals(ProcessedDocumentType.IMAGE, savedDocument.getProcessedDocumentType());
 
         // 验证文件被正确保存到Minio
         try {

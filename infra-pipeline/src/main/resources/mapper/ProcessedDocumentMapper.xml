@@ -66,4 +66,11 @@
         WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR}
     </delete>
 
+    <!-- 根据源文档ID软删除处理后文档 -->
+    <update id="softDeleteBySourceDocumentId">
+        UPDATE processed_document
+        SET isdelete = #{isDelete,jdbcType=INTEGER}
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
+    </update>
+
 </mapper>

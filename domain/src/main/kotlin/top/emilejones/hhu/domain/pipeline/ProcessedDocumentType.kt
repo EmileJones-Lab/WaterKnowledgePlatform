@@ -6,5 +6,5 @@ package top.emilejones.hhu.domain.pipeline
  */
 enum class ProcessedDocumentType {
     MARKDOWN,
-    PNG
+    IMAGE
 }
