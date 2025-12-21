@@ -2,7 +2,6 @@ package top.emilejones.hhu.application;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.mission.DocumentSplittingMissionDTO;
@@ -185,7 +184,6 @@ public class PipeLineApplicationService {
      *
      * @param event 添加知识文档到知识库目录的事件。
      */
-    @Async("domainEventExecutor")
     @EventListener
     public void handleKnowledgeDocumentAddedToCatalogEvent(KnowledgeDocumentAddedToCatalogEvent event) {
         String embeddingMissionId = event.getKnowledgeDocument().getEmbeddingMissionId();
@@ -217,7 +215,6 @@ public class PipeLineApplicationService {
         }
     }
 
-    @Async("domainEventExecutor")
     @EventListener
     public void handleCreatedKnowledgeCatalogEvent(CreatedKnowledgeCatalogEvent event) {
         embeddingGateway.createCollection(event.getNewKnowledgeCatalog().getMilvusCollectionName());

@@ -10,7 +10,7 @@ import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeReposito
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional(rollbackFor = Exception.class)
 public class RecallApplicationService {
     private final NodeRepository nodeRepository;
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;

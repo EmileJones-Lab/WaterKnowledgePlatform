@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional(rollbackFor = Exception.class)
 public class KnowledgeApplicationService {
     private final ApplicationEventPublisher publisher;
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;

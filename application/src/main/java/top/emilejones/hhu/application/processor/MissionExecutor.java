@@ -1,11 +1,9 @@
-package top.emilejones.hhu.application;
+package top.emilejones.hhu.application.processor;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.application.processor.EmbeddingProcessor;
-import top.emilejones.hhu.application.processor.StructureExtractionProcessor;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 

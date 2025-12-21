@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional(rollbackFor = Exception.class)
 public class DocumentApplicationService {
     private final SourceDocumentRepository sourceDocumentRepository;
     private final NodeRepository nodeRepository;
