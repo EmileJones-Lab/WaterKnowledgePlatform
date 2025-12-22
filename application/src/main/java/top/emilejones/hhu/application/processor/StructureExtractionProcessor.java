@@ -38,6 +38,7 @@ public class StructureExtractionProcessor {
         // 获取曾经执行过的OCR任务，如果曾经没有执行成功的OCR任务，那么就执行OCR任务
         List<OcrMission> ocrMissions = ocrMissionRepository.findBySourceDocumentId(structureExtractionMission.getSourceDocumentId());
         Optional<OcrMission> succeesfulOcrMissionOptional = ocrMissions.stream().filter(OcrMission::isSuccess).findFirst();
+        // todo: 如果有运行中和等待中的OCR任务，应该开启结构化提取任务失败
         OcrMission ocrMission = succeesfulOcrMissionOptional.orElseGet(() -> ocrProcessor.process(structureExtractionMission.getSourceDocumentId()));
         if (!ocrMission.isSuccess()) {
             structureExtractionMission.failure("OCR失败，无法开启结构提取任务");

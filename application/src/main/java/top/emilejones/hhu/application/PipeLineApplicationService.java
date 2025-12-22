@@ -93,7 +93,6 @@ public class PipeLineApplicationService {
         processedDocumentRepository.deleteBySourceDocumentId(fileId);
         allOcrMission.stream().map(OcrMission::getId).forEach(ocrMissionRepository::delete);
 
-
         // 删除向量化任务和结构提取任务
         String fileNodeId = successSplitterMission.getSuccessResult().getFileNodeId();
         allEmbeddingMission.stream().map(EmbeddingMission::getId).forEach(embeddingMissionRepository::delete);
@@ -108,6 +107,7 @@ public class PipeLineApplicationService {
                 knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalog.getId(), List.of(knowledgeDocument.getId()));
                 embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
             });
+            knowledgeDocumentRepository.delete(knowledgeDocument.getId());
         }
 
         // 删除结构提取任务
@@ -154,6 +154,7 @@ public class PipeLineApplicationService {
     }
 
     private StructureExtractionMission findExistingOrCreateStructureExtractionMission(String sourceDocumentId) {
+        // todo: 如果有运行中和等待中的任务，应该返回吃任务而不应该新建
         return structureExtractionMissionRepository.findBySourceDocumentId(sourceDocumentId).stream()
                 .filter(StructureExtractionMission::isSuccess)
                 .findFirst()
@@ -167,6 +168,7 @@ public class PipeLineApplicationService {
     }
 
     private EmbeddingMission findExistingOrCreateEmbeddingMission(String sourceDocumentId) {
+        // todo: 如果有运行中和等待中的任务，应该返回吃任务而不应该新建
         return embeddingMissionRepository.findBySourceDocumentId(sourceDocumentId).stream()
                 .filter(EmbeddingMission::isSuccess)
                 .findFirst()
