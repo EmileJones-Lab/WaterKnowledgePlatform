@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/knowledge-repositories")
-@Tag(name = "KnowledgeRepositories", description = "关于知识库操作的接口说明")
+@Tag(name = "Knowledge", description = "关于知识库操作的接口说明")
 public class KnowledgeDirectoryController {
 
     private final KnowledgeApplicationService knowledgeApplicationService;

@@ -163,6 +163,11 @@ public class KnowledgeApplicationService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeDirectory(String id) {
         //删除指定的知识库，这里是软删除只更新iddelete字段
+        List<KnowledgeDocumentWithBindTime> documents = knowledgeDocumentRepository.findDocumentsWithBindInfoByCatalogId(id, Integer.MAX_VALUE, 0, null);
+        documents.stream()
+                .map(KnowledgeDocumentWithBindTime::getKnowledgeDocument)
+                .map(KnowledgeDocument::getId)
+                .forEach(knowledgeDocumentRepository::delete);
         knowledgeCatalogRepository.delete(id);
     }
 

@@ -8,6 +8,7 @@ dependencies {
         exclude(group = "org.junit.platform", module = "junit-platform-launcher")
     }
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
+    implementation(project(":common"))
     implementation(project(":domain"))
     implementation(project(":infra-textsplitter"))
     implementation(project(":infra-pipeline"))

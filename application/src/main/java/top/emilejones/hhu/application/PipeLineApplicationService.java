@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.utils.DtoConverter;
+import top.emilejones.hhu.common.utils.Pair;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent;
@@ -123,13 +124,37 @@ public class PipeLineApplicationService {
      * @return 这批结构提取任务的详细信息列表。
      */
     public List<DocumentSplittingMissionDTO> startStructureExtractionMission(List<String> sourceDocumentIdList) {
-        List<StructureExtractionMission> missions = sourceDocumentIdList.stream()
-                .map(this::findExistingOrCreateStructureExtractionMission)
-                .toList();
-        missions.stream()
-                .filter(mission -> MissionStatus.PENDING.equals(mission.getStatus()))
-                .forEach(publisher::publishEvent);
-        return missions.stream()
+        return sourceDocumentIdList.stream()
+                // 1. 查找已存在的有效任务
+                .map(id -> {
+                    Optional<StructureExtractionMission> existing = structureExtractionMissionRepository.findBySourceDocumentId(id).stream()
+                            .filter(mission -> mission.isSuccess() ||
+                                    MissionStatus.RUNNING.equals(mission.getStatus()) ||
+                                    MissionStatus.PENDING.equals(mission.getStatus()))
+                            .findFirst();
+                    return new Pair<>(id, existing);
+                })
+                // 2. 如果不存在则创建新任务，并标记为新建
+                .map(entry -> {
+                    if (entry.getValue().isPresent()) {
+                        return new Pair<>(entry.getValue().get(), false);
+                    } else {
+                        StructureExtractionMission newMission = StructureExtractionMission.Companion.create(
+                                UUID.randomUUID().toString(),
+                                entry.getKey()
+                        );
+                        return new Pair<>(newMission, true);
+                    }
+                })
+                // 3. 发布新建任务事件
+                .peek(entry -> {
+                    if (entry.getValue()) {
+                        publisher.publishEvent(entry.getKey());
+                    }
+                })
+                // 4. 提取任务实体
+                .map(Pair::getKey)
+                // 5. 转换为DTO
                 .map(DtoConverter::toDocumentSplittingMissionDTO)
                 .collect(Collectors.toList());
     }
@@ -142,43 +167,39 @@ public class PipeLineApplicationService {
      * @return 这批向量化任务的详细信息列表。
      */
     public List<EmbeddingMissionDTO> startEmbeddingMission(List<String> sourceDocumentIdList) {
-        List<EmbeddingMission> missions = sourceDocumentIdList.stream()
-                .map(this::findExistingOrCreateEmbeddingMission)
-                .toList();
-        missions.stream()
-                .filter(mission -> MissionStatus.PENDING.equals(mission.getStatus()))
-                .forEach(publisher::publishEvent);
-        return missions.stream()
+        return sourceDocumentIdList.stream()
+                // 1. 查找已存在的有效任务
+                .map(id -> {
+                    Optional<EmbeddingMission> existing = embeddingMissionRepository.findBySourceDocumentId(id).stream()
+                            .filter(mission -> mission.isSuccess() ||
+                                    MissionStatus.RUNNING.equals(mission.getStatus()) ||
+                                    MissionStatus.PENDING.equals(mission.getStatus()))
+                            .findFirst();
+                    return new Pair<>(id, existing);
+                })
+                // 2. 如果不存在则创建新任务，并标记为新建
+                .map(entry -> {
+                    if (entry.getValue().isPresent()) {
+                        return new Pair<>(entry.getValue().get(), false);
+                    } else {
+                        EmbeddingMission newMission = EmbeddingMission.Companion.create(
+                                UUID.randomUUID().toString(),
+                                entry.getKey()
+                        );
+                        return new Pair<>(newMission, true);
+                    }
+                })
+                // 3. 发布新建任务事件
+                .peek(entry -> {
+                    if (entry.getValue()) {
+                        publisher.publishEvent(entry.getKey());
+                    }
+                })
+                // 4. 提取任务实体
+                .map(Pair::getKey)
+                // 5. 转换为DTO
                 .map(DtoConverter::toEmbeddingMissionDTO)
                 .collect(Collectors.toList());
-    }
-
-    private StructureExtractionMission findExistingOrCreateStructureExtractionMission(String sourceDocumentId) {
-        // todo: 如果有运行中和等待中的任务，应该返回吃任务而不应该新建
-        return structureExtractionMissionRepository.findBySourceDocumentId(sourceDocumentId).stream()
-                .filter(StructureExtractionMission::isSuccess)
-                .findFirst()
-                .orElseGet(() -> {
-                    StructureExtractionMission mission = StructureExtractionMission.Companion.create(
-                            UUID.randomUUID().toString(),
-                            sourceDocumentId
-                    );
-                    return mission;
-                });
-    }
-
-    private EmbeddingMission findExistingOrCreateEmbeddingMission(String sourceDocumentId) {
-        // todo: 如果有运行中和等待中的任务，应该返回吃任务而不应该新建
-        return embeddingMissionRepository.findBySourceDocumentId(sourceDocumentId).stream()
-                .filter(EmbeddingMission::isSuccess)
-                .findFirst()
-                .orElseGet(() -> {
-                    EmbeddingMission mission = EmbeddingMission.Companion.create(
-                            UUID.randomUUID().toString(),
-                            sourceDocumentId
-                    );
-                    return mission;
-                });
     }
 
     /**

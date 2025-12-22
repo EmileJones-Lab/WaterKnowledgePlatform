@@ -22,7 +22,7 @@ import java.util.Collections;
 
 @RestController
 @RequestMapping("/knowledge-repositories/{dirId}")
-@Tag(name = "KnowledgeFiles", description = "关于知识文件操作的接口说明")
+@Tag(name = "Knowledge", description = "关于知识文件操作的接口说明")
 public class KnowledgeFileController {
 
     private final KnowledgeApplicationService knowledgeApplicationService;

@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 )
         ),
         servers = {
-                @Server(url = "http://10.196.83.122:8456/", description = "实验室服务器开发环境")
+                @Server(url = "http://10.196.83.122:7456/", description = "实验室服务器开发环境")
         }
 )
 public class OpenApiConfiguration {
