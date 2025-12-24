@@ -23,19 +23,21 @@ import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogReposi
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.knowledge.service.KnowledgeDomainService;
+import top.emilejones.hhu.domain.pipeline.FileNode;
 import top.emilejones.hhu.domain.pipeline.MissionStatus;
+import top.emilejones.hhu.domain.pipeline.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
+import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
+import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -48,30 +50,20 @@ public class KnowledgeApplicationService {
     private final StructureExtractionMissionRepository structureExtractionMissionRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
     private final KnowledgeDomainService knowledgeDomainService;
+    private final NodeRepository nodeRepository;
+    private final EmbeddingGateway embeddingGateway;
 
-    /**
-     * 构造函数。
-     *
-     * @param knowledgeCatalogRepository 知识目录仓储。
-     */
-    public KnowledgeApplicationService(
-            KnowledgeCatalogRepository knowledgeCatalogRepository,
-            KnowledgeDocumentRepository knowledgeDocumentRepository,
-            ApplicationEventPublisher publisher,
-            EmbeddingMissionRepository embeddingMissionRepository,
-            OcrMissionRepository ocrMissionRepository,
-            StructureExtractionMissionRepository structureExtractionMissionRepository,
-            SourceDocumentRepository sourceDocumentRepository,
-            KnowledgeDomainService knowledgeDomainService
-    ) {
+    public KnowledgeApplicationService(ApplicationEventPublisher publisher, KnowledgeCatalogRepository knowledgeCatalogRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, EmbeddingMissionRepository embeddingMissionRepository, OcrMissionRepository ocrMissionRepository, StructureExtractionMissionRepository structureExtractionMissionRepository, SourceDocumentRepository sourceDocumentRepository, KnowledgeDomainService knowledgeDomainService, NodeRepository nodeRepository, EmbeddingGateway embeddingGateway) {
+        this.publisher = publisher;
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
         this.knowledgeDocumentRepository = knowledgeDocumentRepository;
-        this.publisher = publisher;
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.ocrMissionRepository = ocrMissionRepository;
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.sourceDocumentRepository = sourceDocumentRepository;
         this.knowledgeDomainService = knowledgeDomainService;
+        this.nodeRepository = nodeRepository;
+        this.embeddingGateway = embeddingGateway;
     }
 
     /**
@@ -162,12 +154,40 @@ public class KnowledgeApplicationService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeDirectory(String id) {
-        //删除指定的知识库，这里是软删除只更新iddelete字段
+        // 从数据库中查找相关内容
+        KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(id);
         List<KnowledgeDocumentWithBindTime> documents = knowledgeDocumentRepository.findDocumentsWithBindInfoByCatalogId(id, Integer.MAX_VALUE, 0, null);
-        documents.stream()
+        List<String> textNodeIdList = documents.stream()
                 .map(KnowledgeDocumentWithBindTime::getKnowledgeDocument)
                 .map(KnowledgeDocument::getId)
-                .forEach(knowledgeDocumentRepository::delete);
+                .map(knowledgeDocumentRepository::findKnowledgeDocumentByKnowledgeDocumentId)
+                .map(KnowledgeDocument::getEmbeddingMissionId)
+                .map(embeddingMissionRepository::findById)
+                .peek(m -> {
+                    if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
+                })
+                .map(EmbeddingMission::getSuccessResult)
+                .map(EmbeddingMissionResult.Success::getFileNodeId)
+                .map(nodeRepository::findFileNodeByFileNodeId)
+                .peek(o -> {
+                    if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
+                })
+                .map(Optional::get)
+                .map(FileNode::getId)
+                .map(nodeRepository::findTextNodeListByFileNodeId)
+                .flatMap(List::stream)
+                .map(TextNode::getId)
+                .toList();
+        List<String> knowledgeDocumentIdList = documents.stream()
+                .map(KnowledgeDocumentWithBindTime::getKnowledgeDocument)
+                .map(KnowledgeDocument::getId)
+                .toList();
+
+        // 解绑所有的知识文件
+        knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(Objects.requireNonNull(knowledgeCatalog.getId()), knowledgeDocumentIdList);
+        // 删除知识库中的milvus数据
+        embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
+        // 删除知识库
         knowledgeCatalogRepository.delete(id);
     }
 
@@ -344,13 +364,35 @@ public class KnowledgeApplicationService {
     }
 
     /**
-     * 删除知识库中的一个知识文件,实际是解绑的过程
+     * 删除知识库中的一个知识文件
      *
      * @param dirId       知识库唯一Id
      * @param documentIds 向量化文件Id
      */
     @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeFileByDirId(String dirId, List<String> documentIds) {
+        KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(dirId);
+        List<String> textNodeIdList = documentIds.stream()
+                .map(knowledgeDocumentRepository::findKnowledgeDocumentByKnowledgeDocumentId)
+                .map(KnowledgeDocument::getEmbeddingMissionId)
+                .map(embeddingMissionRepository::findById)
+                .peek(m -> {
+                    if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
+                })
+                .map(EmbeddingMission::getSuccessResult)
+                .map(EmbeddingMissionResult.Success::getFileNodeId)
+                .map(nodeRepository::findFileNodeByFileNodeId)
+                .peek(o -> {
+                    if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
+                })
+                .map(Optional::get)
+                .map(FileNode::getId)
+                .map(nodeRepository::findTextNodeListByFileNodeId)
+                .flatMap(List::stream)
+                .map(TextNode::getId)
+                .toList();
+
+        embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(dirId, documentIds);
     }
 
