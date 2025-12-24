@@ -42,7 +42,10 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
         List<KnowledgeCatalogDto> knowledgeCatalogDtoList = knowledgeCatalogMapper.findAll();
 
         // 封装成KnowledgeCatalog并返回
-        List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogDtoList.stream().map(DtoToDomainUtil::toCatalogDomain).toList();
+        List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogDtoList.stream()
+                .filter(dto -> dto.getIsDelete() != 0)
+                .map(DtoToDomainUtil::toCatalogDomain)
+                .toList();
         return knowledgeCatalogList;
     }
 
@@ -56,6 +59,10 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     public KnowledgeCatalog find(@NotNull String knowledgeCatalogId) {
         // 根据id查询知识库信息
         KnowledgeCatalogDto knowledgeCatalogDto = knowledgeCatalogMapper.find(knowledgeCatalogId);
+
+        if (knowledgeCatalogDto == null || knowledgeCatalogDto.getIsDelete() == 0) {
+            return null;
+        }
 
         // 封装成KnowledgeCatalog并返回
         KnowledgeCatalog knowledgeCatalog = DtoToDomainUtil.toCatalogDomain(knowledgeCatalogDto);
