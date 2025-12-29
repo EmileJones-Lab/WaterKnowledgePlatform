@@ -8,6 +8,7 @@ import top.emilejones.hhu.application.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.utils.DtoConverter;
 import top.emilejones.hhu.common.utils.Pair;
+import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent;
@@ -39,8 +40,9 @@ public class PipeLineApplicationService {
     private final KnowledgeDocumentRepository knowledgeDocumentRepository;
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;
     private final ProcessedDocumentRepository processedDocumentRepository;
+    private final SourceDocumentRepository sourceDocumentRepository;
 
-    public PipeLineApplicationService(ApplicationEventPublisher publisher, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository, ProcessedDocumentRepository processedDocumentRepository) {
+    public PipeLineApplicationService(ApplicationEventPublisher publisher, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository, ProcessedDocumentRepository processedDocumentRepository, SourceDocumentRepository sourceDocumentRepository) {
         this.publisher = publisher;
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.embeddingMissionRepository = embeddingMissionRepository;
@@ -50,6 +52,7 @@ public class PipeLineApplicationService {
         this.knowledgeDocumentRepository = knowledgeDocumentRepository;
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
         this.processedDocumentRepository = processedDocumentRepository;
+        this.sourceDocumentRepository = sourceDocumentRepository;
     }
 
     /**
@@ -124,6 +127,18 @@ public class PipeLineApplicationService {
      * @return 这批结构提取任务的详细信息列表。
      */
     public List<DocumentSplittingMissionDTO> startStructureExtractionMission(List<String> sourceDocumentIdList) {
+        // 判断这个sourceDocumentIdList中的文件是否都存在
+        List<String> notExistFileIds = sourceDocumentIdList.stream()
+                .filter(id -> sourceDocumentRepository.findSourceDocumentById(id).isEmpty())
+                .toList();
+
+        if (!notExistFileIds.isEmpty()) {
+            String ids = notExistFileIds.stream()
+                    .map(id -> "\"" + id + "\"")
+                    .collect(Collectors.joining(",", "[", "]"));
+            throw new IllegalStateException("不存在的文件，文件ID：" + ids);
+        }
+
         return sourceDocumentIdList.stream()
                 // 1. 查找已存在的有效任务
                 .map(id -> {
@@ -167,6 +182,18 @@ public class PipeLineApplicationService {
      * @return 这批向量化任务的详细信息列表。
      */
     public List<EmbeddingMissionDTO> startEmbeddingMission(List<String> sourceDocumentIdList) {
+        // 判断这个sourceDocumentIdList中的文件是否都存在
+        List<String> notExistFileIds = sourceDocumentIdList.stream()
+                .filter(id -> sourceDocumentRepository.findSourceDocumentById(id).isEmpty())
+                .toList();
+
+        if (!notExistFileIds.isEmpty()) {
+            String ids = notExistFileIds.stream()
+                    .map(id -> "\"" + id + "\"")
+                    .collect(Collectors.joining(",", "[", "]"));
+            throw new IllegalStateException("不存在的文件，文件ID：" + ids);
+        }
+
         return sourceDocumentIdList.stream()
                 // 1. 查找已存在的有效任务
                 .map(id -> {
