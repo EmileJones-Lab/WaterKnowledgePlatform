@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.emilejones.hhu.knowledge.mapper.KnowledgeCatalogMapper">
+
+    <resultMap id="KnowledgeCatalogResultMap" type="top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto">
+        <id column="id" property="id" />
+        <result column="kb_id" property="kbId" />
+        <result column="kbname" property="kbName" />
+        <result column="colname" property="colName" />
+        <result column="type" property="type" typeHandler="top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler" />
+        <result column="createtime" property="createTime" />
+        <result column="permission" property="permission" />
+        <result column="isdelete" property="isDelete" />
+    </resultMap>
+
+
+    <insert id="save">
+        insert into col_kb (kb_id, kbname, colname, type, createtime, permission, isdelete)
+        values (#{kbId}, #{kbName}, #{colName}, #{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler}, #{createTime}, #{permission}, #{isDelete})
+    </insert>
+
+    <update id="update">
+        update col_kb
+        <set>
+            <if test="kbName != null and kbName != ''">kbname=#{kbName},</if>
+            <if test="colName != null and colName != ''">colname=#{colName},</if>
+            <if test="type != null">type=#{type, typeHandler=top.emilejones.hhu.knowledge.handler.KnowledgeCatalogTypeHandler},</if>
+            <if test="isDelete != null">isdelete=#{isDelete},</if>
+            <if test="createTime != null">createtime=#{createTime},</if>
+            <if test="permission != null and permission !=''">permission=#{permission}</if>
+        </set>
+        where kb_id=#{kbId}
+    </update>
+
+    <delete id="hardDelete">
+        delete from col_kb where kb_id=#{knowledgeCatalogId}
+    </delete>
+
+    <select id="findAll" resultMap="KnowledgeCatalogResultMap">
+        select * from col_kb
+    </select>
+
+    <select id="find" resultMap="KnowledgeCatalogResultMap">
+        select * from col_kb where kb_id=#{knowledgeCatalogId}
+    </select>
+
+</mapper>

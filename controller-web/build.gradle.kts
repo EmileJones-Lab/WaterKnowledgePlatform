@@ -1,0 +1,30 @@
+plugins {
+    application
+}
+
+dependencies {
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
+    implementation("org.slf4j:slf4j-api:2.0.13")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
+
+    implementation(project(":application"))
+    implementation(project(":common"))
+
+    testImplementation(platform("org.junit:junit-bom:5.10.2"))
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.junit.platform", module = "junit-platform-launcher")
+    }
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass = "top.emilejones.hhu.web.WebApplication"
+}

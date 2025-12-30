@@ -1,0 +1,8 @@
+spring:
+  main:
+    banner-mode: off
+  ai:
+    mcp:
+      server:
+        name: recall-mcp-server
+        version: 0.0.1
