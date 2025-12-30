@@ -60,7 +60,13 @@ public class PipeLineApplicationService {
      *
      * @param fileId 文件唯一Id。
      */
-    public void deleteExtractStructureMission(String fileId) {
+    public void deleteMissions(String fileId) {
+        // 找到OCR任务
+        List<OcrMission> allOcrMission = ocrMissionRepository.findBySourceDocumentId(fileId);
+
+        if (allOcrMission.isEmpty())
+            throw new IllegalStateException("文件 [" + fileId + "] 不存在任务，不能执行删除操作");
+
         // 找到结构提取任务
         List<StructureExtractionMission> allSplitterMission = structureExtractionMissionRepository.findBySourceDocumentId(fileId);
 
@@ -68,21 +74,7 @@ public class PipeLineApplicationService {
                 .filter(mission ->
                         MissionStatus.SUCCESS.equals(mission.getStatus())
                 ).findFirst();
-        if (successSplitterMissionOptional.isEmpty())
-            throw new IllegalStateException("文件 [" + fileId + "] 不存在结构提取任务");
-        StructureExtractionMission successSplitterMission = successSplitterMissionOptional.get();
 
-        // 找到OCR任务
-        List<OcrMission> allOcrMission = ocrMissionRepository.findBySourceDocumentId(fileId);
-
-        Optional<OcrMission> successOcrMissionOptional = allOcrMission.stream()
-                .filter(mission ->
-                        MissionStatus.SUCCESS.equals(mission.getStatus())
-                ).findFirst();
-        if (successOcrMissionOptional.isEmpty())
-            throw new IllegalStateException("文件 [" + fileId + "] 存在结构提取任务当不存在OCR任务");
-
-        OcrMission successOcrMission = successOcrMissionOptional.get();
 
         // 找到向量化任务
         List<EmbeddingMission> allEmbeddingMission = embeddingMissionRepository.findBySourceDocumentId(fileId);
@@ -92,31 +84,39 @@ public class PipeLineApplicationService {
                         MissionStatus.SUCCESS.equals(mission.getStatus())
                 ).findFirst();
 
-
         // 删除OCR任务
         processedDocumentRepository.deleteBySourceDocumentId(fileId);
         allOcrMission.stream().map(OcrMission::getId).forEach(ocrMissionRepository::delete);
 
-        // 删除向量化任务和结构提取任务
-        String fileNodeId = successSplitterMission.getSuccessResult().getFileNodeId();
-        allEmbeddingMission.stream().map(EmbeddingMission::getId).forEach(embeddingMissionRepository::delete);
-        // 删除向量化任务
-        if (successEmbeddingMissionOptional.isPresent()) {
-            EmbeddingMission successEmbeddingMission = successEmbeddingMissionOptional.get();
-            KnowledgeDocument knowledgeDocument = knowledgeDocumentRepository.findByEmbeddingMissionId(successEmbeddingMission.getId());
-            List<KnowledgeCatalog> knowledgeCatalogList = knowledgeDocumentRepository.findKnowledgeCatalogByKnowledgeDocumentId(knowledgeDocument.getId());
-            List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
-            List<String> textNodeIdList = textNodeList.stream().map(TextNode::getId).toList();
-            knowledgeCatalogList.forEach(knowledgeCatalog -> {
-                knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalog.getId(), List.of(knowledgeDocument.getId()));
-                embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
-            });
-            knowledgeDocumentRepository.delete(knowledgeDocument.getId());
-        }
+        if (successSplitterMissionOptional.isPresent()) {
+            // 如果存在成功的结构提取任务则删除相关图数据
+            StructureExtractionMission successSplitterMission = successSplitterMissionOptional.get();
+            String fileNodeId = successSplitterMission.getSuccessResult().getFileNodeId();
 
-        // 删除结构提取任务
-        nodeRepository.deleteAllNodeByFileNodeId(fileNodeId);
+
+            if (successEmbeddingMissionOptional.isPresent()) {
+                // 删除向量化任务产生的相关知识文件
+                EmbeddingMission successEmbeddingMission = successEmbeddingMissionOptional.get();
+                KnowledgeDocument knowledgeDocument = knowledgeDocumentRepository.findByEmbeddingMissionId(successEmbeddingMission.getId());
+                List<KnowledgeCatalog> knowledgeCatalogList = knowledgeDocumentRepository.findKnowledgeCatalogByKnowledgeDocumentId(knowledgeDocument.getId());
+                List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
+                List<String> textNodeIdList = textNodeList.stream().map(TextNode::getId).toList();
+                // 将每个知识文件和知识库解绑
+                knowledgeCatalogList.forEach(knowledgeCatalog -> {
+                    knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalog.getId(), List.of(knowledgeDocument.getId()));
+                    embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
+                });
+                // 删除知识文件
+                knowledgeDocumentRepository.delete(knowledgeDocument.getId());
+            }
+
+            // 删除结构提取任务产生的图结果
+            nodeRepository.deleteAllNodeByFileNodeId(fileNodeId);
+        }
+        // 删除结构化任务记录
         allSplitterMission.stream().map(StructureExtractionMission::getId).forEach(structureExtractionMissionRepository::delete);
+        // 删除向量化任务记录
+        allEmbeddingMission.stream().map(EmbeddingMission::getId).forEach(embeddingMissionRepository::delete);
     }
 
     /**

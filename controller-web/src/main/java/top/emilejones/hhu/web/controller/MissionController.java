@@ -40,8 +40,8 @@ public class MissionController {
     }
 
     @DeleteMapping("/extract-structure-missions/{fileId}")
-    @Operation(summary = "删除结构提取任务",
-            description = "通过文件Id删除结构提取任务，包括其生成的结构树，以及向量化后的知识文件。")
+    @Operation(summary = "删除和结构提取有关的任务以及衍生数据",
+            description = "通过文件Id删除OCR任务、结构提取任务、向量化任务等，包括其生成的结构树，以及向量化后的知识文件，同时还会解绑知识库和知识文件之间的关系。\n此接口命名不够语义化，所以不要被接口命名带偏")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "删除成功，什么都不返回"),
             @ApiResponse(
@@ -55,7 +55,7 @@ public class MissionController {
     public void deleteExtractStructureMission(
             @PathVariable("fileId") @Schema(name = "fileId", description = "文件唯一Id") String fileId
     ) {
-        pipeLineApplicationService.deleteExtractStructureMission(fileId);
+        pipeLineApplicationService.deleteMissions(fileId);
     }
 
 
