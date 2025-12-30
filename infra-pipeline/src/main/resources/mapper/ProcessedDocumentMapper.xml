@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper">
+    <resultMap id="ProcessedDocumentResultMap" type="top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo">
+        <id column="processed_doc_id" property="processedDocumentId" jdbcType="VARCHAR"/>
+        <result column="file_id" property="sourceDocumentId" jdbcType="VARCHAR"/>
+        <result column="file_name" property="fileName" jdbcType="VARCHAR"/>
+        <result column="file_path" property="filePath" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="INTEGER" typeHandler="top.emilejones.hhu.pipeline.handler.ProcessedDocumentTypeHandler"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="isdelete" property="isDelete" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <insert id="upsertProcessedDocument" parameterType="top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo">
+        INSERT INTO processed_document (
+        processed_doc_id, file_id, file_name, file_path, type, create_time, isdelete
+        ) VALUES (
+        #{processedDocument.processedDocumentId,jdbcType=VARCHAR},
+        #{processedDocument.sourceDocumentId,jdbcType=VARCHAR},
+        #{processedDocument.fileName,jdbcType=VARCHAR},
+        #{processedDocument.filePath,jdbcType=VARCHAR},
+        #{processedDocument.type,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.ProcessedDocumentTypeHandler},
+        #{processedDocument.createTime,jdbcType=TIMESTAMP},
+        #{processedDocument.isDelete,jdbcType=INTEGER}
+        )
+        ON DUPLICATE KEY UPDATE
+        <trim suffixOverrides=",">
+            <if test="processedDocument.sourceDocumentId != null">file_id =#{processedDocument.sourceDocumentId,jdbcType=VARCHAR},</if>
+            <if test="processedDocument.fileName != null">file_name = #{processedDocument.fileName,jdbcType=VARCHAR},</if>
+            <if test="processedDocument.filePath != null">file_path = #{processedDocument.filePath,jdbcType=VARCHAR},</if>
+            <if test="processedDocument.type != null">type =#{processedDocument.type,jdbcType=INTEGER,typeHandler=top.emilejones.hhu.pipeline.handler.ProcessedDocumentTypeHandler},</if>
+            <if test="processedDocument.createTime != null">create_time = #{processedDocument.createTime,jdbcType=TIMESTAMP},</if>
+            <if test="processedDocument.isDelete != null">isdelete = #{processedDocument.isDelete,jdbcType=INTEGER}</if>
+        </trim>
+    </insert>
+
+    <select id="findById" resultMap="ProcessedDocumentResultMap">
+        SELECT
+            processed_doc_id, file_id, file_name, file_path, type, create_time, isdelete
+        FROM processed_document
+        WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR} AND isdelete = 1
+    </select>
+
+    <select id="findBySourceDocumentId" resultMap="ProcessedDocumentResultMap">
+        SELECT
+            processed_doc_id, file_id, file_name, file_path, type, create_time, isdelete
+        FROM processed_document
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR} AND isdelete = 1
+        ORDER BY
+            create_time DESC,
+            status_type ASC,
+            processed_doc_id DESC
+    </select>
+
+    <!-- 软删除向量化任务 -->
+    <update id="softDelete">
+        UPDATE processed_document
+        SET isdelete = #{isDelete,jdbcType=INTEGER}
+        WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR}
+    </update>
+
+    <!-- 物理删除处理后文档 -->
+    <delete id="hardDelete">
+        DELETE FROM processed_document
+        WHERE processed_doc_id = #{processedDocumentId,jdbcType=VARCHAR}
+    </delete>
+
+    <!-- 根据源文档ID软删除处理后文档 -->
+    <update id="softDeleteBySourceDocumentId">
+        UPDATE processed_document
+        SET isdelete = #{isDelete,jdbcType=INTEGER}
+        WHERE file_id = #{sourceDocumentId,jdbcType=VARCHAR}
+    </update>
+
+</mapper>
