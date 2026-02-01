@@ -7,22 +7,22 @@ springdoc:
   default-produces-media-type: application/json
 
 server:
-  port: 7456
-  
+  port: 8456
+
 app:
   milvus:
+    host: 10.196.83.122
+    port: 3953
     database: test
     collection: ej
-    host: localhost
-    port: 3953
   neo4j:
-    host: localhost
+    host: 10.196.83.122
     port: 3271
     user: neo4j
     password: 12345678
     database: neo4j
   model:
-    host: localhost
+    host: 10.196.83.122
     port: 10007
     embeddingModel: bge-m3
     rerankModel: bge-reranker-v2-m3
@@ -32,16 +32,16 @@ app:
     maxTableLength: 700
     recallNumber: 7
   mysql:
-    host: localhost
+    host: 10.196.83.122
     port: 3306
     user: root
     password: bambooRainP@assword19
     database: bamboo
   minerU:
-    host: localhost
+    host: 10.196.83.122
     port: 6006
   minio:
-    host: localhost
+    host: 10.196.83.122
     port: 6000
     user: KKFactory
     password: HHU@sdb189

@@ -17,5 +17,6 @@ allprojects {
         implementation("org.slf4j:slf4j-api:2.0.13")
         implementation("ch.qos.logback:logback-classic:1.5.6")
         implementation(platform("org.springframework.boot:spring-boot-starter-parent:3.5.5"))
+        implementation("org.jetbrains.kotlin:kotlin-reflect")
     }
 }

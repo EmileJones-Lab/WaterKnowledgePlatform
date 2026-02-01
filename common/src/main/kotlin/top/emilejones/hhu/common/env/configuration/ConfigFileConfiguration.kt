@@ -1,16 +1,14 @@
 package top.emilejones.hhu.common.env.configuration
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import top.emilejones.hhu.common.env.AutoFindConfigFile
 import top.emilejones.hhu.common.env.pojo.*
 
 
 @Configuration
+@EnableConfigurationProperties(ApplicationConfig::class)
 class ConfigFileConfiguration {
-
-    @Bean
-    fun applicationConfig(): ApplicationConfig = AutoFindConfigFile.find()
 
     @Bean
     fun milvusConfig(applicationConfig: ApplicationConfig): MilvusConfig = applicationConfig.milvus
@@ -31,5 +29,5 @@ class ConfigFileConfiguration {
     fun minerUConfig(applicationConfig: ApplicationConfig): MinerUConfig = applicationConfig.minerU
     
     @Bean
-    open fun minioConfig(applicationConfig: ApplicationConfig): MinioConfig = applicationConfig.minio
+    fun minioConfig(applicationConfig: ApplicationConfig): MinioConfig = applicationConfig.minio
 }
