@@ -8,6 +8,7 @@ import top.emilejones.hhu.domain.pipeline.TextNode;
 import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -20,9 +21,16 @@ public class RecallApplicationService {
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
     }
 
+    /**
+     * 根据问题召回相关文本
+     *
+     * @param query              问题
+     * @param knowledgeCatalogId 知识库
+     * @return 知识库中和问题相关的文本
+     */
     public List<String> recallText(String query, String knowledgeCatalogId) {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(knowledgeCatalogId);
-        String milvusCollectionName = knowledgeCatalog.getMilvusCollectionName();
+        String milvusCollectionName = Objects.requireNonNull(knowledgeCatalog).getMilvusCollectionName();
         List<TextNode> textNodes = nodeRepository.recallTextNode(query, milvusCollectionName);
         return textNodes.stream().map(TextNode::getText).toList();
     }

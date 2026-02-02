@@ -72,7 +72,7 @@ public class DocumentApplicationService {
             throw new UnsupportedOperationException("目前只支持查询开启任务的文件信息列表");
         List<String> fileIdList = ocrMissionRepository.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit + 1, pageNum * limit, keyword);
         boolean hasNextPage = false;
-        if (fileIdList.size() > limit){
+        if (fileIdList.size() > limit) {
             hasNextPage = true;
             fileIdList.remove(limit.intValue());
         }

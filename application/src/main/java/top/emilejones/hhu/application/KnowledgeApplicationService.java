@@ -89,7 +89,6 @@ public class KnowledgeApplicationService {
      * @param request 新增请求
      * @return 新增的知识库元数据
      */
-    @Transactional(rollbackFor = Exception.class)
     public KnowledgeDirectoryDTO addKnowledgeDirectory(AddKnowledgeDirectoryDTO request) {
         // 1.获取KnowledgeCatalog相关的信息
         // 1.1 用UUID获取kbId
@@ -124,7 +123,6 @@ public class KnowledgeApplicationService {
      * @param dirName 修改的知识库名称
      * @return 修改后的文件夹元信息
      */
-    @Transactional(rollbackFor = Exception.class)
     public KnowledgeDirectoryDTO updateKnowledgeDirectory(String id, String dirName) {
         // 1.根据id查询KnowledgeCatalog
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(id);
@@ -153,7 +151,6 @@ public class KnowledgeApplicationService {
      *
      * @param id 知识库唯一Id
      */
-    @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeDirectory(String id) {
         // 从数据库中查找相关内容
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(id);
@@ -313,7 +310,6 @@ public class KnowledgeApplicationService {
      * @param documentId 向量化文件唯一Id
      * @return 知识文件的元信息
      */
-    @Transactional(rollbackFor = Exception.class)
     public KnowledgeFileDTO addKnowledgeFileByDirId(String dirId, String documentId) {
         // 1.根据documentId查询向量化文件
         KnowledgeDocument knowledgeDocument = knowledgeDocumentRepository.findKnowledgeDocumentByKnowledgeDocumentId(documentId);
@@ -380,7 +376,6 @@ public class KnowledgeApplicationService {
      * @param dirId       知识库唯一Id
      * @param documentIds 向量化文件Id
      */
-    @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeFileByDirId(String dirId, List<String> documentIds) {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(dirId);
         List<String> textNodeIdList = documentIds.stream()
@@ -509,7 +504,6 @@ public class KnowledgeApplicationService {
      * @param event 向量化任务成功事件
      */
     @EventListener
-    @Transactional(rollbackFor = Exception.class)
     public void addAKnowledgeDocumentFromSuccessfulEmbeddingMission(EmbeddingMissionSuccessEvent event) {
         // 获取向量化任务
         EmbeddingMission embeddingMission = event.getEmbeddingMission();

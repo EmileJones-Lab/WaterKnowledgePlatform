@@ -56,7 +56,7 @@ public class PipeLineApplicationService {
     }
 
     /**
-     * 删除指定的结构提取任务。
+     * 根据文件唯一ID删除所有相关的任务以及任务成功生成的结果文件
      *
      * @param fileId 文件唯一Id。
      */
