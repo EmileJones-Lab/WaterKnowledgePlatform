@@ -76,11 +76,24 @@ public class KnowledgeApplicationService {
         // 1.获取所有的知识库信息
         List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogRepository.findAll();
 
-        // 2.将knowledgeCatalog转换为KnowledgeDirectoryDTO
-        List<KnowledgeDirectoryDTO> knowledgeDirectoryDTOList = knowledgeCatalogList.stream().map(DtoConverter::toKnowledgeDirectoryDTO).toList();
+        // 2.将knowledgeCatalog转换为KnowledgeDirectoryDTO，并且返回数据
+        return knowledgeCatalogList.stream().map(DtoConverter::toKnowledgeDirectoryDTO).toList();
+    }
 
-        // 3.返回数据
-        return knowledgeDirectoryDTOList;
+    /**
+     * 获取结构化的知识库
+     *
+     * @return 结构化知识库相关信息
+     */
+    public List<KnowledgeDirectoryDTO> getStructuredKnowledgeDirectories() {
+        // 1.获取所有的知识库信息
+        List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogRepository.findAll();
+
+        // 2.将文本切割的knowledgeCatalog过滤出来，同时转换为KnowledgeDirectoryDTO，并且返回数据
+        return knowledgeCatalogList.stream()
+                .filter(it -> KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR.equals(it.getType()))
+                .map(DtoConverter::toKnowledgeDirectoryDTO)
+                .toList();
     }
 
     /**

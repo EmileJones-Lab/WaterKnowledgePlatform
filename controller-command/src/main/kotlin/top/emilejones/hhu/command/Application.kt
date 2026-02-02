@@ -1,12 +1,14 @@
 package top.emilejones.hhu.command
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.core.CliktCommand
+import org.springframework.stereotype.Component
 
 /**
  * 命令行工具运行方式
  * @author EmileJones
  */
-class Application : SuspendingCliktCommand(name = "insert") {
+@Component
+class Application : CliktCommand(name = "rag-command") {
 
-    override suspend fun run() = Unit
+    override fun run() = Unit
 }

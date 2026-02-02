@@ -8,6 +8,8 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation(project(":application"))
     implementation(project(":infra-textsplitter"))
     implementation(project(":infra-model"))
     implementation(project(":common"))
