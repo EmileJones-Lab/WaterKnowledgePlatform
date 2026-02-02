@@ -1,6 +1,7 @@
 package top.emilejones.hhu.application.processor;
 
 import org.springframework.stereotype.Component;
+import top.emilejones.hhu.common.utils.FileUtils;
 import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
@@ -46,6 +47,9 @@ public class OcrProcessor {
         try {
             SourceDocument sourceDocument = sourceDocumentOptional.get();
             InputStream content = sourceDocumentRepository.openContent(sourceDocument.getFilePath());
+            boolean isPdf = FileUtils.INSTANCE.isPdf(content);
+            if (!isPdf)
+                throw new IllegalAccessException("不是一个OCR文件");
             MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(content);
             String markdownProcessedFileId = UUID.randomUUID().toString();
             ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(markdownProcessedFileId, sourceDocument.getId(), generateFilePath(markdownProcessedFileId + ".md"), ProcessedDocumentType.MARKDOWN);
