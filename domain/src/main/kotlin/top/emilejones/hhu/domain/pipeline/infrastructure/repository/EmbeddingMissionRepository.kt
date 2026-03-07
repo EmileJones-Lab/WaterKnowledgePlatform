@@ -1,5 +1,6 @@
 package top.emilejones.hhu.domain.pipeline.infrastructure.repository
 
+import top.emilejones.hhu.domain.framwork.ConsistentBatchProcessor
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission
 
 /**
@@ -8,29 +9,7 @@ import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission
  * 约定：通用约束与实现细节以各方法注释为准。
  * @author EmileJones
  */
-interface EmbeddingMissionRepository {
-    /**
-     * 保存单个任务；已存在同标识任务时覆盖旧记录。
-     *
-     * 约定：具备 upsert 语义。
-     */
-    fun save(embeddingMission: EmbeddingMission)
-
-    /**
-     * 删除任务。
-     *
-     * 约定：删除操作应幂等，重复删除或未命中不应抛出异常。
-     */
-    fun delete(embeddingMissionId: String)
-
-    /**
-     * 根据ID查找任务。
-     *
-     * @param embeddingMissionId 任务标识
-     * @return 任务对象，不存在返回 null
-     */
-    fun findById(embeddingMissionId: String): EmbeddingMission?
-
+interface EmbeddingMissionRepository : ConsistentBatchProcessor<String, EmbeddingMission> {
     /**
      * 根据源文档查询任务列表。
      *
@@ -51,12 +30,4 @@ interface EmbeddingMissionRepository {
      */
     fun findBatchBySourceDocumentId(sourceDocumentIdList: List<String>): List<List<EmbeddingMission>>
 
-    /**
-     * 批量保存任务；遇到已存在的标识时执行覆盖（upsert）。
-     *
-     * 约定：具备 upsert 语义；当批量写入部分失败时需能定位具体任务以便重试。
-     *
-     * @param embeddingMissionList 待保存任务集合
-     */
-    fun saveBatch(embeddingMissionList: List<EmbeddingMission>)
 }

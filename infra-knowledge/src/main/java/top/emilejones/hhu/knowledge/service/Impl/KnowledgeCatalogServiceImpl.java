@@ -32,12 +32,10 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     private KnowledgeCatalogMapper knowledgeCatalogMapper;
     @Autowired
     private CollectionDocumentMapper collectionDocumentMapper;
-    /**
-     * 查询所有的知识库信息。
-     * @return List<KnowledgeCatalog> 知识库目录的集合，可以是空列表但不会为null。
-     */
+
+    @NotNull
     @Override
-    public @NotNull List<KnowledgeCatalog> findAll() {
+    public List<KnowledgeCatalog> findAll() {
         // 从数据库中查询所有的知识库信息
         List<KnowledgeCatalogDto> knowledgeCatalogDtoList = knowledgeCatalogMapper.findAll();
 

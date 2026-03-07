@@ -44,7 +44,7 @@ public class EmbeddingMissionService {
      *
      * @param embeddingMissionList 待保存的向量化任务集合，不能为null
      */
-    public void saveBatch(@NotNull List<EmbeddingMission> embeddingMissionList) {
+    public void saveBatch(@NotNull List<? extends EmbeddingMission> embeddingMissionList) {
         if (embeddingMissionList.isEmpty()) {
             return;
         }

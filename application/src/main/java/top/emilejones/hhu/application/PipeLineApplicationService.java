@@ -241,7 +241,7 @@ public class PipeLineApplicationService {
 
         try {
             // 2. 从 embeddingMissionRepository 查找对应的 EmbeddingMission
-            EmbeddingMission mission = embeddingMissionRepository.findById(embeddingMissionId);
+            EmbeddingMission mission = embeddingMissionRepository.find(embeddingMissionId);
             if (mission == null) {
                 throw new RuntimeException("EmbeddingMission not found for ID: " + embeddingMissionId);
             }

@@ -171,9 +171,9 @@ public class KnowledgeApplicationService {
         List<String> textNodeIdList = documents.stream()
                 .map(KnowledgeDocumentWithBindTime::getKnowledgeDocument)
                 .map(KnowledgeDocument::getId)
-                .map(knowledgeDocumentRepository::findKnowledgeDocumentByKnowledgeDocumentId)
+                .map(knowledgeDocumentRepository::find)
                 .map(KnowledgeDocument::getEmbeddingMissionId)
-                .map(embeddingMissionRepository::findById)
+                .map(embeddingMissionRepository::find)
                 .peek(m -> {
                     if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
                 })
@@ -239,7 +239,7 @@ public class KnowledgeApplicationService {
         // 5.将id与embeddingMission绑定，用于获取查询为null的embeddingMission的id，报错给前端
         List<AbstractMap.SimpleEntry<String, EmbeddingMission>> missionEntries = knowledgeDocumentWithBindTimeList.stream()
                 .map(knowledgeDocumentWithBindTime -> knowledgeDocumentWithBindTime.getKnowledgeDocument().getEmbeddingMissionId())
-                .map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.findById(id)))
+                .map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.find(id)))
                 .toList();
 
 
@@ -325,7 +325,7 @@ public class KnowledgeApplicationService {
      */
     public KnowledgeFileDTO addKnowledgeFileByDirId(String dirId, String documentId) {
         // 1.根据documentId查询向量化文件
-        KnowledgeDocument knowledgeDocument = knowledgeDocumentRepository.findKnowledgeDocumentByKnowledgeDocumentId(documentId);
+        KnowledgeDocument knowledgeDocument = knowledgeDocumentRepository.find(documentId);
 
         // 2.根据dirId查询知识库
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(dirId);
@@ -342,7 +342,7 @@ public class KnowledgeApplicationService {
         knowledgeCatalogRepository.bind(knowledgeDocument, knowledgeCatalog, knowledgeDocumentAddedToCatalogEvent.getBindTime());
 
         // 4.根据embeddingMissionId查询embeddingMission
-        EmbeddingMission embeddingMission = embeddingMissionRepository.findById(knowledgeDocument.getEmbeddingMissionId());
+        EmbeddingMission embeddingMission = embeddingMissionRepository.find(knowledgeDocument.getEmbeddingMissionId());
 
         // 判空
         if (embeddingMission == null) {
@@ -392,9 +392,9 @@ public class KnowledgeApplicationService {
     public void deleteKnowledgeFileByDirId(String dirId, List<String> documentIds) {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(dirId);
         List<String> textNodeIdList = documentIds.stream()
-                .map(knowledgeDocumentRepository::findKnowledgeDocumentByKnowledgeDocumentId)
+                .map(knowledgeDocumentRepository::find)
                 .map(KnowledgeDocument::getEmbeddingMissionId)
-                .map(embeddingMissionRepository::findById)
+                .map(embeddingMissionRepository::find)
                 .peek(m -> {
                     if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
                 })
@@ -437,7 +437,7 @@ public class KnowledgeApplicationService {
         // 2.根据embeddingMissionId查询对应的embeddingMission并和其id绑定，用于判断是否存在null
         List<AbstractMap.SimpleEntry<String, EmbeddingMission>> entries = knowledgeDocumentList.stream()
                 .map(KnowledgeDocument::getEmbeddingMissionId)
-                .map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.findById(id)))
+                .map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.find(id)))
                 .toList();
 
         // 3.获取找不到embeddingMission的id

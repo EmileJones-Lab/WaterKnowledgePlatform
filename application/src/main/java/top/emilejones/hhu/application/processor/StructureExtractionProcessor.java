@@ -16,7 +16,6 @@ import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Component
 public class StructureExtractionProcessor {
@@ -89,11 +88,11 @@ public class StructureExtractionProcessor {
 
     private void doExtract(StructureExtractionMission structureExtractionMission, String markdownDocumentId) throws Exception {
         // 获取markdown文件内容
-        Optional<ProcessedDocument> processedDocumentOptional = processedDocumentRepository.findById(markdownDocumentId);
-        if (processedDocumentOptional.isEmpty())
+        ProcessedDocument processedDocument = processedDocumentRepository.find(markdownDocumentId);
+        if (processedDocument == null)
             throw new IllegalAccessException("OCR任务存在，但是提取出来的markdown文件却不存在");
 
-        InputStream inputStream = processedDocumentRepository.openContent(processedDocumentOptional.get().getFilePath());
+        InputStream inputStream = processedDocumentRepository.openContent(processedDocument.getFilePath());
 
         // 提取markdown文件结构
         TextNodeDTO structure = structureExtractionGateway.extract(inputStream);

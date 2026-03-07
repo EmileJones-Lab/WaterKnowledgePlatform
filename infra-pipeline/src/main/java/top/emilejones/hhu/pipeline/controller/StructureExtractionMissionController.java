@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * 结构化抽取任务仓库实现，衔接领域仓储与服务逻辑。
  * 它实现了StructureExtractionMissionRepository接口，通过调用StructureExtractionMissionService来完成具体的业务处理。
+ *
  * @author Yeyezhi
  */
 @Component
@@ -29,7 +30,7 @@ public class StructureExtractionMissionController implements StructureExtraction
     }
 
     @Override
-    public void saveBatch(@NotNull List<StructureExtractionMission> structureExtractionMissionList) {
+    public void saveBatch(@NotNull List<? extends StructureExtractionMission> structureExtractionMissionList) {
         structureExtractionMissionService.saveBatch(structureExtractionMissionList);
     }
 
@@ -50,9 +51,15 @@ public class StructureExtractionMissionController implements StructureExtraction
         structureExtractionMissionService.delete(structureExtractionMissionId);
     }
 
+
+    @Override
+    public void deleteBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     @Override
     @Nullable
-    public StructureExtractionMission findById(@NotNull String structureExtractionMissionId) {
+    public StructureExtractionMission find(@NotNull String structureExtractionMissionId) {
         return structureExtractionMissionService.findById(structureExtractionMissionId);
     }
 }

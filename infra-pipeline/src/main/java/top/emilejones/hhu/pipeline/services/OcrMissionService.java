@@ -44,7 +44,7 @@ public class OcrMissionService {
      *
      * @param ocrMissionList 待保存的OCR任务集合，不能为null
      */
-    public void saveBatch(@NotNull List<OcrMission> ocrMissionList) {
+    public void saveBatch(@NotNull List<? extends OcrMission> ocrMissionList) {
         if (ocrMissionList.isEmpty()) {
             return;
         }

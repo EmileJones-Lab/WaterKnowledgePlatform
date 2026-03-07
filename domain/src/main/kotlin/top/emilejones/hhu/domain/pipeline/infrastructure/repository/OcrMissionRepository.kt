@@ -1,5 +1,6 @@
 package top.emilejones.hhu.domain.pipeline.infrastructure.repository
 
+import top.emilejones.hhu.domain.framwork.ConsistentBatchProcessor
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission
 
 /**
@@ -8,22 +9,7 @@ import top.emilejones.hhu.domain.pipeline.ocr.OcrMission
  * 约定：通用约束与实现细节以各方法注释为准。
  * @author EmileJones
  */
-interface OcrMissionRepository {
-    /**
-     * 保存单个任务；若已有同标识任务，将覆盖旧记录。
-     *
-     * 约定：具备 upsert 语义，重复写入需覆盖旧任务。
-     */
-    fun save(ocrMission: OcrMission)
-
-    /**
-     * 批量保存任务；遇到重复标识执行覆盖（upsert）。
-     *
-     * 约定：具备 upsert 语义；应保证部分失败可定位，必要时支持局部回滚或幂等重试。
-     *
-     * @param ocrMissionList 待保存的 OCR 任务集合
-     */
-    fun saveBatch(ocrMissionList: List<OcrMission>)
+interface OcrMissionRepository : ConsistentBatchProcessor<String, OcrMission> {
 
     /**
      * 查询最近启动的 OCR 任务对应的源文件。
@@ -56,21 +42,4 @@ interface OcrMissionRepository {
      * @return 与入参顺序一致的任务列表集合
      */
     fun findBatchBySourceDocumentId(sourceDocumentIdList: List<String>): List<List<OcrMission>>
-
-    /**
-     * 删除任务。
-     *
-     * 约定：删除操作应幂等，重复删除不应抛出异常；未命中时可静默返回。
-     *
-     * @param ocrMissionId 任务标识
-     */
-    fun delete(ocrMissionId: String)
-
-    /**
-     * 根据ID查找任务。
-     *
-     * @param ocrMissionId 任务标识
-     * @return 任务对象，不存在返回 null
-     */
-    fun findById(ocrMissionId: String): OcrMission?
 }
