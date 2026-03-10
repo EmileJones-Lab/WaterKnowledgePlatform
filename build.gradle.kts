@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = "top.emilejones"
-    version = "unspecified" // Or specify a central version here
+    version = "v1.1.0" // Or specify a central version here
     repositories {
         mavenCentral()
     }
