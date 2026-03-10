@@ -4,6 +4,7 @@ import lombok.Data;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * 知识库信息传输对象
