@@ -1,13 +1,13 @@
 package top.emilejones.hhu.web.utils;
 
-import top.emilejones.hhu.application.dto.knowledge.CandidateKnowledgeFileDTO;
-import top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryDTO;
-import top.emilejones.hhu.application.dto.knowledge.KnowledgeFileDTO;
-import top.emilejones.hhu.application.dto.mission.DocumentSplittingMissionDTO;
-import top.emilejones.hhu.application.dto.mission.EmbeddingMissionDTO;
-import top.emilejones.hhu.application.dto.mission.MissionsDTO;
-import top.emilejones.hhu.application.dto.mission.OcrMissionDTO;
-import top.emilejones.hhu.application.dto.retrieval.TextNodeDTO;
+import top.emilejones.hhu.application.platform.dto.knowledge.CandidateKnowledgeFileDTO;
+import top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeDirectoryDTO;
+import top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeFileDTO;
+import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMissionDTO;
+import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
+import top.emilejones.hhu.application.platform.dto.mission.MissionsDTO;
+import top.emilejones.hhu.application.platform.dto.mission.OcrMissionDTO;
+import top.emilejones.hhu.application.platform.dto.retrieval.TextNodeDTO;
 import top.emilejones.hhu.web.vo.knowledge.CandidateKnowledgeFileVO;
 import top.emilejones.hhu.web.vo.knowledge.KnowledgeDirectoryVO;
 import top.emilejones.hhu.web.vo.knowledge.KnowledgeFileVO;
@@ -159,34 +159,34 @@ public class VoConverter {
         return dtos.stream().map(VoConverter::toCandidateKnowledgeFileVO).collect(Collectors.toList());
     }
 
-    public static top.emilejones.hhu.web.vo.retrieval.TextType toTextType(top.emilejones.hhu.application.dto.retrieval.TextType type) {
+    public static top.emilejones.hhu.web.vo.retrieval.TextType toTextType(top.emilejones.hhu.application.platform.dto.retrieval.TextType type) {
         if (type == null) return null;
         return top.emilejones.hhu.web.vo.retrieval.TextType.valueOf(type.name());
     }
 
-    public static top.emilejones.hhu.web.vo.mission.enums.MissionStatus toMissionStatus(top.emilejones.hhu.application.dto.mission.enums.MissionStatus status) {
+    public static top.emilejones.hhu.web.vo.mission.enums.MissionStatus toMissionStatus(top.emilejones.hhu.application.platform.dto.mission.enums.MissionStatus status) {
         if (status == null) return null;
         return top.emilejones.hhu.web.vo.mission.enums.MissionStatus.valueOf(status.name());
     }
     
-    public static top.emilejones.hhu.web.vo.mission.enums.DocumentSplittingMissionType toDocumentSplittingMissionType(top.emilejones.hhu.application.dto.mission.enums.DocumentSplittingMissionType type) {
+    public static top.emilejones.hhu.web.vo.mission.enums.DocumentSplittingMissionType toDocumentSplittingMissionType(top.emilejones.hhu.application.platform.dto.mission.enums.DocumentSplittingMissionType type) {
         if (type == null) return null;
         return top.emilejones.hhu.web.vo.mission.enums.DocumentSplittingMissionType.valueOf(type.name());
     }
 
-    public static top.emilejones.hhu.web.vo.knowledge.KnowledgeDirectoryType toKnowledgeDirectoryType(top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryType type) {
+    public static top.emilejones.hhu.web.vo.knowledge.KnowledgeDirectoryType toKnowledgeDirectoryType(top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeDirectoryType type) {
         if (type == null) return null;
         return top.emilejones.hhu.web.vo.knowledge.KnowledgeDirectoryType.valueOf(type.name());
     }
 
-    public static top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryType toKnowledgeDirectoryDTOType(top.emilejones.hhu.web.vo.knowledge.KnowledgeDirectoryType type) {
+    public static top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeDirectoryType toKnowledgeDirectoryDTOType(top.emilejones.hhu.web.vo.knowledge.KnowledgeDirectoryType type) {
         if (type == null) return null;
-        return top.emilejones.hhu.application.dto.knowledge.KnowledgeDirectoryType.valueOf(type.name());
+        return top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeDirectoryType.valueOf(type.name());
     }
 
-    public static top.emilejones.hhu.application.dto.knowledge.request.AddKnowledgeDirectoryDTO toAddKnowledgeDirectoryDTO(top.emilejones.hhu.web.vo.knowledge.request.AddKnowledgeDirectoryRequest request) {
+    public static top.emilejones.hhu.application.platform.dto.knowledge.request.AddKnowledgeDirectoryDTO toAddKnowledgeDirectoryDTO(top.emilejones.hhu.web.vo.knowledge.request.AddKnowledgeDirectoryRequest request) {
         if (request == null) return null;
-        top.emilejones.hhu.application.dto.knowledge.request.AddKnowledgeDirectoryDTO dto = new top.emilejones.hhu.application.dto.knowledge.request.AddKnowledgeDirectoryDTO();
+        top.emilejones.hhu.application.platform.dto.knowledge.request.AddKnowledgeDirectoryDTO dto = new top.emilejones.hhu.application.platform.dto.knowledge.request.AddKnowledgeDirectoryDTO();
         dto.setDirName(request.getDirName());
         dto.setType(toKnowledgeDirectoryDTOType(request.getType()));
         return dto;

@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import top.emilejones.hhu.application.RecallApplicationService;
+import top.emilejones.hhu.application.platform.RecallApplicationService;
 
 import java.util.List;
 

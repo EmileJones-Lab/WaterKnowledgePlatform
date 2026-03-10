@@ -5,8 +5,8 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
 import org.springframework.stereotype.Component
-import top.emilejones.hhu.application.KnowledgeApplicationService
-import top.emilejones.hhu.application.RecallApplicationService
+import top.emilejones.hhu.application.platform.KnowledgeApplicationService
+import top.emilejones.hhu.application.platform.RecallApplicationService
 
 @Component
 class RetrieveCommand(
