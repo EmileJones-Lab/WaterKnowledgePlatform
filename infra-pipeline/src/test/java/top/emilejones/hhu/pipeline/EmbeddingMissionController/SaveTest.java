@@ -12,6 +12,7 @@ import top.emilejones.hhu.pipeline.services.EmbeddingMissionService;
 
 /**
  * 测试 EmbeddingMissionController 的 save 方法。
+ * @author EmileJones
  */
 @SpringBootTest(classes = TestApplication.class)
 public class SaveTest {

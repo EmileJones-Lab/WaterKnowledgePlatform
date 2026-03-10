@@ -21,6 +21,7 @@ import java.util.UUID;
 
 /**
  * 测试 KnowledgeDocumentServiceImpl 的 findByKnowledgeCatalogId 方法。
+ * @author EmileJones
  */
 @SpringBootTest(classes = TestApplication.class)
 public class FindByKnowledgeCatalogIdTest {

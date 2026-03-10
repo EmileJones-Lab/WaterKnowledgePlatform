@@ -15,9 +15,10 @@ import java.util.List;
 
 /**
  * 测试 StructureExtractionMissionController 的 saveBatch 方法。
+ * @author EmileJones
  */
 @SpringBootTest(classes = TestApplication.class)
-public class SaveBatchTest {
+public class  SaveBatchTest {
     @Mock
     private StructureExtractionMissionService structureExtractionMissionService;
     @InjectMocks

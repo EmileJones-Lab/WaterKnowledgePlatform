@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * 测试 KnowledgeDocumentServiceImpl 的 delete 方法。
+ * @author EmileJones
  */
 @SpringBootTest(classes = TestApplication.class)
 public class DeleteTest {

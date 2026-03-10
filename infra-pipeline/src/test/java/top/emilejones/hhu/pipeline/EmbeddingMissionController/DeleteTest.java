@@ -11,6 +11,7 @@ import top.emilejones.hhu.pipeline.services.EmbeddingMissionService;
 
 /**
  * 测试 EmbeddingMissionController 的 delete 方法。
+ * @author EmileJones
  */
 @SpringBootTest(classes = TestApplication.class)
 public class DeleteTest {

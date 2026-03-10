@@ -14,6 +14,7 @@ import java.util.List;
 
 /**
  * 测试 EmbeddingMissionController 的 deleteBatch 方法。
+ * @author EmileJones
  */
 @SpringBootTest(classes = TestApplication.class)
 public class DeleteBatchTest {

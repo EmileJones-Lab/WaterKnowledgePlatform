@@ -2,7 +2,7 @@ package top.emilejones.hhu.domain
 
 /**
  * 基础聚合根，负责聚合的唯一标识及领域事件收集。
- * @author EmileJones
+ *  @author EmileJones
  */
 abstract class AggregateRoot<ID>(
     open val id: ID

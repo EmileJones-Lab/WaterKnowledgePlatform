@@ -17,6 +17,7 @@ import java.util.UUID;
 
 /**
  * 测试 KnowledgeCatalogServiceImpl 的 deleteKnowledgeDocumentFromKnowledgeCatalog 方法。
+ * @author EmileJones
  */
 @SpringBootTest(classes = TestApplication.class)
 public class DeleteKnowledgeDocumentFromKnowledgeCatalogTest {
