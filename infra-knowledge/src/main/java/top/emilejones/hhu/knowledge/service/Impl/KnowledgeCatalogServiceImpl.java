@@ -32,12 +32,10 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
     private KnowledgeCatalogMapper knowledgeCatalogMapper;
     @Autowired
     private CollectionDocumentMapper collectionDocumentMapper;
-    /**
-     * 查询所有的知识库信息。
-     * @return List<KnowledgeCatalog> 知识库目录的集合，可以是空列表但不会为null。
-     */
+
+    @NotNull
     @Override
-    public @NotNull List<KnowledgeCatalog> findAll() {
+    public List<KnowledgeCatalog> findAll() {
         // 从数据库中查询所有的知识库信息
         List<KnowledgeCatalogDto> knowledgeCatalogDtoList = knowledgeCatalogMapper.findAll();
 
@@ -96,39 +94,6 @@ public class KnowledgeCatalogServiceImpl implements KnowledgeCatalogRepository {
             knowledgeCatalogMapper.update(knowledgeCatalogDto);
         }
 
-    }
-
-    /**
-     * 将一个向量化后的文件与指定的知识库绑定。
-     * 如果已经绑定，则不进行任何操作。
-     * @param knowledgeDocument 待绑定的知识文档。
-     * @param knowledgeCatalog 目标知识库。
-     */
-    public void bind(@NotNull KnowledgeDocument knowledgeDocument, @NotNull KnowledgeCatalog knowledgeCatalog) {
-        // 获取知识库id和向量化文件id
-        String catalogId = knowledgeCatalog.getId();
-        String documentId = knowledgeDocument.getId();
-
-        // 判断向量化文件的type和知识库的type是否一致
-        validateDocumentAndCatalogType(knowledgeDocument, knowledgeCatalog);
-
-        // 判断是否已经绑定
-        if (isBind(documentId, catalogId)){
-            // 已经绑定就报错
-            return;
-        }
-
-        // 将相关信息封装成collectionDocumentPo对象
-        CollectionDocumentPo collectionDocumentPo = new CollectionDocumentPo();
-        collectionDocumentPo.setKbId(catalogId);
-        collectionDocumentPo.setDocumentId(documentId);
-
-        // 设置创建的时间和删除的标识，默认未删除
-        collectionDocumentPo.setCreateTime(LocalDateTime.now().toInstant(ZoneOffset.UTC));
-        collectionDocumentPo.setIsDelete(DeleteConstant.EXIST);
-
-        // 存入数据库
-        collectionDocumentMapper.bind(collectionDocumentPo);
     }
 
     /**

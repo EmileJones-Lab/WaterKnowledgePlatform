@@ -41,7 +41,7 @@ public class StructureExtractionMissionService {
      * 批量保存结构化抽取任务；重复主键覆盖。
      * @param structureExtractionMissionList 待保存任务列表
      */
-    public void saveBatch(@NotNull List<StructureExtractionMission> structureExtractionMissionList) {
+    public void saveBatch(@NotNull List<? extends StructureExtractionMission> structureExtractionMissionList) {
         if (structureExtractionMissionList.isEmpty()) {
             return;
         }

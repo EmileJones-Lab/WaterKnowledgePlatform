@@ -36,4 +36,4 @@ include(":infra-knowledge")
 
 include(":markdown-corrector")
 
-rootProject.name = "mission2"
+rootProject.name = "WaterKnowledgePlatform"

@@ -1,7 +1,9 @@
 package top.emilejones.hhu.common.env.pojo
 
 import kotlinx.serialization.Serializable
+import org.springframework.boot.context.properties.ConfigurationProperties
 
+@ConfigurationProperties("app")
 @Serializable
 data class ApplicationConfig(
     val milvus: MilvusConfig,

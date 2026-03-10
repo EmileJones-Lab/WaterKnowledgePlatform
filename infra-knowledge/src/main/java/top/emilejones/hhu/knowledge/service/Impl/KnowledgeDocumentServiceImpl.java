@@ -3,7 +3,10 @@ package top.emilejones.hhu.knowledge.service.Impl;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.emilejones.hhu.domain.knowledge.*;
+import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
+import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
+import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
+import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
 import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.knowledge.constant.DeleteConstant;
@@ -31,9 +34,10 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
 
     /**
      * 根据知识库ID分页查询所有绑定的向量化文件。
+     *
      * @param knowledgeCatalogId 知识库目录的ID。
-     * @param limit 每页查询的数量限制。
-     * @param offset 查询的起始偏移量。
+     * @param limit              每页查询的数量限制。
+     * @param offset             查询的起始偏移量。
      * @return List<KnowledgeDocument> 绑定的向量化文件列表，可能为空但不会为null。
      */
     @Override
@@ -48,9 +52,9 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
     /**
      *
      * @param knowledgeCatalogId 知识库目录的ID。
-     * @param limit 每页查询的数量限制。
-     * @param offset 查询的起始偏移量。
-     * @param keyWord 根据向量化文件名模糊查询
+     * @param limit              每页查询的数量限制。
+     * @param offset             查询的起始偏移量。
+     * @param keyWord            根据向量化文件名模糊查询
      * @return List<KnowledgeDocumentWithBindTime> 绑定的向量化文件列表，可能为空但不会为null。
      */
     @Override
@@ -65,7 +69,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
         for (int i = 0; i < collectionDocumentDtoList.size(); i++) {
             KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.find(collectionDocumentDtoList.get(i).getDocumentId(), keyWord);
             // 如果当前查出来的对象是null，就直接跳过
-            if (knowledgeDocumentDto == null){
+            if (knowledgeDocumentDto == null) {
                 continue;
             }
             knowledgeDocumentWithBindTimeList.add(
@@ -84,7 +88,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
      * 根据知识库ID查询可用于构建该知识库的候选文档列表。
      *
      * @param knowledgeCatalogId 知识库目录的ID。
-     * @param keyWord 根据向量化文件名模糊查询
+     * @param keyWord            根据向量化文件名模糊查询
      * @return List<KnowledgeDocument> 候选向量化文件的集合，可能为空但不会为null，需要考虑去重。
      */
     @Override
@@ -171,18 +175,20 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
 
     /**
      * 根据id查询对应的向量化文件
+     *
      * @param knowledgeDocumentId
      * @return KnowledgeDocument
      */
     @Override
     @NotNull
-    public KnowledgeDocument findKnowledgeDocumentByKnowledgeDocumentId(@NotNull String knowledgeDocumentId) {
+    public KnowledgeDocument find(@NotNull String knowledgeDocumentId) {
         KnowledgeDocumentDto knowledgeDocumentDto = knowledgeDocumentMapper.findKnowledgeDocumentByKnowledgeDocumentId(knowledgeDocumentId);
         return DtoToDomainUtil.toDocumentDomain(knowledgeDocumentDto);
     }
 
     /**
      * 根据向量化任务 ID 查询对应的知识文档。
+     *
      * @param embeddingMissionId 向量化任务 ID
      * @return KnowledgeDocument? 知识文档，若未查询到则返回 null
      */
@@ -212,5 +218,4 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentRepository
                         KnowledgeDocumentType.CHAR_LENGTH_SPLITTER_600
                 );
     }
-
 }

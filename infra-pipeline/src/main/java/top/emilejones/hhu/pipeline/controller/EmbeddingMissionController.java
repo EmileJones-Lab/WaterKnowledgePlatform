@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * 向量化任务仓库实现，衔接领域仓储与服务逻辑。
  * 它实现了EmbeddingMissionRepository接口，通过调用EmbeddingMissionService来完成具体的业务处理。
+ *
  * @author Yeyezhi
  */
 @Component
@@ -35,7 +36,7 @@ public class EmbeddingMissionController implements EmbeddingMissionRepository {
 
     @Override
     @Nullable
-    public EmbeddingMission findById(@NotNull String embeddingMissionId) {
+    public EmbeddingMission find(@NotNull String embeddingMissionId) {
         return embeddingMissionService.findById(embeddingMissionId);
     }
 
@@ -51,7 +52,14 @@ public class EmbeddingMissionController implements EmbeddingMissionRepository {
     }
 
     @Override
-    public void saveBatch(@NotNull List<EmbeddingMission> embeddingMissionList) {
-        embeddingMissionService.saveBatch(embeddingMissionList);
+    public void saveBatch(@NotNull List<? extends EmbeddingMission> valueList) {
+        embeddingMissionService.saveBatch(valueList);
     }
+
+    @Override
+    public void deleteBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+
 }

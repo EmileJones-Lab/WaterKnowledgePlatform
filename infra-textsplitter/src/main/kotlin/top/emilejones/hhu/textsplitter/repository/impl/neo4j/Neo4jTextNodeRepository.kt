@@ -59,6 +59,26 @@ class Neo4jTextNodeRepository(
         }
     }
 
+    fun batchSearchTextNodeByNodeId(idList: List<String>): List<Neo4jTextNode> {
+        driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
+            return session.executeRead { tx ->
+                val query = """
+                    MATCH (n:TextNode)
+                    WHERE n.id IN ${'$'}idList AND coalesce(n.isDelete, false) = false
+                    RETURN n
+                """.trimIndent()
+
+                val result = tx.run(
+                    query, Values.parameters(
+                        "idList", idList
+                    )
+                )
+
+                result.list().map { it["n"].asNode().asNeo4jTextNode() }
+            }
+        }
+    }
+
     fun softDeleteTextNodeById(id: String) {
         driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
             session.executeWriteWithoutResult {

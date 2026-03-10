@@ -1,5 +1,6 @@
 package top.emilejones.hhu.domain.pipeline.infrastructure.repository
 
+import top.emilejones.hhu.domain.framwork.ConsistentBatchProcessor
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission
 
 /**
@@ -8,22 +9,8 @@ import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission
  * 约定：通用约束与实现细节以各方法注释为准。
  * @author EmileJones
  */
-interface StructureExtractionMissionRepository {
-    /**
-     * 保存单个任务；如果标识已存在则覆盖旧记录。
-     *
-     * 约定：具备 upsert 语义，重复写入需覆盖旧任务。
-     */
-    fun save(structureExtractionMission: StructureExtractionMission)
+interface StructureExtractionMissionRepository : ConsistentBatchProcessor<String, StructureExtractionMission> {
 
-    /**
-     * 批量保存任务；遇到重复标识执行覆盖（upsert）。
-     *
-     * 约定：具备 upsert 语义，需保证批量操作中的单条失败可定位。
-     *
-     * @param structureExtractionMissionList 待保存的任务集合
-     */
-    fun saveBatch(structureExtractionMissionList: List<StructureExtractionMission>)
 
     /**
      * 根据源文档查询任务列表。
@@ -43,20 +30,4 @@ interface StructureExtractionMissionRepository {
      */
     fun findBySourceDocumentIdList(sourceDocumentIdList: List<String>): List<List<StructureExtractionMission>>
 
-    /**
-     * 删除任务。
-     *
-     * 约定：删除操作应幂等，重复删除不应抛出异常。
-     *
-     * @param structureExtractionMissionId 任务标识
-     */
-    fun delete(structureExtractionMissionId: String)
-
-    /**
-     * 根据ID查找任务。
-     *
-     * @param structureExtractionMissionId 任务标识
-     * @return 任务对象，不存在返回 null
-     */
-    fun findById(structureExtractionMissionId: String): StructureExtractionMission?
 }

@@ -1,8 +1,9 @@
 package top.emilejones.hhu.domain.pipeline.infrastructure.repository
 
+import top.emilejones.hhu.domain.framwork.ConsistentDataProcessor
 import top.emilejones.hhu.domain.pipeline.ProcessedDocument
 import java.io.InputStream
-import java.util.Optional
+import java.util.*
 
 /**
  * Markdown 文档的存储接口，负责文档元数据与正文内容的持久化。
@@ -10,7 +11,7 @@ import java.util.Optional
  * 约定：通用约束与实现细节以各方法注释为准。
  * @author EmileJones
  */
-interface ProcessedDocumentRepository {
+interface ProcessedDocumentRepository: ConsistentDataProcessor<String, ProcessedDocument> {
     /**
      * 保存文档与其内容。
      *
@@ -24,16 +25,6 @@ interface ProcessedDocumentRepository {
     fun save(processedDocument: ProcessedDocument, content: InputStream)
 
     /**
-     * 根据标识查询文档元数据。
-     *
-     * 约定：未找到记录时返回 `Optional.empty()`；调用方需处理未命中分支。
-     *
-     * @param id 文档标识
-     * @return 对应的文档元数据；未命中返回 Optional.empty
-     */
-    fun findById(id: String): Optional<ProcessedDocument>
-
-    /**
      * 打开文档内容流，用于上层读取内容。
      *
      * 约定：
@@ -43,17 +34,6 @@ interface ProcessedDocumentRepository {
      * @return 文档内容流，调用方负责关闭
      */
     fun openContent(filePath: String): InputStream
-
-    /**
-     * 删除处理后文档（软删除）。
-     *
-     * 约定：
-     * - 仅标记元数据为删除状态，保留物理文件与记录。
-     * - 若 ID 不存在，实现应静默处理或抛出特定异常（视业务需求定，此处建议静默）。
-     *
-     * @param markdownDocumentId 处理后文档的唯一标识
-     */
-    fun delete(markdownDocumentId: String)
 
     /**
      * 根据源文档标识删除处理后文档（软删除）。

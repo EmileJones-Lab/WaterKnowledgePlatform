@@ -1,6 +1,5 @@
 package top.emilejones.hhu.preprocessing.structure;
 
-import org.springframework.stereotype.Service;
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
 import top.emilejones.hhu.preprocessing.handler.structure.CatalogTitleLevelCorrectorPlus;
 import top.emilejones.hhu.preprocessing.structure.enums.TitleType;
@@ -19,7 +18,6 @@ import java.util.regex.Pattern;
  * @author EmileJones
  * @author yeyezhi
  */
-@Service
 public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
 
     private String[] lines;

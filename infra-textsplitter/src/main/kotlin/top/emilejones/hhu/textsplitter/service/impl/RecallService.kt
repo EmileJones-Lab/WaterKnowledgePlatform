@@ -4,10 +4,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import top.emilejones.hhu.common.env.pojo.RAGConfig
-import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.model.pojo.RerankResult
+import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.IRecallService
@@ -37,9 +36,7 @@ class RecallService(
         val searchResults = milvusRepository.searchByVector(collectionName, queryVector, 100)
 
         // 从Neo4j获取文本节点
-        val neo4jNodes = searchResults.mapNotNull { datum ->
-            neo4jRepository.searchNeo4jTextNodeByNodeId(datum.neo4jNodeId)
-        }
+        val neo4jNodes = neo4jRepository.batchSearchNeo4jTextNodeByNodeId(searchResults.map { it.neo4jNodeId })
 
         // 重排序结果，并取出得分最高的maxResultNumber个数据
         val rerankResult = client.rerank(query, neo4jNodes.map { it.text })

@@ -59,6 +59,10 @@ class Neo4jRepositoryImpl(
         return neo4jFileNodeRepository.searchNeo4jFileNodeByTextNode(id)
     }
 
+    override fun batchSearchNeo4jTextNodeByNodeId(idList: List<String>): List<Neo4jTextNode> {
+        return neo4jTextNodeRepository.batchSearchTextNodeByNodeId(idList)
+    }
+
     override fun updateNodeByElementId(elementId: String, needUpdatedAttr: Map<String, Any?>) {
         val setCypher = needUpdatedAttr.keys.map { "n.${it} = ${'$'}${it}" }
             .joinToString(separator = ", \n", postfix = "\n", prefix = "SET ")
