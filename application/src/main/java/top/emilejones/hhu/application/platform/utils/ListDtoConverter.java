@@ -4,7 +4,7 @@ import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMiss
 import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.dto.mission.OcrMissionDTO;
 import top.emilejones.hhu.application.platform.dto.retrieval.TextNodeDTO;
-import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;

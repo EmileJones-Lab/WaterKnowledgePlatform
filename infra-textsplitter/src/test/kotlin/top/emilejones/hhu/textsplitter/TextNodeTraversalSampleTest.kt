@@ -1,8 +1,8 @@
 package top.emilejones.hhu.textsplitter
 
-import top.emilejones.hhu.domain.pipeline.TextType
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.result.TextType
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.FileNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import kotlin.test.Test
 
 /**

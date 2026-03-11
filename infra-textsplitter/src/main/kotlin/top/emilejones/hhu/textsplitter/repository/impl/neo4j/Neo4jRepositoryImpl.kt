@@ -3,7 +3,7 @@ package top.emilejones.hhu.textsplitter.repository.impl.neo4j
 import org.neo4j.driver.Driver
 import org.neo4j.driver.SessionConfig
 import org.springframework.stereotype.Repository
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationship
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode

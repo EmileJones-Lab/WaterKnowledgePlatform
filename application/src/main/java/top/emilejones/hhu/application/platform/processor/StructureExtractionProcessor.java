@@ -1,14 +1,14 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.StructureExtractionGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.ProcessedDocumentRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.result.MissionStatus;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
+import top.emilejones.hhu.domain.pipeline.infrastructure.StructureExtractionGateway;
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.FileNodeDTO;
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO;
+import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository;
+import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;

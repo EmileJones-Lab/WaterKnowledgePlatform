@@ -8,7 +8,7 @@ import top.emilejones.hhu.document.entity.SourceDocumentPO;
 import top.emilejones.hhu.document.mapper.SourceDocumentMapper;
 import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.SourceFileType;
-import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
+import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import org.springframework.stereotype.Repository;
 
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.knowledge.infrastructure
+package top.emilejones.hhu.domain.knowledge.repository
 
 import top.emilejones.hhu.domain.framwork.ConsistentDataProcessor
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog

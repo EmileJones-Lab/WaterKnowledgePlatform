@@ -1,9 +1,9 @@
 package top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions
 
-import top.emilejones.hhu.domain.pipeline.FileNode
-import top.emilejones.hhu.domain.pipeline.TextNode
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.result.FileNode
+import top.emilejones.hhu.domain.result.TextNode
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.FileNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
 

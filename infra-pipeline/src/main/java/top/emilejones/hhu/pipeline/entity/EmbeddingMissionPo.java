@@ -1,7 +1,7 @@
 package top.emilejones.hhu.pipeline.entity;
 
 import lombok.Data;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
+import top.emilejones.hhu.domain.result.MissionStatus;
 
 import java.time.Instant;
 

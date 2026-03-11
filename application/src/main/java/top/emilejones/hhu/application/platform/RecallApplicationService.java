@@ -3,9 +3,9 @@ package top.emilejones.hhu.application.platform;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
-import top.emilejones.hhu.domain.pipeline.TextNode;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
+import top.emilejones.hhu.domain.result.TextNode;
+import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 
 import java.util.List;
 import java.util.Objects;

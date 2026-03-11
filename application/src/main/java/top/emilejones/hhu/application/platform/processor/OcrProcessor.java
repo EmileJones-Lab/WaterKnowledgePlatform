@@ -3,13 +3,13 @@ package top.emilejones.hhu.application.platform.processor;
 import org.springframework.stereotype.Component;
 import top.emilejones.hhu.common.utils.FileUtils;
 import top.emilejones.hhu.domain.document.SourceDocument;
-import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.ProcessedDocumentRepository;
+import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
+import top.emilejones.hhu.domain.result.ProcessedDocumentType;
+import top.emilejones.hhu.domain.pipeline.infrastructure.OcrGateway;
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile;
+import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 
 import java.io.ByteArrayInputStream;
@@ -34,7 +34,7 @@ public class OcrProcessor {
     }
 
     public OcrMission process(String sourceDocumentId) {
-        OcrMission ocrMission = OcrMission.Companion.create(UUID.randomUUID().toString(), sourceDocumentId);
+        OcrMission ocrMission = OcrMission.Companion.create( sourceDocumentId);
         ocrMission.start();
         ocrMissionRepository.save(ocrMission);
         Optional<SourceDocument> sourceDocumentOptional = sourceDocumentRepository.findSourceDocumentById(ocrMission.getSourceDocumentId());
@@ -51,11 +51,11 @@ public class OcrProcessor {
             if (!isPdf)
                 throw new IllegalAccessException("不是一个OCR文件");
             MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(content);
-            String markdownProcessedFileId = UUID.randomUUID().toString();
-            ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(markdownProcessedFileId, sourceDocument.getId(), generateFilePath(markdownProcessedFileId + ".md"), ProcessedDocumentType.MARKDOWN);
+            // 保存文件，markdown文件名称随机生成
+            ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(sourceDocument.getId(), generateFilePath(UUID.randomUUID() + ".md"), ProcessedDocumentType.MARKDOWN);
             minerUMarkdownFile.getImages()
                     .forEach(minerUImage -> {
-                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create(UUID.randomUUID().toString(), sourceDocument.getId(), generateFilePath(minerUImage.getRelativePath()), ProcessedDocumentType.IMAGE);
+                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create( sourceDocument.getId(), generateFilePath(minerUImage.getRelativePath()), ProcessedDocumentType.IMAGE);
                         processedDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
                     });
             processedDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));

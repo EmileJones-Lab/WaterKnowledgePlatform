@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.pipeline
+package top.emilejones.hhu.domain.result
 
 /**
  * 文本节点类型，区分内容形态。

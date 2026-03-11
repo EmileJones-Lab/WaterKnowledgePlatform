@@ -1,9 +1,10 @@
 package top.emilejones.hhu.domain.pipeline.embedding
 
 import top.emilejones.hhu.domain.AggregateRoot
-import top.emilejones.hhu.domain.pipeline.MissionStatus
+import top.emilejones.hhu.domain.result.MissionStatus
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent
 import java.time.Instant
+import java.util.UUID
 
 /**
  * 向量化任务聚合根，负责驱动嵌入流程状态。
@@ -30,9 +31,9 @@ class EmbeddingMission(
         /**
          * 创建初始化状态的向量化任务。
          */
-        fun create(id: String, sourceDocumentId: String): EmbeddingMission {
+        fun create(sourceDocumentId: String): EmbeddingMission {
             return EmbeddingMission(
-                id = id,
+                id = UUID.randomUUID().toString(),
                 sourceDocumentId = sourceDocumentId,
                 fileNodeId = null,
                 status = MissionStatus.PENDING,

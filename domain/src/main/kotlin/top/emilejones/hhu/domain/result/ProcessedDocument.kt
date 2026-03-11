@@ -1,7 +1,8 @@
-package top.emilejones.hhu.domain.pipeline
+package top.emilejones.hhu.domain.result
 
 import top.emilejones.hhu.domain.AggregateRoot
 import java.time.Instant
+import java.util.*
 
 /**
  * OCR 输出的 Markdown 文档记录。
@@ -19,8 +20,8 @@ class ProcessedDocument(
         /**
          * 创建带时间戳的 Markdown 文档。
          */
-        fun create(id: String, sourceDocumentId: String, filePath: String, type: ProcessedDocumentType): ProcessedDocument {
-            return ProcessedDocument(id, sourceDocumentId, filePath, Instant.now(), type)
+        fun create(sourceDocumentId: String, filePath: String, type: ProcessedDocumentType): ProcessedDocument {
+            return ProcessedDocument(UUID.randomUUID().toString(), sourceDocumentId, filePath, Instant.now(), type)
         }
     }
 }

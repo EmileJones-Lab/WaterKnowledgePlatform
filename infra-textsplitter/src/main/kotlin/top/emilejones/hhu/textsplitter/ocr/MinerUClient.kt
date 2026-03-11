@@ -18,8 +18,8 @@ import java.io.IOException
 import java.io.InputStream
 import java.util.Base64
 import java.util.concurrent.TimeUnit
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUImage
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUImage
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile
 
 /**
  * HTTP client for calling MinerU OCR service.

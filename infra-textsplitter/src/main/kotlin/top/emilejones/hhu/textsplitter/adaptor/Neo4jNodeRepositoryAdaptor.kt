@@ -1,9 +1,9 @@
 package top.emilejones.hhu.textsplitter.adaptor
 
 import org.springframework.stereotype.Service
-import top.emilejones.hhu.domain.pipeline.FileNode
-import top.emilejones.hhu.domain.pipeline.TextNode
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository
+import top.emilejones.hhu.domain.result.FileNode
+import top.emilejones.hhu.domain.result.TextNode
+import top.emilejones.hhu.domain.pipeline.repository.NodeRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.*
 import top.emilejones.hhu.textsplitter.service.IRecallService

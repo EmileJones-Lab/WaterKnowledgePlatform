@@ -4,7 +4,7 @@ import org.neo4j.driver.QueryRunner
 import org.neo4j.driver.Values
 import org.neo4j.driver.types.Node
 import org.neo4j.driver.types.Relationship
-import top.emilejones.hhu.domain.pipeline.TextType
+import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationshipType
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationship

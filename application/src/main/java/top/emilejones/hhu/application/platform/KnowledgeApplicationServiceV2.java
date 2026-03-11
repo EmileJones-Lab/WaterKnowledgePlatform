@@ -14,27 +14,27 @@ import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.dto.mission.OcrMissionDTO;
 import top.emilejones.hhu.application.platform.utils.DtoConverter;
 import top.emilejones.hhu.application.platform.utils.ListDtoConverter;
-import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
+import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
 import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
-import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
+import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.knowledge.service.KnowledgeDomainService;
-import top.emilejones.hhu.domain.pipeline.FileNode;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
-import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.result.FileNode;
+import top.emilejones.hhu.domain.result.MissionStatus;
+import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
+import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
@@ -103,11 +103,9 @@ public class KnowledgeApplicationServiceV2 {
      * 新增一个知识库
      */
     public KnowledgeDirectoryDTO addKnowledgeDirectory(AddKnowledgeDirectoryDTO request) {
-        String kbId = UUID.randomUUID().toString();
         String milvusCollectionName = "_" + UUID.randomUUID().toString().replace("-", "_");
 
         KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(
-                kbId,
                 request.getDirName(),
                 milvusCollectionName,
                 DtoConverter.mapKnowledgeDirectoryDTOType(request.getType())
@@ -291,7 +289,6 @@ public class KnowledgeApplicationServiceV2 {
                 .orElse("Unknown File");
 
         KnowledgeDocument doc = KnowledgeDocument.Companion.create(
-                UUID.randomUUID().toString(),
                 sourceDocName,
                 mission.getId(),
                 KnowledgeDocumentType.STRUCTURE_SPLITTER

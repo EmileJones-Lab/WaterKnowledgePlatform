@@ -16,11 +16,11 @@ import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
-import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
+import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
-import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.result.TextNode;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ public class DtoConverter {
         dto.setEndTime(mission.getEndTime());
         dto.setType(DocumentSplittingMissionType.STRUCTURE_SPLITTER);
         dto.setStatus(mapMissionStatus(mission.getStatus()));
-        if (mission.getStatus() == top.emilejones.hhu.domain.pipeline.MissionStatus.ERROR) {
+        if (mission.getStatus() == top.emilejones.hhu.domain.result.MissionStatus.ERROR) {
             try {
                 dto.setRemark(mission.getFailureResult().getErrorMessage());
             } catch (Exception e) {
@@ -57,7 +57,7 @@ public class DtoConverter {
         dto.setStartTime(mission.getStartTime());
         dto.setEndTime(mission.getEndTime());
         dto.setStatus(mapMissionStatus(mission.getStatus()));
-        if (mission.getStatus() == top.emilejones.hhu.domain.pipeline.MissionStatus.ERROR) {
+        if (mission.getStatus() == top.emilejones.hhu.domain.result.MissionStatus.ERROR) {
             try {
                  dto.setRemark(mission.getFailureResult().getErrorMessage());
             } catch (Exception e) {
@@ -77,7 +77,7 @@ public class DtoConverter {
         dto.setStartTime(mission.getStartTime());
         dto.setEndTime(mission.getEndTime());
         dto.setStatus(mapMissionStatus(mission.getStatus()));
-        if (mission.getStatus() == top.emilejones.hhu.domain.pipeline.MissionStatus.ERROR) {
+        if (mission.getStatus() == top.emilejones.hhu.domain.result.MissionStatus.ERROR) {
             try {
                 dto.setRemark(mission.getFailureResult().getErrorMessage());
             } catch (Exception e) {
@@ -155,7 +155,7 @@ public class DtoConverter {
         return dto;
     }
 
-    public static MissionStatus mapMissionStatus(top.emilejones.hhu.domain.pipeline.MissionStatus domainStatus) {
+    public static MissionStatus mapMissionStatus(top.emilejones.hhu.domain.result.MissionStatus domainStatus) {
         return switch (domainStatus) {
             case CREATED, PENDING -> MissionStatus.PENDING;
             case RUNNING -> MissionStatus.RUNNING;
@@ -187,7 +187,7 @@ public class DtoConverter {
         };
     }
 
-    private static TextType mapTextType(top.emilejones.hhu.domain.pipeline.TextType type) {
+    private static TextType mapTextType(top.emilejones.hhu.domain.result.TextType type) {
          return switch (type) {
             case COMMON_TEXT -> TextType.COMMON_TEXT;
             case TABLE -> TextType.TABLE;

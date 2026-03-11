@@ -1,14 +1,14 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.pipeline.FileNode;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
-import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.result.FileNode;
+import top.emilejones.hhu.domain.result.MissionStatus;
+import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
+import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
 
@@ -67,7 +67,7 @@ public class EmbeddingProcessor {
                 .filter(StructureExtractionMission::isSuccess)
                 .findFirst()
                 .orElseGet(() -> {
-                    StructureExtractionMission newMission = StructureExtractionMission.Companion.create(UUID.randomUUID().toString(), sourceDocumentId);
+                    StructureExtractionMission newMission = StructureExtractionMission.Companion.create(sourceDocumentId);
                     structureExtractionProcessor.process(newMission);
                     return newMission;
                 });

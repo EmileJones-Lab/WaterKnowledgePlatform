@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.pipeline
+package top.emilejones.hhu.domain.result
 
 /**
  * 经过处理后的文档类型。

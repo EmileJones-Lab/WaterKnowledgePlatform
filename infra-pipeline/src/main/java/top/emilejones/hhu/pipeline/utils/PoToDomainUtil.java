@@ -1,8 +1,7 @@
 package top.emilejones.hhu.pipeline.utils;
 
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
+import top.emilejones.hhu.domain.result.MissionStatus;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;

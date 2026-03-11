@@ -5,7 +5,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
 import top.emilejones.hhu.pipeline.TestApplication;
 import top.emilejones.hhu.pipeline.controller.ProcessedDocumentController;
 import top.emilejones.hhu.pipeline.services.ProcessedDocumentService;

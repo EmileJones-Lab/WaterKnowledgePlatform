@@ -1,6 +1,6 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.gateway
+package top.emilejones.hhu.domain.pipeline.infrastructure
 
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile
 import java.io.InputStream
 
 /**

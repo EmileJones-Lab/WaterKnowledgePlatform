@@ -1,9 +1,9 @@
 package top.emilejones.hhu.textsplitter.parser
 
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.domain.pipeline.TextType
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.result.TextType
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.FileNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import java.io.File
 import java.io.InputStream
 import java.util.*

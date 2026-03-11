@@ -3,8 +3,8 @@ package top.emilejones.hhu.pipeline.controller;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.ProcessedDocumentRepository;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
+import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository;
 import top.emilejones.hhu.pipeline.services.ProcessedDocumentService;
 
 import java.io.InputStream;
