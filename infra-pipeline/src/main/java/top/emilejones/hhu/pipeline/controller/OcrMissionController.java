@@ -69,4 +69,10 @@ public class OcrMissionController implements OcrMissionRepository {
     public OcrMission find(@NotNull String ocrMissionId) {
         return ocrMissionService.findById(ocrMissionId);
     }
+
+    @Override
+    @NotNull
+    public List<OcrMission> findBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

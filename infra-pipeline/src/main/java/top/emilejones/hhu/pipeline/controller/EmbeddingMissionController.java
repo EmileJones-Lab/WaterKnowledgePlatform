@@ -62,4 +62,9 @@ public class EmbeddingMissionController implements EmbeddingMissionRepository {
     }
 
 
+    @Override
+    @NotNull
+    public List<EmbeddingMission> findBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

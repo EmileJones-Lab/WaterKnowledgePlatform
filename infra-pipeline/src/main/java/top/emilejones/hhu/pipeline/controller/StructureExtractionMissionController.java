@@ -62,4 +62,10 @@ public class StructureExtractionMissionController implements StructureExtraction
     public StructureExtractionMission find(@NotNull String structureExtractionMissionId) {
         return structureExtractionMissionService.findById(structureExtractionMissionId);
     }
+
+    @Override
+    @NotNull
+    public List<StructureExtractionMission> findBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import top.emilejones.hhu.application.platform.KnowledgeApplicationService;
+import top.emilejones.hhu.application.platform.KnowledgeApplicationServiceV2;
 import top.emilejones.hhu.application.platform.dto.LazyPageDTO;
 import top.emilejones.hhu.application.platform.dto.knowledge.CandidateKnowledgeFileDTO;
 import top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeFileDTO;
@@ -25,9 +25,9 @@ import java.util.Collections;
 @Tag(name = "Knowledge", description = "关于知识文件操作的接口说明")
 public class KnowledgeFileController {
 
-    private final KnowledgeApplicationService knowledgeApplicationService;
+    private final KnowledgeApplicationServiceV2 knowledgeApplicationService;
 
-    public KnowledgeFileController(KnowledgeApplicationService knowledgeApplicationService) {
+    public KnowledgeFileController(KnowledgeApplicationServiceV2 knowledgeApplicationService) {
         this.knowledgeApplicationService = knowledgeApplicationService;
     }
 
