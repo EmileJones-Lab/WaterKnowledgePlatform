@@ -13,19 +13,22 @@ class TypeArabicNumberTest {
         "1. 标题",
         "1、 标题",
         "10. 标题",
-        "1 Title", // Space + Char
-        "1 标题",  // Space + Chinese
+        "1 Title",
+        "1 标题",
         "# 1. 标题",
-        "1. Title with spaces"
+        "1. Title with spaces",
+        "5 10 years ago",
+        "5. 10 years ago"
     )
 
     private fun shouldNotMatchProvider() = listOf(
         "1.1 Title",
         "1.1.1 Title",
         "1.1",
-        "1999. Year", // 4 digits
-        "1",          // Single digit no following char
-        "1  "         // Single digit spaces
+        "1999. Year",
+        "1",
+        "1 ",
+        "100. Title"
     )
 
     @Test

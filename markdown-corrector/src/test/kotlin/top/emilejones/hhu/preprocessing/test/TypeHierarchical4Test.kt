@@ -13,7 +13,8 @@ class TypeHierarchical4Test {
         "1.2.3.4 测试标题",
         "# 1.1.1.1 标题",
         "10.10.10.10 Long Title",
-
+        "1.1.1.2. Title",
+        "5.2.1.1. 10 year ago ..."
     )
 
     private fun shouldNotMatchProvider() = listOf(
@@ -21,7 +22,10 @@ class TypeHierarchical4Test {
         "1.1.1.1.1 Title",
         "1.1.1",
         "Title 1.1.1.1",
-        "1.1.1.1"
+        "1.1.1.1",
+        "2.5.0. 50 Title",
+        "2.2.1.100 Title",
+        "2.2.1.100"
     )
 
     @Test
