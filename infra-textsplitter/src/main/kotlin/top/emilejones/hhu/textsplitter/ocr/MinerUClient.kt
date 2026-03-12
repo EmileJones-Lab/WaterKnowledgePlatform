@@ -3,23 +3,19 @@ package top.emilejones.hhu.textsplitter.ocr
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import okhttp3.MediaType
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.source
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.common.env.pojo.MinerUConfig
-import java.io.IOException
-import java.io.InputStream
-import java.util.Base64
-import java.util.concurrent.TimeUnit
 import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUImage
 import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile
+import java.io.IOException
+import java.io.InputStream
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * HTTP client for calling MinerU OCR service.
@@ -52,7 +48,6 @@ class MinerUClient(
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("files", "upload", fileBody)
-            // ensure markdown is returned directly in the response JSON instead of a zip
             .addFormDataPart("return_md", "true")
             .addFormDataPart("response_format_zip", "false")
             .addFormDataPart("formula_enable", "true")
@@ -68,7 +63,7 @@ class MinerUClient(
         return client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 val message = "Failed to call MinerU OCR, status=${response.code}"
-                logger.warn(message)
+                logger.error(response.body?.string(), message)
                 throw IOException(message, null)
             }
             val body = response.body ?: throw IOException("MinerU OCR response body is null", null)
@@ -84,7 +79,7 @@ class MinerUClient(
     private fun parseMarkdownResponse(bodyBytes: ByteArray, mediaType: MediaType?): MinerUMarkdownFile {
         val bodyAsString = bodyBytes.toString(Charsets.UTF_8)
         val looksLikeJson = mediaType?.subtype?.contains("json", ignoreCase = true) == true ||
-            bodyAsString.trimStart().startsWith("{")
+                bodyAsString.trimStart().startsWith("{")
 
         if (!looksLikeJson) {
             return MinerUMarkdownFile(markdownContent = bodyAsString, images = emptyList())
@@ -131,6 +126,7 @@ class MinerUClient(
                 val joined = element.asJsonArray.mapNotNull { extractMarkdownFromJson(it) }
                 if (joined.isNotEmpty()) joined.joinToString("\n") else null
             }
+
             element.isJsonObject -> {
                 val obj = element.asJsonObject
                 // prefer fields named markdown/md/content_list first, then search recursively
@@ -143,6 +139,7 @@ class MinerUClient(
                 // fallback: search any child
                 searchAnyString(obj)
             }
+
             else -> null
         }
     }
