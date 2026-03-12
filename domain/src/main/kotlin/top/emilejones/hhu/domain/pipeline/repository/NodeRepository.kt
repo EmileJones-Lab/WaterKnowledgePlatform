@@ -1,7 +1,7 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.repository
+package top.emilejones.hhu.domain.pipeline.repository
 
-import top.emilejones.hhu.domain.pipeline.FileNode
-import top.emilejones.hhu.domain.pipeline.TextNode
+import top.emilejones.hhu.domain.result.FileNode
+import top.emilejones.hhu.domain.result.TextNode
 import java.util.*
 
 /**

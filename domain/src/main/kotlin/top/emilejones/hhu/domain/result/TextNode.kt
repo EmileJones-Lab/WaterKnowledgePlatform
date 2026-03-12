@@ -1,6 +1,7 @@
-package top.emilejones.hhu.domain.pipeline
+package top.emilejones.hhu.domain.result
 
 import top.emilejones.hhu.domain.AggregateRoot
+import java.util.*
 
 /**
  * 文本节点，承载切分后的文本内容和层级信息。
@@ -26,6 +27,21 @@ class TextNode(
         require(this.vector == null) { "TextNode[$id]节点向量已经存在" }
         this.vector = vector
         this.isEmbedded = true
+    }
+
+    companion object {
+        fun create(fileNodeId: String, text: String, seq: Int, level: Int, type: TextType): TextNode {
+            return TextNode(
+                id = UUID.randomUUID().toString(),
+                fileNodeId = fileNodeId,
+                text = text,
+                seq = seq,
+                level = level,
+                type = type,
+                isEmbedded = false,
+                vector = null
+            )
+        }
     }
 
 }

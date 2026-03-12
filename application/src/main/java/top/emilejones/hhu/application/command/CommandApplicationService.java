@@ -3,8 +3,8 @@ package top.emilejones.hhu.application.command;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.application.command.dto.MinerUImageResponse;
 import top.emilejones.hhu.application.command.dto.MinerUMarkdownResponse;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.OcrGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.MinerUMarkdownFile;
+import top.emilejones.hhu.domain.pipeline.infrastructure.OcrGateway;
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.knowledge.infrastructure.dto
+package top.emilejones.hhu.domain.knowledge.repository.dto
 
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument
 import java.time.Instant

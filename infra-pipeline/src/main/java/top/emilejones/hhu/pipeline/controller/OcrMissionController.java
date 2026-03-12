@@ -4,7 +4,7 @@ package top.emilejones.hhu.pipeline.controller;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.pipeline.services.OcrMissionService;
 
@@ -68,5 +68,11 @@ public class OcrMissionController implements OcrMissionRepository {
     @Nullable
     public OcrMission find(@NotNull String ocrMissionId) {
         return ocrMissionService.findById(ocrMissionId);
+    }
+
+    @Override
+    @NotNull
+    public List<OcrMission> findBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

@@ -56,6 +56,5 @@ public abstract class AbstractTitleTreeExtractor implements MarkdownStructureExt
         if (!TitleType.NilType.equals(root.getTitleType()))
             throw new IllegalArgumentException("树的头节点不是NilType类型");
         return correctOriginTextByStructureTree(root);
-        
     }
 }

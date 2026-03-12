@@ -1,8 +1,8 @@
 package top.emilejones.hhu.textsplitter.preprocessor
 
 import org.slf4j.LoggerFactory
-import top.emilejones.hhu.domain.pipeline.TextType
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.result.TextType
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.spliter.impl.HtmlTableToCsvSplitter
 import top.emilejones.hhu.textsplitter.spliter.impl.PunctuationSplitter
 import java.util.*

@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.pipeline
+package top.emilejones.hhu.domain.result
 
 /**
  * 任务状态机的枚举定义。

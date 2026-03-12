@@ -5,12 +5,12 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
 import org.springframework.stereotype.Component
-import top.emilejones.hhu.application.platform.KnowledgeApplicationService
+import top.emilejones.hhu.application.platform.KnowledgeApplicationServiceV2
 import top.emilejones.hhu.application.platform.RecallApplicationService
 
 @Component
 class RetrieveCommand(
-    private val knowledgeApplicationService: KnowledgeApplicationService,
+    private val knowledgeApplicationService: KnowledgeApplicationServiceV2,
     private val recallApplicationService: RecallApplicationService
 ) : CliktCommand(name = "retrieve") {
 

@@ -1,6 +1,6 @@
 package top.emilejones.hhu.textsplitter.domain.po
 
-import top.emilejones.hhu.domain.pipeline.TextType
+import top.emilejones.hhu.domain.result.TextType
 
 data class Neo4jTextNode(
     val elementId: String? = null,

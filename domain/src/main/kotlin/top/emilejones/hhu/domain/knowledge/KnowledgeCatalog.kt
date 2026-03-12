@@ -1,8 +1,9 @@
 package top.emilejones.hhu.domain.knowledge
 
 import top.emilejones.hhu.domain.AggregateRoot
-import java.time.Instant
 import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent
+import java.time.Instant
+import java.util.*
 
 
 /**
@@ -18,12 +19,12 @@ data class KnowledgeCatalog(
 ) : AggregateRoot<String>(id) {
     companion object {
         fun create(
-            id: String,
             name: String,
             milvusCollectionName: String,
             type: KnowledgeCatalogType
         ): KnowledgeCatalog {
-            val knowledgeCatalog = KnowledgeCatalog(id, name, milvusCollectionName, Instant.now(), type)
+            val knowledgeCatalog =
+                KnowledgeCatalog(UUID.randomUUID().toString(), name, milvusCollectionName, Instant.now(), type)
             knowledgeCatalog.raiseEvent(CreatedKnowledgeCatalogEvent(knowledgeCatalog))
             return knowledgeCatalog
         }

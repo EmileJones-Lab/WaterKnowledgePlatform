@@ -2,6 +2,7 @@ package top.emilejones.hhu.domain.knowledge
 
 import top.emilejones.hhu.domain.AggregateRoot
 import java.time.Instant
+import java.util.UUID
 
 /**
  * 知识库中的文档元数据，关联具体的向量化任务。
@@ -16,13 +17,12 @@ data class KnowledgeDocument(
 ) : AggregateRoot<String>(id) {
     companion object {
         fun create(
-            id: String,
             name: String,
             embeddingMissionId: String,
             type: KnowledgeDocumentType
         ): KnowledgeDocument {
             return KnowledgeDocument(
-                id,
+                UUID.randomUUID().toString(),
                 name,
                 embeddingMissionId,
                 type,

@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto
+package top.emilejones.hhu.domain.pipeline.infrastructure.dto
 
 /**
  * OCR 结果：Markdown 内容 + 图片资源。

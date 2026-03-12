@@ -1,9 +1,8 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.repository
+package top.emilejones.hhu.domain.pipeline.repository
 
 import top.emilejones.hhu.domain.framwork.ConsistentDataProcessor
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument
+import top.emilejones.hhu.domain.result.ProcessedDocument
 import java.io.InputStream
-import java.util.*
 
 /**
  * Markdown 文档的存储接口，负责文档元数据与正文内容的持久化。

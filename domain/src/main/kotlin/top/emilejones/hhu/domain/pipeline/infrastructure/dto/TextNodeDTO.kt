@@ -1,6 +1,6 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto
+package top.emilejones.hhu.domain.pipeline.infrastructure.dto
 
-import top.emilejones.hhu.domain.pipeline.TextType
+import top.emilejones.hhu.domain.result.TextType
 
 /**
  * 文本节点数据传输对象，描述树状结构中的单个节点。

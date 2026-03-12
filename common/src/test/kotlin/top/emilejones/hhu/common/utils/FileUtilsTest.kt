@@ -9,10 +9,10 @@ import kotlin.test.assertTrue
 class FileUtilsTest {
 
     @Test
-    fun isPdf_ShouldReturnTrue_WhenFileIsPdf() {
+    fun isPdf_ShouldReturnTrue_WhenFileCheckPdf() {
         val inputStream: InputStream? = javaClass.getResourceAsStream("/testFile/test.pdf")
         if (inputStream != null) {
-            val result = FileUtils.isPdf(inputStream)
+            val result = FileUtils.checkPdf(inputStream)
             assertTrue(result, "Expected test.pdf to be identified as PDF")
         } else {
             throw RuntimeException("Resource /testFile/test.pdf not found")
@@ -20,10 +20,10 @@ class FileUtilsTest {
     }
 
     @Test
-    fun isPdf_ShouldReturnFalse_WhenFileIsNotPdf() {
+    fun isPdf_ShouldReturnFalse_WhenFileCheckNotPdf() {
         val inputStream: InputStream? = javaClass.getResourceAsStream("/testFile/调度原则.docx")
         if (inputStream != null) {
-            val result = FileUtils.isPdf(inputStream)
+            val result = FileUtils.checkPdf(inputStream)
             assertFalse(result, "Expected 调度原则.docx to NOT be identified as PDF")
         } else {
             throw RuntimeException("Resource /testFile/调度原则.docx not found")

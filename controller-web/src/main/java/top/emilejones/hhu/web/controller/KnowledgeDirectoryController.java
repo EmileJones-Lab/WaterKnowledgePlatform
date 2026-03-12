@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import top.emilejones.hhu.application.platform.KnowledgeApplicationService;
+import top.emilejones.hhu.application.platform.KnowledgeApplicationServiceV2;
 import top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeDirectoryDTO;
 import top.emilejones.hhu.web.utils.VoConverter;
 import top.emilejones.hhu.web.vo.FailureVO;
@@ -22,9 +22,9 @@ import java.util.List;
 @Tag(name = "Knowledge", description = "关于知识库操作的接口说明")
 public class KnowledgeDirectoryController {
 
-    private final KnowledgeApplicationService knowledgeApplicationService;
+    private final KnowledgeApplicationServiceV2 knowledgeApplicationService;
 
-    public KnowledgeDirectoryController(KnowledgeApplicationService knowledgeApplicationService) {
+    public KnowledgeDirectoryController(KnowledgeApplicationServiceV2 knowledgeApplicationService) {
         this.knowledgeApplicationService = knowledgeApplicationService;
     }
 

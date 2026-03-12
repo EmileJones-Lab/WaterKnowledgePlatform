@@ -3,7 +3,7 @@ package top.emilejones.hhu.pipeline.controller;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.pipeline.services.StructureExtractionMissionService;
 
@@ -61,5 +61,11 @@ public class StructureExtractionMissionController implements StructureExtraction
     @Nullable
     public StructureExtractionMission find(@NotNull String structureExtractionMissionId) {
         return structureExtractionMissionService.findById(structureExtractionMissionId);
+    }
+
+    @Override
+    @NotNull
+    public List<StructureExtractionMission> findBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

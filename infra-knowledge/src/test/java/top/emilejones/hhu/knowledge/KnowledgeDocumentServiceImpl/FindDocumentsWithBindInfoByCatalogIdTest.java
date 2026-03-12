@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
-import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
+import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.knowledge.TestApplication;
 import top.emilejones.hhu.knowledge.mapper.CollectionDocumentMapper;
 import top.emilejones.hhu.knowledge.mapper.KnowledgeDocumentMapper;

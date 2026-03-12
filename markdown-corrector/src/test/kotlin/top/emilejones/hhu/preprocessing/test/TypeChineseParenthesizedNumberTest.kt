@@ -22,6 +22,18 @@ class TypeChineseParenthesizedNumberTest {
         "(一) 英文括号" // Current regex seems to expect Chinese parentheses specifically: ^(?:#+\s*)?（([一二三四五六七八九十]+)）\s*(.+)$
     )
 
+    private fun firstTitleShouldMatchProvider() = listOf(
+        "（一） 标题",
+        "（一）标题",
+        "# （一） 标题"
+    )
+
+    private fun firstTitleShouldNotMatchProvider() = listOf(
+        "（二）标题",
+        "（二十） 标题",
+        "(一) 标题"
+    )
+
     @Test
     fun testShouldMatch() {
         shouldMatchProvider().forEach { input ->
@@ -38,6 +50,26 @@ class TypeChineseParenthesizedNumberTest {
             assertFalse(
                 Pattern.compile(TitleType.TYPE_CHINESE_PARENTHESIZED_NUMBER.titleRegex).matcher(input).matches(),
                 "Expected not to match: $input"
+            )
+        }
+    }
+
+    @Test
+    fun testFirstTitleShouldMatch() {
+        firstTitleShouldMatchProvider().forEach { input ->
+            assertTrue(
+                Pattern.compile(TitleType.TYPE_CHINESE_PARENTHESIZED_NUMBER.firstTitleRegex).matcher(input).matches(),
+                "Expected first title to match: $input"
+            )
+        }
+    }
+
+    @Test
+    fun testFirstTitleShouldNotMatch() {
+        firstTitleShouldNotMatchProvider().forEach { input ->
+            assertFalse(
+                Pattern.compile(TitleType.TYPE_CHINESE_PARENTHESIZED_NUMBER.firstTitleRegex).matcher(input).matches(),
+                "Expected first title not to match: $input"
             )
         }
     }

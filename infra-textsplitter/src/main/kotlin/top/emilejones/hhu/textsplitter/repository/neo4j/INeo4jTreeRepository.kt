@@ -1,6 +1,6 @@
 package top.emilejones.hhu.textsplitter.repository.neo4j
 
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
 

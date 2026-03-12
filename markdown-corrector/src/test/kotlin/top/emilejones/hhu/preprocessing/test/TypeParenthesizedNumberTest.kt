@@ -26,6 +26,22 @@ class TypeParenthesizedNumberTest {
         "Title (1)"
     )
 
+    private fun firstTitleShouldMatchProvider() = listOf(
+        "(1) 标题",
+        "# (1) markdown标题",
+        "（1）中文括号无空格",
+        "（1） 中文括号有空格",
+        "(1） 一半英文括号，一半中文括号"
+    )
+
+    private fun firstTitleShouldNotMatchProvider() = listOf(
+        "（2） 标题",
+        "(10) 两位数",
+        "（100） 三位数",
+        "（4） 中文括号有空格",
+        "（4) 一半中文括号，一半英文括号"
+    )
+
     @Test
     fun testShouldMatch() {
         shouldMatchProvider().forEach { input ->
@@ -42,6 +58,26 @@ class TypeParenthesizedNumberTest {
             assertFalse(
                 Pattern.compile(TitleType.TYPE_PARENTHESIZED_NUMBER.titleRegex).matcher(input).matches(),
                 "Expected not to match: $input"
+            )
+        }
+    }
+
+    @Test
+    fun testFirstTitleShouldMatch() {
+        firstTitleShouldMatchProvider().forEach { input ->
+            assertTrue(
+                Pattern.compile(TitleType.TYPE_PARENTHESIZED_NUMBER.firstTitleRegex).matcher(input).matches(),
+                "Expected first title to match: $input"
+            )
+        }
+    }
+
+    @Test
+    fun testFirstTitleShouldNotMatch() {
+        firstTitleShouldNotMatchProvider().forEach { input ->
+            assertFalse(
+                Pattern.compile(TitleType.TYPE_PARENTHESIZED_NUMBER.firstTitleRegex).matcher(input).matches(),
+                "Expected first title not to match: $input"
             )
         }
     }

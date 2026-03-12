@@ -2,7 +2,7 @@ package top.emilejones.hhu.pipeline.services;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
 import top.emilejones.hhu.pipeline.constant.DeleteConstant;
 import top.emilejones.hhu.pipeline.entity.ProcessedDocumentPo;
 import top.emilejones.hhu.pipeline.mapper.ProcessedDocumentMapper;
@@ -10,7 +10,6 @@ import top.emilejones.hhu.pipeline.repository.FileStorageRepository;
 import top.emilejones.hhu.pipeline.utils.PoToDomainUtil;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 

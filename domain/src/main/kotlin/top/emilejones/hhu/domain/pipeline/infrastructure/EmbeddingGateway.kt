@@ -1,6 +1,6 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.gateway
+package top.emilejones.hhu.domain.pipeline.infrastructure
 
-import top.emilejones.hhu.domain.pipeline.TextNode
+import top.emilejones.hhu.domain.result.TextNode
 
 /**
  * 向量化网关，封装对底层嵌入模型与向量库的调用。

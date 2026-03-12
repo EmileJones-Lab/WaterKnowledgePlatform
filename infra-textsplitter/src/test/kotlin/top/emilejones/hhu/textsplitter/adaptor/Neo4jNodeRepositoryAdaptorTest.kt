@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import top.emilejones.hhu.TextSplitterTestMain
-import top.emilejones.hhu.domain.pipeline.TextNode
-import top.emilejones.hhu.domain.pipeline.TextType
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.FileNodeDTO
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.result.TextNode
+import top.emilejones.hhu.domain.result.TextType
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.FileNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository

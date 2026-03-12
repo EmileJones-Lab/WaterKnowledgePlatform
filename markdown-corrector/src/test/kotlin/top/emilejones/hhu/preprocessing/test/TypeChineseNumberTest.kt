@@ -25,6 +25,23 @@ class TypeChineseNumberTest {
         "Title 一、"
     )
 
+    private fun firstTitleShouldMatchProvider() = listOf(
+        "一、标题",
+        "一. 标题",
+        "一． 标题",
+        "一。 标题",
+        "# 一、 标题"
+    )
+
+    private fun firstTitleShouldNotMatchProvider() = listOf(
+        "二、标题",
+        "二. 标题",
+        "三． 标题",
+        "四。 标题",
+        "二十一、 复杂数字",
+        "一百零1. Title"
+    )
+
     @Test
     fun testShouldMatch() {
         shouldMatchProvider().forEach { input ->
@@ -41,6 +58,26 @@ class TypeChineseNumberTest {
             assertFalse(
                 Pattern.compile(TitleType.TYPE_CHINESE_NUMBER.titleRegex).matcher(input).matches(),
                 "Expected not to match: $input"
+            )
+        }
+    }
+
+    @Test
+    fun testFirstTitleShouldMatch() {
+        firstTitleShouldMatchProvider().forEach { input ->
+            assertTrue(
+                Pattern.compile(TitleType.TYPE_CHINESE_NUMBER.firstTitleRegex).matcher(input).matches(),
+                "Expected first title to match: $input"
+            )
+        }
+    }
+
+    @Test
+    fun testFirstTitleShouldNotMatch() {
+        firstTitleShouldNotMatchProvider().forEach { input ->
+            assertFalse(
+                Pattern.compile(TitleType.TYPE_CHINESE_NUMBER.firstTitleRegex).matcher(input).matches(),
+                "Expected first title not to match: $input"
             )
         }
     }

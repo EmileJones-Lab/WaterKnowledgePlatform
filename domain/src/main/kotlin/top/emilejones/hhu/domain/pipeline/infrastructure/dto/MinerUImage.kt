@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto
+package top.emilejones.hhu.domain.pipeline.infrastructure.dto
 
 /**
  * MinerU 提取的图片。

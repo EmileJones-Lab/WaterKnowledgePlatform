@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.repository
+package top.emilejones.hhu.domain.pipeline.repository
 
 import top.emilejones.hhu.domain.framwork.ConsistentBatchProcessor
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission

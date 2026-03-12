@@ -14,27 +14,27 @@ import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.dto.mission.OcrMissionDTO;
 import top.emilejones.hhu.application.platform.utils.DtoConverter;
 import top.emilejones.hhu.application.platform.utils.ListDtoConverter;
-import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
+import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
 import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
-import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
+import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.knowledge.service.KnowledgeDomainService;
-import top.emilejones.hhu.domain.pipeline.FileNode;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
-import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.result.FileNode;
+import top.emilejones.hhu.domain.result.MissionStatus;
+import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.NodeRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.OcrMissionRepository;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
+import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
@@ -42,6 +42,7 @@ import java.util.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
+@Deprecated(since = "V1.1.0")
 public class KnowledgeApplicationService {
     private final ApplicationEventPublisher publisher;
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;
@@ -90,10 +91,7 @@ public class KnowledgeApplicationService {
         List<KnowledgeCatalog> knowledgeCatalogList = knowledgeCatalogRepository.findAll();
 
         // 2.将文本切割的knowledgeCatalog过滤出来，同时转换为KnowledgeDirectoryDTO，并且返回数据
-        return knowledgeCatalogList.stream()
-                .filter(it -> KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR.equals(it.getType()))
-                .map(DtoConverter::toKnowledgeDirectoryDTO)
-                .toList();
+        return knowledgeCatalogList.stream().filter(it -> KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR.equals(it.getType())).map(DtoConverter::toKnowledgeDirectoryDTO).toList();
     }
 
     /**
@@ -111,12 +109,7 @@ public class KnowledgeApplicationService {
         String milvusCollectionName = "_" + UUID.randomUUID().toString().replace("-", "_");
 
         // 2.将AddKnowledgeDirectoryDTO封装为KnowledgeCatalog
-        KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(
-                kbId,
-                request.getDirName(),
-                milvusCollectionName,
-                DtoConverter.mapKnowledgeDirectoryDTOType(request.getType())
-        );
+        KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(request.getDirName(), milvusCollectionName, DtoConverter.mapKnowledgeDirectoryDTOType(request.getType()));
 
         // 3.新增知识库
         knowledgeCatalogRepository.save(knowledgeCatalog);
@@ -146,8 +139,7 @@ public class KnowledgeApplicationService {
         }
 
         // 2.设置修改的属性
-        KnowledgeCatalog updateKnowledgeCatalog = knowledgeCatalog.copy(knowledgeCatalog.getId(), dirName, knowledgeCatalog.getMilvusCollectionName(),
-                knowledgeCatalog.getCreateTime(), knowledgeCatalog.getType());
+        KnowledgeCatalog updateKnowledgeCatalog = knowledgeCatalog.copy(knowledgeCatalog.getId(), dirName, knowledgeCatalog.getMilvusCollectionName(), knowledgeCatalog.getCreateTime(), knowledgeCatalog.getType());
 
         // 3.更新知识库信息
         knowledgeCatalogRepository.save(updateKnowledgeCatalog);
@@ -168,31 +160,12 @@ public class KnowledgeApplicationService {
         // 从数据库中查找相关内容
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(id);
         List<KnowledgeDocumentWithBindTime> documents = knowledgeDocumentRepository.findDocumentsWithBindInfoByCatalogId(id, Integer.MAX_VALUE, 0, null);
-        List<String> textNodeIdList = documents.stream()
-                .map(KnowledgeDocumentWithBindTime::getKnowledgeDocument)
-                .map(KnowledgeDocument::getId)
-                .map(knowledgeDocumentRepository::find)
-                .map(KnowledgeDocument::getEmbeddingMissionId)
-                .map(embeddingMissionRepository::find)
-                .peek(m -> {
-                    if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
-                })
-                .map(EmbeddingMission::getSuccessResult)
-                .map(EmbeddingMissionResult.Success::getFileNodeId)
-                .map(nodeRepository::findFileNodeByFileNodeId)
-                .peek(o -> {
-                    if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
-                })
-                .map(Optional::get)
-                .map(FileNode::getId)
-                .map(nodeRepository::findTextNodeListByFileNodeId)
-                .flatMap(List::stream)
-                .map(TextNode::getId)
-                .toList();
-        List<String> knowledgeDocumentIdList = documents.stream()
-                .map(KnowledgeDocumentWithBindTime::getKnowledgeDocument)
-                .map(KnowledgeDocument::getId)
-                .toList();
+        List<String> textNodeIdList = documents.stream().map(KnowledgeDocumentWithBindTime::getKnowledgeDocument).map(KnowledgeDocument::getId).map(knowledgeDocumentRepository::find).map(KnowledgeDocument::getEmbeddingMissionId).map(embeddingMissionRepository::find).peek(m -> {
+            if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
+        }).map(EmbeddingMission::getSuccessResult).map(EmbeddingMissionResult.Success::getFileNodeId).map(nodeRepository::findFileNodeByFileNodeId).peek(o -> {
+            if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
+        }).map(Optional::get).map(FileNode::getId).map(nodeRepository::findTextNodeListByFileNodeId).flatMap(List::stream).map(TextNode::getId).toList();
+        List<String> knowledgeDocumentIdList = documents.stream().map(KnowledgeDocumentWithBindTime::getKnowledgeDocument).map(KnowledgeDocument::getId).toList();
 
         // 解绑所有的知识文件
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(Objects.requireNonNull(knowledgeCatalog.getId()), knowledgeDocumentIdList);
@@ -225,8 +198,7 @@ public class KnowledgeApplicationService {
         Integer offset = pageNum * limit;
 
         // 3.分页查询知识库中的向量化文件，这里需要多查一条用于判断是否存在下一页
-        List<KnowledgeDocumentWithBindTime> knowledgeDocumentWithBindTimeList = knowledgeDocumentRepository
-                .findDocumentsWithBindInfoByCatalogId(dirId, limit + 1, offset, keyword);
+        List<KnowledgeDocumentWithBindTime> knowledgeDocumentWithBindTimeList = knowledgeDocumentRepository.findDocumentsWithBindInfoByCatalogId(dirId, limit + 1, offset, keyword);
 
         // 4.判断是否存在下一页
         Boolean hasNextPage = false;
@@ -237,17 +209,11 @@ public class KnowledgeApplicationService {
         }
 
         // 5.将id与embeddingMission绑定，用于获取查询为null的embeddingMission的id，报错给前端
-        List<AbstractMap.SimpleEntry<String, EmbeddingMission>> missionEntries = knowledgeDocumentWithBindTimeList.stream()
-                .map(knowledgeDocumentWithBindTime -> knowledgeDocumentWithBindTime.getKnowledgeDocument().getEmbeddingMissionId())
-                .map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.find(id)))
-                .toList();
+        List<AbstractMap.SimpleEntry<String, EmbeddingMission>> missionEntries = knowledgeDocumentWithBindTimeList.stream().map(knowledgeDocumentWithBindTime -> knowledgeDocumentWithBindTime.getKnowledgeDocument().getEmbeddingMissionId()).map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.find(id))).toList();
 
 
         // 5.1遍历整个embeddingMissionList，如果存在null的embeddingMission就记录他们的id并报错给前端
-        List<String> nullEmbeddingMissionIds = missionEntries.stream()
-                .filter(e -> e.getValue() == null)
-                .map(AbstractMap.SimpleEntry::getKey)
-                .toList();
+        List<String> nullEmbeddingMissionIds = missionEntries.stream().filter(e -> e.getValue() == null).map(AbstractMap.SimpleEntry::getKey).toList();
 
         // 5.2判断当前的nullEmbeddingMissionIds是否为空
         if (!nullEmbeddingMissionIds.isEmpty()) {
@@ -257,56 +223,34 @@ public class KnowledgeApplicationService {
 
         // 6.获取EmbeddingMission，并封装成EmbeddingMissionDTO
         // 6.1获取成功的EmbeddingMission
-        List<EmbeddingMission> embeddingMissions = missionEntries.stream()
-                .map(AbstractMap.SimpleEntry::getValue)
-                .toList();
+        List<EmbeddingMission> embeddingMissions = missionEntries.stream().map(AbstractMap.SimpleEntry::getValue).toList();
 
         // 6.2根据fileId查询所有的embeddingMission，包括没成功的
-        List<List<EmbeddingMission>> embeddingMissionList = embeddingMissions.stream()
-                .map(EmbeddingMission::getSourceDocumentId)
-                .map(embeddingMissionRepository::findBySourceDocumentId)
-                .toList();
+        List<List<EmbeddingMission>> embeddingMissionList = embeddingMissions.stream().map(EmbeddingMission::getSourceDocumentId).map(embeddingMissionRepository::findBySourceDocumentId).toList();
 
         // 6.3封装成EmbeddingMissionDTO
-        List<List<EmbeddingMissionDTO>> embeddingMissionDTOList = embeddingMissionList.stream()
-                .map(ListDtoConverter::toEmbeddingMissionDTOList)
-                .toList();
+        List<List<EmbeddingMissionDTO>> embeddingMissionDTOList = embeddingMissionList.stream().map(ListDtoConverter::toEmbeddingMissionDTOList).toList();
 
 
         // 7.根据embeddingMissionId查询对应的fileId，再根据fileId查询所有OcrMission，包括没成功的,并封装成OcrMissionDTO
         // 7.1根据embeddingMissionId查询对应的fileId，再根据fileId查询所有OcrMission，包括没成功的
-        List<List<OcrMission>> ocrMissionList = embeddingMissions.stream()
-                .map(EmbeddingMission::getSourceDocumentId)
-                .map(ocrMissionRepository::findBySourceDocumentId)
-                .toList();
+        List<List<OcrMission>> ocrMissionList = embeddingMissions.stream().map(EmbeddingMission::getSourceDocumentId).map(ocrMissionRepository::findBySourceDocumentId).toList();
 
         // 7.2封装成OcrMissionDTO
-        List<List<OcrMissionDTO>> ocrMissionDTOList = ocrMissionList.stream()
-                .map(ListDtoConverter::toOcrMissionDTOList)
-                .toList();
+        List<List<OcrMissionDTO>> ocrMissionDTOList = ocrMissionList.stream().map(ListDtoConverter::toOcrMissionDTOList).toList();
 
         // 8.根据embeddingMissionId查询对应的fileId,再根据查询到的fileId查询所有的extractStructureMission, 并封装成DocumentSplittingMissionDTO
         // 8.1根据embeddingMissionId查询对应的fileId,再根据查询到的fileId查询所有的extractStructureMissio，包括没成功的
-        List<List<StructureExtractionMission>> extractStructureMissionList = embeddingMissions.stream()
-                .map(EmbeddingMission::getSourceDocumentId)
-                .map(structureExtractionMissionRepository::findBySourceDocumentId)
-                .toList();
+        List<List<StructureExtractionMission>> extractStructureMissionList = embeddingMissions.stream().map(EmbeddingMission::getSourceDocumentId).map(structureExtractionMissionRepository::findBySourceDocumentId).toList();
 
         // 8.2封装成DocumentSplittingMissionDTO
-        List<List<DocumentSplittingMissionDTO>> documentSplittingMissionDTOList = extractStructureMissionList.stream()
-                .map(ListDtoConverter::toDocumentSplittingMissionDTOList)
-                .toList();
+        List<List<DocumentSplittingMissionDTO>> documentSplittingMissionDTOList = extractStructureMissionList.stream().map(ListDtoConverter::toDocumentSplittingMissionDTOList).toList();
 
 
         // 9封装成KnowledgeFileDTO
         List<KnowledgeFileDTO> knowledgeFileDTOList = new ArrayList<>(limit);
         for (int i = 0; i < knowledgeDocumentWithBindTimeList.size(); i++) {
-            KnowledgeFileDTO knowledgeFileDTO = DtoConverter.toKnowledgeFileDTO(
-                    knowledgeDocumentWithBindTimeList.get(i),
-                    ocrMissionDTOList.get(i),
-                    documentSplittingMissionDTOList.get(i),
-                    embeddingMissionDTOList.get(i)
-            );
+            KnowledgeFileDTO knowledgeFileDTO = DtoConverter.toKnowledgeFileDTO(knowledgeDocumentWithBindTimeList.get(i), ocrMissionDTOList.get(i), documentSplittingMissionDTOList.get(i), embeddingMissionDTOList.get(i));
             knowledgeFileDTOList.add(knowledgeFileDTO);
         }
 
@@ -391,25 +335,11 @@ public class KnowledgeApplicationService {
      */
     public void deleteKnowledgeFileByDirId(String dirId, List<String> documentIds) {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(dirId);
-        List<String> textNodeIdList = documentIds.stream()
-                .map(knowledgeDocumentRepository::find)
-                .map(KnowledgeDocument::getEmbeddingMissionId)
-                .map(embeddingMissionRepository::find)
-                .peek(m -> {
-                    if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
-                })
-                .map(EmbeddingMission::getSuccessResult)
-                .map(EmbeddingMissionResult.Success::getFileNodeId)
-                .map(nodeRepository::findFileNodeByFileNodeId)
-                .peek(o -> {
-                    if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
-                })
-                .map(Optional::get)
-                .map(FileNode::getId)
-                .map(nodeRepository::findTextNodeListByFileNodeId)
-                .flatMap(List::stream)
-                .map(TextNode::getId)
-                .toList();
+        List<String> textNodeIdList = documentIds.stream().map(knowledgeDocumentRepository::find).map(KnowledgeDocument::getEmbeddingMissionId).map(embeddingMissionRepository::find).peek(m -> {
+            if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
+        }).map(EmbeddingMission::getSuccessResult).map(EmbeddingMissionResult.Success::getFileNodeId).map(nodeRepository::findFileNodeByFileNodeId).peek(o -> {
+            if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
+        }).map(Optional::get).map(FileNode::getId).map(nodeRepository::findTextNodeListByFileNodeId).flatMap(List::stream).map(TextNode::getId).toList();
 
         embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(dirId, documentIds);
@@ -435,16 +365,10 @@ public class KnowledgeApplicationService {
         List<KnowledgeDocument> knowledgeDocumentList = knowledgeDocumentRepository.findCandidateKnowledgeDocumentKnowledgeCatalogId(dirId, keyWord);
 
         // 2.根据embeddingMissionId查询对应的embeddingMission并和其id绑定，用于判断是否存在null
-        List<AbstractMap.SimpleEntry<String, EmbeddingMission>> entries = knowledgeDocumentList.stream()
-                .map(KnowledgeDocument::getEmbeddingMissionId)
-                .map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.find(id)))
-                .toList();
+        List<AbstractMap.SimpleEntry<String, EmbeddingMission>> entries = knowledgeDocumentList.stream().map(KnowledgeDocument::getEmbeddingMissionId).map(id -> new AbstractMap.SimpleEntry<>(id, embeddingMissionRepository.find(id))).toList();
 
         // 3.获取找不到embeddingMission的id
-        List<String> nullEmbeddingMissionIds = entries.stream()
-                .filter(e -> e.getValue() == null)
-                .map(AbstractMap.SimpleEntry::getKey)
-                .toList();
+        List<String> nullEmbeddingMissionIds = entries.stream().filter(e -> e.getValue() == null).map(AbstractMap.SimpleEntry::getKey).toList();
 
         // 4.判断当前nullEmbeddingMissionIds是否为空
         if (!nullEmbeddingMissionIds.isEmpty()) {
@@ -453,62 +377,40 @@ public class KnowledgeApplicationService {
         }
 
         // 5.获取所有成功的embeddingMission
-        List<EmbeddingMission> embeddingMissions = entries.stream()
-                .map(AbstractMap.SimpleEntry::getValue)
-                .toList();
+        List<EmbeddingMission> embeddingMissions = entries.stream().map(AbstractMap.SimpleEntry::getValue).toList();
 
         // 6.根据fileId查询所有的ocrMission包括不成功的，并封装成ocrMissionDTO
         // 6.1根据fileId查询所有的ocrMission包括不成功的
-        List<List<OcrMission>> ocrMissionList = embeddingMissions.stream()
-                .map(EmbeddingMission::getSourceDocumentId)
-                .map(ocrMissionRepository::findBySourceDocumentId)
-                .toList();
+        List<List<OcrMission>> ocrMissionList = embeddingMissions.stream().map(EmbeddingMission::getSourceDocumentId).map(ocrMissionRepository::findBySourceDocumentId).toList();
 
         // 6.2封装成ocrMissionDTO
-        List<List<OcrMissionDTO>> ocrMissionDTOList = ocrMissionList.stream()
-                .map(ListDtoConverter::toOcrMissionDTOList)
-                .toList();
+        List<List<OcrMissionDTO>> ocrMissionDTOList = ocrMissionList.stream().map(ListDtoConverter::toOcrMissionDTOList).toList();
 
         // 7.根据fileId查询所有的extractStructureMission包括不成功的，并封装成extractStructureMissionDTO
         // 7.1根据fileId查询所有的extractStructureMission包括不成功的
-        List<List<StructureExtractionMission>> structureExtractionMissionList = embeddingMissions.stream()
-                .map(EmbeddingMission::getSourceDocumentId)
-                .map(structureExtractionMissionRepository::findBySourceDocumentId)
-                .toList();
+        List<List<StructureExtractionMission>> structureExtractionMissionList = embeddingMissions.stream().map(EmbeddingMission::getSourceDocumentId).map(structureExtractionMissionRepository::findBySourceDocumentId).toList();
 
         // 7.2封装成extractStructureMissionDTO
-        List<List<DocumentSplittingMissionDTO>> documentSplittingMissionDTOList = structureExtractionMissionList.stream()
-                .map(ListDtoConverter::toDocumentSplittingMissionDTOList)
-                .toList();
+        List<List<DocumentSplittingMissionDTO>> documentSplittingMissionDTOList = structureExtractionMissionList.stream().map(ListDtoConverter::toDocumentSplittingMissionDTOList).toList();
 
         // 8.根据fileId查询所有的embeddingMission包括不成功的，并封装成embeddingMissionDTO
         // 8.1根据fileId查询所有的embeddingMission包括不成功的
-        List<List<EmbeddingMission>> embeddingMissionList = embeddingMissions.stream()
-                .map(EmbeddingMission::getSourceDocumentId)
-                .map(embeddingMissionRepository::findBySourceDocumentId)
-                .toList();
+        List<List<EmbeddingMission>> embeddingMissionList = embeddingMissions.stream().map(EmbeddingMission::getSourceDocumentId).map(embeddingMissionRepository::findBySourceDocumentId).toList();
 
         // 8.2封装成embeddingMissionDTO
-        List<List<EmbeddingMissionDTO>> embeddingMissionDTOList = embeddingMissionList.stream()
-                .map(ListDtoConverter::toEmbeddingMissionDTOList)
-                .toList();
+        List<List<EmbeddingMissionDTO>> embeddingMissionDTOList = embeddingMissionList.stream().map(ListDtoConverter::toEmbeddingMissionDTOList).toList();
 
         // 9.将所有信息封装为CandidateKnowledgeFileDTOList
         List<CandidateKnowledgeFileDTO> candidateKnowledgeFileDTOList = new ArrayList<>();
         for (int i = 0; i < knowledgeDocumentList.size(); i++) {
-            CandidateKnowledgeFileDTO candidateKnowledgeFileDTO = DtoConverter.toCandidateKnowledgeFileDTO(
-                    knowledgeDocumentList.get(i),
-                    ocrMissionDTOList.get(i),
-                    documentSplittingMissionDTOList.get(i),
-                    embeddingMissionDTOList.get(i)
-            );
+            CandidateKnowledgeFileDTO candidateKnowledgeFileDTO = DtoConverter.toCandidateKnowledgeFileDTO(knowledgeDocumentList.get(i), ocrMissionDTOList.get(i), documentSplittingMissionDTOList.get(i), embeddingMissionDTOList.get(i));
             candidateKnowledgeFileDTOList.add(candidateKnowledgeFileDTO);
         }
 
-        // 10.封装成LazyPageDTO<CandidateKnowledgeFileDTO>并返回
-        LazyPageDTO<CandidateKnowledgeFileDTO> candidateKnowledgeFileDTOLazyPageDTO = new LazyPageDTO<CandidateKnowledgeFileDTO>(false, candidateKnowledgeFileDTOList);
-
-        return candidateKnowledgeFileDTOLazyPageDTO;
+        // 10. 由于时间不足，先做一个伪分页
+        List<CandidateKnowledgeFileDTO> partOfCandidateKnowledgeFileDTO = candidateKnowledgeFileDTOList.subList(pageNum * limit, (pageNum + 1) * limit);
+        // 11.封装成LazyPageDTO<CandidateKnowledgeFileDTO>并返回
+        return new LazyPageDTO<CandidateKnowledgeFileDTO>(false, partOfCandidateKnowledgeFileDTO);
     }
 
     /**
@@ -531,12 +433,7 @@ public class KnowledgeApplicationService {
         }
 
         // 成功就保存产生的向量化文件
-        KnowledgeDocument knowledgeDocument = KnowledgeDocument.Companion.create(
-                UUID.randomUUID().toString(),
-                sourceDocumentRepository.findSourceDocumentById(embeddingMission.getSourceDocumentId()).get().getName(),
-                embeddingMission.getId(),
-                KnowledgeDocumentType.STRUCTURE_SPLITTER
-        );
+        KnowledgeDocument knowledgeDocument = KnowledgeDocument.Companion.create(sourceDocumentRepository.findSourceDocumentById(embeddingMission.getSourceDocumentId()).get().getName(), embeddingMission.getId(), KnowledgeDocumentType.STRUCTURE_SPLITTER);
         knowledgeDocumentRepository.save(knowledgeDocument);
     }
 }

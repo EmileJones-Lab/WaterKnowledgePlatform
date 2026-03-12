@@ -1,6 +1,6 @@
 package top.emilejones.hhu.textsplitter.repository.impl.neo4j.delegates
 
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto.TextNodeDTO
+import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import java.util.*
 import kotlin.reflect.KProperty
 

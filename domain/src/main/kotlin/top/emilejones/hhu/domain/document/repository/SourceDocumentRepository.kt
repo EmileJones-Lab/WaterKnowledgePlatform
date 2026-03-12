@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.document.infrastruction
+package top.emilejones.hhu.domain.document.repository
 
 import top.emilejones.hhu.domain.document.SourceDocument
 import java.io.InputStream

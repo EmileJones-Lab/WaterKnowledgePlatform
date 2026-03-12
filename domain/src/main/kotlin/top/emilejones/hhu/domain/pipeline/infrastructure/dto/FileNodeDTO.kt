@@ -1,4 +1,4 @@
-package top.emilejones.hhu.domain.pipeline.infrastructure.gateway.dto
+package top.emilejones.hhu.domain.pipeline.infrastructure.dto
 
 /**
  * 文件节点数据传输对象，作为文档树的根节点载体。

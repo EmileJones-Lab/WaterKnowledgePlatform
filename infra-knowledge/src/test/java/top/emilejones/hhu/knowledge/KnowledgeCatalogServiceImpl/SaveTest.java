@@ -41,15 +41,14 @@ public class SaveTest {
         final String KB_NAME = "kb_name";
         final String MILVUS_NAME = "milvusName";
         final KnowledgeCatalogType TYPE = KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR;
-        UUID uuid = UUID.randomUUID();
-        KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(uuid.toString(), KB_NAME, MILVUS_NAME, TYPE);
+        KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(KB_NAME, MILVUS_NAME, TYPE);
         ArgumentCaptor<KnowledgeCatalogDto> captor = ArgumentCaptor.forClass(KnowledgeCatalogDto.class);
         knowledgeCatalogRepository.save(knowledgeCatalog);
         Mockito.verify(knowledgeCatalogMapper).save(captor.capture());
 
         KnowledgeCatalogDto value = captor.getValue();
         Assertions.assertEquals(0, value.getId());
-        Assertions.assertEquals(uuid.toString(), value.getKbId());
+        Assertions.assertEquals(knowledgeCatalog.getId(), value.getKbId());
         Assertions.assertEquals(KB_NAME, value.getKbName());
         Assertions.assertEquals(MILVUS_NAME, value.getColName());
         Assertions.assertEquals(TYPE, value.getType());
@@ -66,10 +65,9 @@ public class SaveTest {
         final String KB_NAME = "kb_name";
         final String MILVUS_NAME = "milvusName";
         final KnowledgeCatalogType TYPE = KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR;
-        UUID uuid = UUID.randomUUID();
-        KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(uuid.toString(), KB_NAME, MILVUS_NAME, TYPE);
+        KnowledgeCatalog knowledgeCatalog = KnowledgeCatalog.Companion.create(KB_NAME, MILVUS_NAME, TYPE);
         ArgumentCaptor<KnowledgeCatalogDto> captor = ArgumentCaptor.forClass(KnowledgeCatalogDto.class);
-        Mockito.when(knowledgeCatalogMapper.find(uuid.toString())).thenReturn(new KnowledgeCatalogDto());
+        Mockito.when(knowledgeCatalogMapper.find(knowledgeCatalog.getId())).thenReturn(new KnowledgeCatalogDto());
         knowledgeCatalogRepository.save(knowledgeCatalog);
         Mockito.verify(knowledgeCatalogMapper).update(captor.capture());
     }

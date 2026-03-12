@@ -8,24 +8,23 @@ import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMiss
 import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.utils.DtoConverter;
 import top.emilejones.hhu.common.utils.Pair;
-import top.emilejones.hhu.domain.document.infrastruction.SourceDocumentRepository;
+import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeDocumentRepository;
-import top.emilejones.hhu.domain.pipeline.MissionStatus;
-import top.emilejones.hhu.domain.pipeline.TextNode;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
-import top.emilejones.hhu.domain.pipeline.infrastructure.gateway.EmbeddingGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.*;
+import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
+import top.emilejones.hhu.domain.pipeline.repository.*;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
+import top.emilejones.hhu.domain.result.MissionStatus;
+import top.emilejones.hhu.domain.result.TextNode;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -155,7 +154,6 @@ public class PipeLineApplicationService {
                         return new Pair<>(entry.getValue().get(), false);
                     } else {
                         StructureExtractionMission newMission = StructureExtractionMission.Companion.create(
-                                UUID.randomUUID().toString(),
                                 entry.getKey()
                         );
                         return new Pair<>(newMission, true);
@@ -210,7 +208,6 @@ public class PipeLineApplicationService {
                         return new Pair<>(entry.getValue().get(), false);
                     } else {
                         EmbeddingMission newMission = EmbeddingMission.Companion.create(
-                                UUID.randomUUID().toString(),
                                 entry.getKey()
                         );
                         return new Pair<>(newMission, true);

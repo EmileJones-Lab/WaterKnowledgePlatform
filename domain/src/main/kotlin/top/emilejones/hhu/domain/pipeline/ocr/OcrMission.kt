@@ -1,8 +1,9 @@
 package top.emilejones.hhu.domain.pipeline.ocr
 
 import top.emilejones.hhu.domain.AggregateRoot
-import top.emilejones.hhu.domain.pipeline.MissionStatus
+import top.emilejones.hhu.domain.result.MissionStatus
 import java.time.Instant
+import java.util.UUID
 
 /**
  * OCR 任务聚合根，管理识别流程状态与结果。
@@ -31,9 +32,9 @@ class OcrMission(
         /**
          * 创建初始化状态的 OCR 任务。
          */
-        fun create(id: String, sourceDocumentId: String): OcrMission {
+        fun create(sourceDocumentId: String): OcrMission {
             return OcrMission(
-                id = id,
+                id = UUID.randomUUID().toString(),
                 sourceDocumentId = sourceDocumentId,
                 status = MissionStatus.PENDING,
                 result = null,

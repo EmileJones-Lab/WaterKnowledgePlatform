@@ -1,8 +1,9 @@
 package top.emilejones.hhu.domain.pipeline.splitter
 
 import top.emilejones.hhu.domain.AggregateRoot
-import top.emilejones.hhu.domain.pipeline.MissionStatus
+import top.emilejones.hhu.domain.result.MissionStatus
 import java.time.Instant
+import java.util.UUID
 
 /**
  * 文档结构切割任务聚合根，管理切分流程状态。
@@ -36,11 +37,10 @@ class StructureExtractionMission(
          * 创建初始化状态的切割任务。
          */
         fun create(
-            id: String,
             sourceDocumentId: String,
         ): StructureExtractionMission {
             return StructureExtractionMission(
-                id = id,
+                id = UUID.randomUUID().toString(),
                 sourceDocumentId = sourceDocumentId,
                 processedDocumentId = null,
                 status = MissionStatus.PENDING,

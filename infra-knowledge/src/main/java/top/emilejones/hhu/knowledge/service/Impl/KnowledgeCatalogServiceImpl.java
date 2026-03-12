@@ -8,7 +8,7 @@ import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
-import top.emilejones.hhu.domain.knowledge.infrastructure.KnowledgeCatalogRepository;
+import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
 import top.emilejones.hhu.knowledge.constant.DeleteConstant;
 import top.emilejones.hhu.knowledge.mapper.CollectionDocumentMapper;
 import top.emilejones.hhu.knowledge.pojo.dto.KnowledgeCatalogDto;

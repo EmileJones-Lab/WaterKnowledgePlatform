@@ -1,9 +1,9 @@
-package top.emilejones.hhu.domain.knowledge.infrastructure
+package top.emilejones.hhu.domain.knowledge.repository
 
 import top.emilejones.hhu.domain.framwork.ConsistentDataProcessor
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument
-import top.emilejones.hhu.domain.knowledge.infrastructure.dto.KnowledgeDocumentWithBindTime
+import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime
 import kotlin.ReplaceWith
 
 /**

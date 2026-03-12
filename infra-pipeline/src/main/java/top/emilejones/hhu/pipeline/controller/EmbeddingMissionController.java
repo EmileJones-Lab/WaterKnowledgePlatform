@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
-import top.emilejones.hhu.domain.pipeline.infrastructure.repository.EmbeddingMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.pipeline.services.EmbeddingMissionService;
 
 import java.util.List;
@@ -62,4 +62,9 @@ public class EmbeddingMissionController implements EmbeddingMissionRepository {
     }
 
 
+    @Override
+    @NotNull
+    public List<EmbeddingMission> findBatch(@NotNull List<? extends String> keyList) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

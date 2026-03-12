@@ -1,11 +1,9 @@
 package top.emilejones.hhu.pipeline.entity;
 
 import lombok.Data;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocument;
-import top.emilejones.hhu.domain.pipeline.ProcessedDocumentType;
+import top.emilejones.hhu.domain.result.ProcessedDocumentType;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 /**
  * OCR / 预处理后生成的文档持久化对象（PO）。
