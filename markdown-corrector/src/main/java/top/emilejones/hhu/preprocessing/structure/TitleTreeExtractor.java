@@ -14,6 +14,10 @@ import java.util.regex.Pattern;
 
 /**
  * 实现通过扫描标题构建结构树，并以此规范Markdown文档标题结构。
+ * 该类负责：
+ * 1. 预处理文本（移除目录、规范化标题格式）。
+ * 2. 提取标题并构建层次结构树。
+ * 3. 根据结构树重新生成规范化的标题（如自动修正 # 数量）。
  *
  * @author EmileJones
  * @author yeyezhi
@@ -22,81 +26,128 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
 
     private String[] lines;
 
+    /**
+     * 对原始文本进行预处理。
+     * 步骤：
+     * 1. 移除目录部分。
+     * 2. 逐行规范化处理：去除冗余的起始 '#' 号、合并层级标题中的空格、确保标题标记后有空格。
+     *
+     * @param originText 原始 Markdown 文本
+     * @return 预处理后的文本
+     */
     @Override
     protected String initOriginText(String originText) {
+        // 首先移除目录内容
         String haveNoCatalogText = removeCatalog(originText);
-
         String[] textLines = haveNoCatalogText.split("\\R");
         StringBuilder result = new StringBuilder();
+
         for (String line : textLines) {
-            String workingLine = line;
-            String trimmedLine = workingLine.trim();
-            if (trimmedLine.isEmpty()) {
-                result.append(line).append(System.lineSeparator());
+            result.append(processSingleLine(line)).append(System.lineSeparator());
+        }
+        return result.toString();
+    }
+
+    /**
+     * 处理单行文本，执行标题规范化逻辑。
+     *
+     * @param line 原始行文本
+     * @return 规范化后的行文本
+     */
+    private String processSingleLine(String line) {
+        String trimmedLine = line.trim();
+        if (trimmedLine.isEmpty()) {
+            return line;
+        }
+
+        // 记录前导空格以便后续恢复
+        int firstNonSpaceIndex = getLeadingSpaceCount(line);
+        String workingLine = line;
+        boolean lineChanged = false;
+
+        // 1. 处理起始的多余 '#' 号（如果有）
+        if (firstNonSpaceIndex < workingLine.length() && workingLine.charAt(firstNonSpaceIndex) == '#') {
+            workingLine = workingLine.substring(0, firstNonSpaceIndex) + workingLine.substring(firstNonSpaceIndex + 1);
+            trimmedLine = workingLine.trim();
+            lineChanged = true;
+        }
+
+        String processedLine = trimmedLine;
+
+        // 2. 处理层级标题格式（如 "1. 1. 1" -> "1.1.1"）
+        String afterHierarchical = normalizeHierarchicalTitle(processedLine);
+        if (!afterHierarchical.equals(processedLine)) {
+            processedLine = afterHierarchical;
+            lineChanged = true;
+        }
+
+        // 3. 确保标题标记与标题内容之间有空格
+        String afterSpaceCorrection = ensureSpaceAfterTitleMarker(processedLine);
+        if (!afterSpaceCorrection.equals(processedLine)) {
+            processedLine = afterSpaceCorrection;
+            lineChanged = true;
+        }
+
+        if (lineChanged) {
+            String leadingSpaces = line.substring(0, firstNonSpaceIndex);
+            return leadingSpaces + processedLine;
+        }
+        return line;
+    }
+
+    /**
+     * 获取行首的空格数量（缩进量）。
+     */
+    private int getLeadingSpaceCount(String line) {
+        int count = 0;
+        while (count < line.length() && Character.isWhitespace(line.charAt(count))) {
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * 处理层级标题：删除数字和点号之间的空格（如 "1. 1. 1" -> "1.1.1"），但保留数字序列和文字之间的空格。
+     */
+    private String normalizeHierarchicalTitle(String trimmedLine) {
+        // 匹配格式：数字序列（如 "1. 2. 3"）+ 空格 + 文字
+        Pattern hierarchicalPattern = Pattern.compile("^((?:[0-9]+\\s*\\.\\s*){1,3}[0-9]+)(\\s+)(.+)$");
+        Matcher hierarchicalMatcher = hierarchicalPattern.matcher(trimmedLine);
+        if (hierarchicalMatcher.matches()) {
+            String numberSequence = hierarchicalMatcher.group(1);
+            String spaceAfterNumbers = hierarchicalMatcher.group(2);
+            String textAfter = hierarchicalMatcher.group(3);
+
+            // 将 "1. 2. 3" 转换为 "1.2.3"
+            String normalizedSequence = numberSequence.replaceAll("(\\d+)\\s*\\.\\s*", "$1.");
+            return normalizedSequence + spaceAfterNumbers + textAfter;
+        }
+        return trimmedLine;
+    }
+
+    /**
+     * 遍历所有标题类型，确保匹配到的标题标记后紧跟一个空格。
+     */
+    private String ensureSpaceAfterTitleMarker(String processedLine) {
+        for (TitleType type : TitleType.values()) {
+            if (type == TitleType.NilType || type.getTitleRegex() == null) {
                 continue;
             }
 
-            boolean lineChanged = false;
-            int firstNonSpaceIndex = 0;
-            while (firstNonSpaceIndex < workingLine.length() && Character.isWhitespace(workingLine.charAt(firstNonSpaceIndex))) {
-                firstNonSpaceIndex++;
-            }
-            if (firstNonSpaceIndex < workingLine.length() && workingLine.charAt(firstNonSpaceIndex) == '#') {
-                workingLine = workingLine.substring(0, firstNonSpaceIndex) + workingLine.substring(firstNonSpaceIndex + 1);
-                trimmedLine = workingLine.trim();
-                lineChanged = true;
-            }
+            // 获取不带内容匹配的正则前缀
+            String patternString = type.getTitleRegex().replace("[\\s].*", "");
+            Pattern pattern = Pattern.compile(patternString);
+            Matcher matcher = pattern.matcher(processedLine);
 
-            String processedLine = trimmedLine;
-
-            // 处理层级标题：删除数字和点号之间的空格（如 "1. 1. 1" -> "1.1.1"）
-            // 但保留数字序列和文字之间的空格
-            // 匹配格式：可选的#号 + 数字序列（如 "1. 2. 3" 或 "1. 2. 3. 4"）+ 空格 + 文字
-            Pattern hierarchicalPattern = Pattern.compile("^((?:[0-9]+\\s*\\.\\s*){1,3}[0-9]+)(\\s+)(.+)$");
-            Matcher hierarchicalMatcher = hierarchicalPattern.matcher(trimmedLine);
-            if (hierarchicalMatcher.matches()) {
-                String numberSequence = hierarchicalMatcher.group(1);
-                String spaceAfterNumbers = hierarchicalMatcher.group(2);
-                String textAfter = hierarchicalMatcher.group(3);
-
-                // 删除数字和点号之间的空格，但保留点号
-                // 将 "1. 2. 3" 转换为 "1.2.3"
-                String normalizedSequence = numberSequence.replaceAll("(\\d+)\\s*\\.\\s*", "$1.");
-
-                processedLine = normalizedSequence + spaceAfterNumbers + textAfter;
-                lineChanged = true;
-            }
-
-            for (TitleType type : TitleType.values()) {
-                if (type == TitleType.NilType || type.getTitleRegex() == null) {
-                    continue;
+            if (matcher.lookingAt()) {
+                int matchEnd = matcher.end();
+                // 如果标记后没有空格且不是行尾，则插入空格
+                if (processedLine.length() > matchEnd && !Character.isWhitespace(processedLine.charAt(matchEnd))) {
+                    return processedLine.substring(0, matchEnd) + " " + processedLine.substring(matchEnd);
                 }
-
-                String patternString = type.getTitleRegex().replace("[\\s].*", "");
-                Pattern pattern = Pattern.compile(patternString);
-                Matcher matcher = pattern.matcher(processedLine);
-
-                if (matcher.lookingAt()) {
-                    int matchEnd = matcher.end();
-                    if (processedLine.length() > matchEnd && !Character.isWhitespace(processedLine.charAt(matchEnd))) {
-                        processedLine = processedLine.substring(0, matchEnd)
-                                + " "
-                                + processedLine.substring(matchEnd);
-                        lineChanged = true;
-                        break;
-                    }
-                }
-            }
-
-            if (lineChanged) {
-                // 保留原始行的前导空格
-                String leadingSpaces = line.substring(0, firstNonSpaceIndex);
-                result.append(leadingSpaces).append(processedLine).append(System.lineSeparator());
-            } else {
-                result.append(line).append(System.lineSeparator());
             }
         }
-        return result.toString();
+        return processedLine;
     }
 
     @Override
@@ -123,6 +174,10 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
         return false;
     }
 
+    /**
+     * 根据预处理后的文本构建标题树。
+     * 利用栈或父节点引用的方式，根据标题类型匹配其在树中的位置。
+     */
     @Override
     protected Node extractStructureTree(String originText) {
         this.lines = originText.split("\\R");
@@ -167,6 +222,10 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
         return root;
     }
 
+    /**
+     * 根据生成的结构树修正文档中的标题层级。
+     * 一级标题固定为 "# "，其余标题根据其在树中的深度确定 "#" 数量。
+     */
     @Override
     protected String correctOriginTextByStructureTree(Node root) {
         Map<Integer, Node> lineToNode = new HashMap<>();
@@ -175,6 +234,7 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < this.lines.length; i++) {
             if (i == 0) {
+                // 特殊处理文档首行（通常视为总标题）
                 String docName = this.lines[i].trim().replaceFirst("^#+\\s*", "");
                 sb.append("# ").append(docName).append("\n");
                 continue;
@@ -272,21 +332,15 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
         }
     }
 
+    /**
+     * 移除文档中的目录部分。
+     * 目录通常由特定的处理器生成或标记，这里通过正则将其标题及内容移除。
+     */
     private String removeCatalog(String str) {
-        // 预处理后，目录标题会变为 "## 目录"，且目录正文会被合并到紧接着的下一行中
         MarkdownFileHandler handler = new CatalogTitleLevelCorrectorPlus();
-
-        // 1. 获取处理后的 Markdown 文件内容
         String s = handler.handle(str);
-        // 2. 定义正则表达式删除目录标题行及其紧随的一行正文
-        // (?m)          : 启用多行模式，让 ^ 和 $ 能匹配每一行的开始和结束
-        // ^##\s*目\s*录.* : 匹配以 "##" 开头，中间包含 "目" 和 "录" (允许中间有空格) 的整行标题
-        // \R            : 匹配标题行末尾的换行符
-        // .* : 匹配下一行整行内容 (即合并后的目录正文)
-        // \R?           : 可选地匹配目录正文后的换行符，避免删除后留下空行
+        // 定义正则表达式删除目录标题行及其紧随的一行正文
         String catalogPattern = "(?m)^##\\s*目\\s*录.*\\R.*\\R?";
-
-        // 3. 将匹配到的标题行和目录内容行替换为空字符串并返回结果
         return s.replaceAll(catalogPattern, "");
     }
 
