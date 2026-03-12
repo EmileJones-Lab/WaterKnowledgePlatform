@@ -12,6 +12,7 @@ import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -46,9 +47,8 @@ public class OcrProcessor {
 
         try {
             SourceDocument sourceDocument = sourceDocumentOptional.get();
-            InputStream content = sourceDocumentRepository.openContent(sourceDocument.getFilePath());
-            boolean isPdf = FileUtils.INSTANCE.isPdf(content);
-            if (!isPdf)
+            BufferedInputStream content = FileUtils.INSTANCE.checkPdf(sourceDocumentRepository.openContent(sourceDocument.getFilePath()));
+            if (content == null)
                 throw new IllegalAccessException("不是一个OCR文件");
             MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(content);
             // 保存文件，markdown文件名称随机生成
