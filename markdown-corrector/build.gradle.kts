@@ -1,6 +1,7 @@
 plugins {
     // Apply the Application plugin to add support for building an executable JVM application.
     alias(libs.plugins.kotlinPluginSerialization)
+    buildsrc.convention.base
 }
 
 dependencies {
