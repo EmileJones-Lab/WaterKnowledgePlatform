@@ -1,10 +1,11 @@
 plugins {
     alias(libs.plugins.kotlinPluginSerialization)
     id("org.jetbrains.kotlin.jvm")
+    buildsrc.convention.base
 }
 
 dependencies {
-    implementation(libs.bundles.kotlinxEcosystem)
+    testImplementation(kotlin("test"))
     implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
     implementation("org.springframework.boot:spring-boot-starter")
 

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinPluginSerialization)
+    buildsrc.convention.base
 }
 
 dependencies {

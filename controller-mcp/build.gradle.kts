@@ -1,12 +1,10 @@
 plugins {
     application
+    buildsrc.convention.base
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-
-    implementation(platform("org.springframework.ai:spring-ai-bom:1.0.1"))
     implementation("org.springframework.ai:spring-ai-starter-mcp-server-webflux")
 
     implementation(project(":common"))

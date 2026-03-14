@@ -3,8 +3,8 @@ package top.emilejones.hhu.common.utils
 
 import java.io.InputStream
 import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class FileUtilsTest {
 
@@ -13,7 +13,7 @@ class FileUtilsTest {
         val inputStream: InputStream? = javaClass.getResourceAsStream("/testFile/test.pdf")
         if (inputStream != null) {
             val result = FileUtils.checkPdf(inputStream)
-            assertTrue(result, "Expected test.pdf to be identified as PDF")
+            assertNotNull(result, "Expected test.pdf to be identified as PDF")
         } else {
             throw RuntimeException("Resource /testFile/test.pdf not found")
         }
@@ -24,7 +24,7 @@ class FileUtilsTest {
         val inputStream: InputStream? = javaClass.getResourceAsStream("/testFile/调度原则.docx")
         if (inputStream != null) {
             val result = FileUtils.checkPdf(inputStream)
-            assertFalse(result, "Expected 调度原则.docx to NOT be identified as PDF")
+            assertNull(result, "Expected 调度原则.docx to NOT be identified as PDF")
         } else {
             throw RuntimeException("Resource /testFile/调度原则.docx not found")
         }

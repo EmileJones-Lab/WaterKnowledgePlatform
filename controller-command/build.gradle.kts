@@ -1,12 +1,12 @@
 plugins {
     // Apply the Application plugin to add support for building an executable JVM application.
     application
+    buildsrc.convention.base
 }
 
 dependencies {
     // Project "app" depends on project "utils". (Project paths are separated with ":", so ":utils" refers to the top-level "utils" project.)
-    testImplementation(kotlin("test"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation(libs.bundles.kotlinxEcosystem)
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
     implementation("org.springframework.boot:spring-boot-starter")
     implementation(project(":application"))
