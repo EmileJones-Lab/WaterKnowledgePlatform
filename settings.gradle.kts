@@ -21,19 +21,20 @@ plugins {
 // Learn more about structuring projects with Gradle - https://docs.gradle.org/8.7/userguide/multi_project_builds.html
 include(":common")
 include(":domain")
-include(":application")
+include(":application-service:command")
+include(":application-service:platform")
+include(":application-service:configuration")
 
-include(":controller-command")
-include(":controller-web")
-include(":controller-mcp")
+include(":controller:controller-command")
+include(":controller:controller-web")
+include(":controller:controller-mcp")
 
-include(":infra-model")
-include(":infra-qa")
-include(":infra-textsplitter")
-include(":infra-pipeline")
-include(":infra-document")
-include(":infra-knowledge")
-
-include(":markdown-corrector")
+include(":infrastructure:model")
+include(":infrastructure:qa")
+include(":infrastructure:textsplitter")
+include(":infrastructure:textsplitter:markdown-corrector")
+include(":infrastructure:pipeline")
+include(":infrastructure:document")
+include(":infrastructure:knowledge")
 
 rootProject.name = "WaterKnowledgePlatform"

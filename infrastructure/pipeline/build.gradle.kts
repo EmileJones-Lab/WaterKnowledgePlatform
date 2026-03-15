@@ -2,15 +2,17 @@ plugins {
     alias(libs.plugins.kotlinPluginSerialization)
     id("buildsrc.convention.base")
     id("buildsrc.convention.spring-base")
-    id("buildsrc.convention.kotlin-base")
+    id("buildsrc.convention.lombok")
 }
 
 dependencies {
-    implementation(libs.bundles.kotlinxEcosystem)
-    implementation(libs.mybatisStarter)
+    implementation(project(":common"))
+    implementation(project(":domain"))
     implementation(libs.mysqlConnector)
-    implementation(libs.milvusSdk)
+    implementation(libs.mybatisStarter)
     implementation(libs.minio)
-    implementation(libs.neo4jDriver)
 }
-    
+
+tasks.test {
+    useJUnitPlatform()
+}
