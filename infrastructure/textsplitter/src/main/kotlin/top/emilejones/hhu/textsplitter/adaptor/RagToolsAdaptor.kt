@@ -14,6 +14,7 @@ import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
 import top.emilejones.hhu.textsplitter.preprocessor.SplitTextNodeTool
+import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.IDataProcessingService
@@ -36,6 +37,7 @@ class RagToolsAdaptor(
     override fun extract(inputStream: InputStream): TextNodeDTO {
         val result = MarkdownStructureParser(inputStream).get()
         SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
+        TextNodeLeafLevelProcessor(result).run()
         return result
     }
 

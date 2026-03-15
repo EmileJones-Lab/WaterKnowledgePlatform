@@ -18,10 +18,10 @@ import top.emilejones.hhu.domain.result.TextType
  */
 data class TextNodeDTO(
     val id: String,
-    val text: String,
+    var text: String,
     var seq: Int,
-    val level: Int,
-    val type: TextType
+    var level: Int,
+    var type: TextType
 ) {
     private val childList: MutableList<TextNodeDTO> = ArrayList()
     var parentNode: TextNodeDTO? = null
