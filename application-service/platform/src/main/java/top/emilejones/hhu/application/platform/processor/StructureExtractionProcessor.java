@@ -1,17 +1,15 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.result.MissionStatus;
-import top.emilejones.hhu.domain.result.ProcessedDocument;
 import top.emilejones.hhu.domain.pipeline.infrastructure.StructureExtractionGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.FileNodeDTO;
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO;
+import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
+import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
-import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
-import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
+import top.emilejones.hhu.domain.result.MissionStatus;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
 
 import java.io.InputStream;
 import java.util.List;
@@ -93,18 +91,9 @@ public class StructureExtractionProcessor {
             throw new IllegalAccessException("OCR任务存在，但是提取出来的markdown文件却不存在");
 
         InputStream inputStream = processedDocumentRepository.openContent(processedDocument.getFilePath());
-
         // 提取markdown文件结构
-        TextNodeDTO structure = structureExtractionGateway.extract(inputStream);
-
-        // 为这个树状结构和源文件绑定
-        Objects.requireNonNull(structure.getFileNode()).setFileId(structureExtractionMission.getSourceDocumentId());
-
-        // 保存这个树状结构
-        structureExtractionGateway.save(structure);
-
+        String fileNodeId = structureExtractionGateway.extract(inputStream, structureExtractionMission.getSourceDocumentId());
         // 记录任务状态为成功
-        FileNodeDTO fileNode = structure.getFileNode();
-        structureExtractionMission.success(fileNode.getId());
+        structureExtractionMission.success(fileNodeId);
     }
 }

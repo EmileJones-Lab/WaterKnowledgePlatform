@@ -8,7 +8,6 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
     implementation(project(":infrastructure:textsplitter"))
-    implementation(project(":infrastructure:pipeline"))
     implementation(project(":infrastructure:document"))
     implementation(project(":infrastructure:knowledge"))
     implementation(project(":application-service:configuration"))

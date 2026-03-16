@@ -2,8 +2,6 @@
 // `buildSrc` is a Gradle-recognized directory and every plugin there will be easily available in the rest of the build.
 package buildsrc.convention
 
-import gradle.kotlin.dsl.accessors._b01c2726bc844feb5d22adba31e09586.testImplementation
-import gradle.kotlin.dsl.accessors._b01c2726bc844feb5d22adba31e09586.testRuntimeOnly
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
