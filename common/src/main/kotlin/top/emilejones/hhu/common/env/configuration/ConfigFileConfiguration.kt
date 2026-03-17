@@ -3,7 +3,14 @@ package top.emilejones.hhu.common.env.configuration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import top.emilejones.hhu.common.env.pojo.*
+import top.emilejones.hhu.common.env.pojo.ApplicationConfig
+import top.emilejones.hhu.common.env.pojo.HttpModelClientConfig
+import top.emilejones.hhu.common.env.pojo.MilvusConfig
+import top.emilejones.hhu.common.env.pojo.MinerUConfig
+import top.emilejones.hhu.common.env.pojo.MinioConfig
+import top.emilejones.hhu.common.env.pojo.MysqlConfig
+import top.emilejones.hhu.common.env.pojo.Neo4jConfig
+import top.emilejones.hhu.common.env.pojo.RAGConfig
 
 
 @Configuration

@@ -1,6 +1,5 @@
 package top.emilejones.hhu.domain.pipeline.infrastructure
 
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.TextNodeDTO
 import java.io.InputStream
 
 /**
@@ -18,18 +17,8 @@ interface StructureExtractionGateway {
      * - 调用失败应抛出可定位原因的异常（格式错误、解析失败等），便于上层告警或重试。
      *
      * @param inputStream 预处理后的 Markdown 输入流，调用方负责管理生命周期（打开/关闭）
-     * @return 文档节点树的虚拟根节点（NULL 节点），可通过它遍历所有子节点
+     * @param sourceDocumentId 源文件ID，用来绑定生成的数据与源文件之间的关系
+     * @return FileNodeId
      */
-    fun extract(inputStream: InputStream): TextNodeDTO
-
-    /**
-     * 将抽取后的树状结构保存到图数据库中。
-     *
-     * 约定：
-     * - 调用前需补齐 fileId 等必要元数据。
-     * - 实现需保证树结构完整持久化，失败时抛出可定位的异常。
-     *
-     * @param textNodeDTO 文档节点树的虚拟根节点，需在调用前完成 fileId 等必要信息绑定
-     */
-    fun save(textNodeDTO: TextNodeDTO)
+    fun extract(inputStream: InputStream, sourceDocumentId: String): String
 }

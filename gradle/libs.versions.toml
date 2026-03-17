@@ -7,12 +7,22 @@ kotlin = "2.1.0"
 kotlinxDatetime = "0.6.1"
 kotlinxSerializationJSON = "1.7.2"
 kotlinxCoroutines = "1.8.1"
+mybatis = "3.0.5"
+mysql = "9.6.0"
+milvus = "2.6.14"
+minio = "8.6.0"
+neo4j = "6.0.3"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+mybatisStarter = { module = "org.mybatis.spring.boot:mybatis-spring-boot-starter", version.ref = "mybatis" }
+mysqlConnector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
+milvusSdk = { module = "io.milvus:milvus-sdk-java", version.ref = "milvus" }
+minio = { module = "io.minio:minio", version.ref = "minio" }
+neo4jDriver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "neo4j" }
 
 # Libraries can be bundled together for easier import
 [bundles]
