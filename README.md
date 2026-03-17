@@ -77,28 +77,28 @@ app:
     - `model`: 封装 Embedding 与 Rerank 模型服务的客户端请求。
     - `qa`: 问答系统相关逻辑支持。
 - `controller`: 多端接入层。
-    - `controller-web`: 标准 RESTful API，用于任务触发与监控。
-    - `controller-mcp`: 基于 MCP 协议的接口，支持 AI 客户端直接调用。
-    - `controller-command`: 命令行工具，用于本地测试召回效果。
+    - `web`: 标准 RESTful API，用于任务触发与监控。
+    - `mcp`: 基于 MCP 协议的接口，支持 AI 客户端直接调用。
+    - `command`: 命令行工具，用于本地测试召回效果。
 
 ## 🚦 快速开始
 1.  **数据库初始化**: 将 `sql/init.sql` 导入到你的 MySQL 数据库中。
 2.  **环境配置**: 
     - 准备配置文件 `application-<PROFILE>.yml`。
-    - 放置路径：`controller/controller-web/src/main/resources/` 或 Jar 包同级目录。
+    - 放置路径：`controller/web/src/main/resources/` 或 Jar 包同级目录。
 3.  **启动服务**:
     - **方式一：通过 Gradle 直接启动（推荐开发使用）**
       ```bash
-      ./gradlew :controller:controller-web:bootRun --args='--spring.profiles.active=<PROFILE>'
+      ./gradlew :controller:web:bootRun --args='--spring.profiles.active=<PROFILE>'
       ```
     - **方式二：打包后通过 Jar 启动**
       1. 编译打包：
          ```bash
-         ./gradlew :controller:controller-web:bootJar
+         ./gradlew :controller:web:bootJar
          ```
       2. 运行 Jar：
          ```bash
-         java -jar controller/controller-web/build/libs/controller-web.jar --spring.profiles.active=<PROFILE>
+         java -jar controller/web/build/libs/web.jar --spring.profiles.active=<PROFILE>
          ```
 
 ## 📖 接口文档
@@ -115,5 +115,5 @@ springdoc:
 ```
 
 ### 2. 访问地址
-- **Swagger UI (交互式文档)**: `http://<YOUR_HOST>:<YOUR_PORT>/open-api/swagger-ui/index.html`
-- **OpenAPI JSON**: `http://<YOUR_HOST>:<YOUR_PORT>/open-api/swagger-ui/json`
+- **Swagger UI (交互式文档)**: `http://<YOUR_HOST>:<YOUR_PORT>/open-api/index.html`
+- **OpenAPI JSON**: `http://<YOUR_HOST>:<YOUR_PORT>/open-api/json`

@@ -74,11 +74,16 @@ class TextNodeLeafLevelProcessor(
                         child.type = TextType.TITLE
                     }
 
-                    // 处理文本：移除开头的所有 "#"
+                    // 处理文本：移除开头的所有 "#" 和空格
                     val originalText = child.text
-                    if (!originalText.isNullOrEmpty() && originalText.startsWith("#")) {
-                        child.text = originalText.replace("^#+".toRegex(), "")
-                        logger.debug("Processed node seq: [{}], set type to TITLE and removed leading #", child.seq)
+                    if (!originalText.isNullOrEmpty()) {
+                        // 使用正则表达式匹配开头的所有空格和 # 符号，并将其替换为空
+                        // 然后再 trim 一次确保末尾也没有多余空格
+                        val processedText = originalText.replace("^\\s*#+\\s*".toRegex(), "").trim()
+                        if (processedText != originalText) {
+                            child.text = processedText
+                            logger.debug("Processed node seq: [{}], set type to TITLE and removed leading # and spaces", child.seq)
+                        }
                     }
                 }
             }

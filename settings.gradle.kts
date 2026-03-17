@@ -25,9 +25,9 @@ include(":application-service:command")
 include(":application-service:platform")
 include(":application-service:configuration")
 
-include(":controller:controller-command")
-include(":controller:controller-web")
-include(":controller:controller-mcp")
+include(":controller:command")
+include(":controller:web")
+include(":controller:mcp")
 
 include(":infrastructure:model")
 include(":infrastructure:qa")

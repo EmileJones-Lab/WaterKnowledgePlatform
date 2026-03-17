@@ -13,5 +13,5 @@ dependencies {
 }
 
 application {
-    mainClass = "top.emilejones.hhu.mcp.MainApplication"
+    mainClass = "top.emilejones.hhu.mcp.McpApplication"
 }
