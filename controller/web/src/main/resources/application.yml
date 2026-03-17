@@ -1,0 +1,13 @@
+spring:
+  profiles:
+    active: lab
+
+springdoc:
+  api-docs:
+    enabled: false
+    path: /open-api/json      # OpenAPI 文档 JSON
+  swagger-ui:
+    enabled: false
+    path: /open-api/html      # Swagger UI HTML
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
