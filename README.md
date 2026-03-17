@@ -26,7 +26,6 @@
 app:
   milvus:
     database: <your_milvus_database_name>
-    collection: <your_milvus_collection_name>
     host: <milvus_host_ip_or_domain>
     port: <milvus_port>
   neo4j:
@@ -38,13 +37,14 @@ app:
   model:
     host: <model_service_host_ip>
     port: <model_service_port>
-    embeddingModel: <embedding_model_name>
-    rerankModel: <rerank_model_name>
-    dimension: <vector_dimension>
+    token: <your_api_token>                # OpenAI 格式服务的 API Key (可选)
+    embeddingModel: <embedding_model_name> # Embedding 模型名称 (OpenAI 格式)
+    rerankModel: <rerank_model_name>       # Rerank 模型名称
+    dimension: <vector_dimension>          # Embedding 模型生成的向量维度 (需与 Milvus 集合维度一致)
   rag:
-    maxSentenceLength: <max_sentence_length>
-    maxTableLength: <max_table_length>
-    recallNumber: <recall_top_k_number>
+    maxSentenceLength: <max_sentence_length> # 文本 chunk 的最大长度
+    maxTableLength: <max_table_length>       # 表格 chunk 的最大长度
+    recallNumber: <recall_top_k_number>      # 召回前几条数据（Top K）
   mysql:
     host: <mysql_host_ip_or_domain>
     port: <mysql_port>
@@ -62,22 +62,58 @@ app:
 ```
 
 ## 📦 模块职责说明
-- `domain`: 负责封装不涉及具体技术实现的核心业务逻辑与状态。
-- `application`: 负责编排领域对象和基础设施服务以执行具体的业务用例。
-- `infra-document`: 封装与原始文档管理模块的交互，负责获取原始文件的相关信息。
-- `infra-textsplitter`: **核心算法模块**，实现基于 Markdown/JSON 结构的层次化切分逻辑。
-- `infra-pipeline`: 负责管理向量化任务、结构提取任务、OCR任务状态以及持久化。
-- `infra-knowledge`: 负责管理向量化后的数据，用于分知识库召回。
-- `infra-model`: 封装 Embedding 和 Rerank 模型服务的客户端请求。
-- `controller-web`: 提供 REST 接口，用于任务触发与监控。
-- `controller-mcp`: 提供基于 MCP 协议的接口，支持 AI 客户端（如 Claude）直接调用 RAG 能力。
-- `controller-command`: 命令行工具，用于测试召回效果。
+- `domain`: 核心业务逻辑与状态建模（不依赖具体技术栈）。
+- `application-service`: 业务用例编排中心。
+    - `platform`: 平台核心业务逻辑编排。
+    - `command`: 测试用的命令行工具服务编排。
+    - `configuration`: 服务编排配置管理。
+- `infrastructure`: 基础设施实现层。
+    - `document`: 原始文档管理与元数据交互。
+    - `textsplitter`: **核心算法模块**。
+        - `structure-extraction`: 文本结构提取与解析。
+        - `markdown-corrector`: Markdown 格式自动修正。
+        - `mission-manager`: 切分任务的状态流转与管理。
+    - `knowledge`: 向量化数据的持久化与多维召回管理。
+    - `model`: 封装 Embedding 与 Rerank 模型服务的客户端请求。
+    - `qa`: 问答系统相关逻辑支持。
+- `controller`: 多端接入层。
+    - `controller-web`: 标准 RESTful API，用于任务触发与监控。
+    - `controller-mcp`: 基于 MCP 协议的接口，支持 AI 客户端直接调用。
+    - `controller-command`: 命令行工具，用于本地测试召回效果。
 
 ## 🚦 快速开始
-1.  **数据库初始化**: 运行 `sql/init.sql`。
-2.  **配置环境**: 配置文件放在 `controller-web/src/main/resources/` 下，按照上文的配置说明进行配置。
-3.  **服务启动**:
-    ```bash
-    ./gradlew :controller-web:bootRun --args='--spring.profiles.active=<YOUR_PROFILE_NAME>'
-    ```
-4.  **接口文档**: 接口文档使用springdoc，地址自行在`controller-web/src/main/resources/`下配置。
+1.  **数据库初始化**: 将 `sql/init.sql` 导入到你的 MySQL 数据库中。
+2.  **环境配置**: 
+    - 准备配置文件 `application-<PROFILE>.yml`。
+    - 放置路径：`controller/controller-web/src/main/resources/` 或 Jar 包同级目录。
+3.  **启动服务**:
+    - **方式一：通过 Gradle 直接启动（推荐开发使用）**
+      ```bash
+      ./gradlew :controller:controller-web:bootRun --args='--spring.profiles.active=<PROFILE>'
+      ```
+    - **方式二：打包后通过 Jar 启动**
+      1. 编译打包：
+         ```bash
+         ./gradlew :controller:controller-web:bootJar
+         ```
+      2. 运行 Jar：
+         ```bash
+         java -jar controller/controller-web/build/libs/controller-web.jar --spring.profiles.active=<PROFILE>
+         ```
+
+## 📖 接口文档
+本服务使用 `springdoc` 自动生成接口文档。
+
+### 1. 开启配置
+在你的 `application-<PROFILE>.yml` 中添加以下配置：
+```yaml
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+```
+
+### 2. 访问地址
+- **Swagger UI (交互式文档)**: `http://<YOUR_HOST>:<YOUR_PORT>/open-api/swagger-ui/index.html`
+- **OpenAPI JSON**: `http://<YOUR_HOST>:<YOUR_PORT>/open-api/swagger-ui/json`

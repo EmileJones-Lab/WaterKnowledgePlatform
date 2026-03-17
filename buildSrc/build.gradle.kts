@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
 
 dependencies {
@@ -14,4 +14,5 @@ dependencies {
     implementation(libs.kotlinGradlePlugin)
     implementation("org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin:2.3.10")
     implementation("org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.0.0")
+    implementation("org.springframework.boot:org.springframework.boot.gradle.plugin:3.5.5")
 }

@@ -2,6 +2,7 @@ plugins {
     application
     id("buildsrc.convention.base")
     id("buildsrc.convention.spring-base")
+    id("org.springframework.boot")
 }
 
 dependencies {
