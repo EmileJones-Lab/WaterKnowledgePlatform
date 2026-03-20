@@ -8,6 +8,7 @@ plugins {
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
+    implementation(project(":infrastructure:environment"))
     implementation(libs.mysqlConnector)
     implementation(libs.mybatisStarter)
     implementation(libs.minio)

@@ -9,9 +9,9 @@ import okio.BufferedSink
 import okio.source
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import top.emilejones.hhu.common.env.pojo.MinerUConfig
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUImage
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.MinerUConfig
+import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUImage
+import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 import java.io.IOException
 import java.io.InputStream
 import java.util.*

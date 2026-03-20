@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import top.emilejones.hhu.TextSplitterTestMain
-import top.emilejones.hhu.common.env.pojo.RAGConfig
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.domain.result.TextType

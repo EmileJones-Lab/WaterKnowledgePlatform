@@ -1,7 +1,7 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.pipeline.infrastructure.StructureExtractionGateway;
+import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;

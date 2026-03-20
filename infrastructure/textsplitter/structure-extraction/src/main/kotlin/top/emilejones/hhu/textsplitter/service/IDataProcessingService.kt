@@ -1,6 +1,6 @@
 package top.emilejones.hhu.textsplitter.service
 
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile
+import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 import java.io.InputStream
 
 /**

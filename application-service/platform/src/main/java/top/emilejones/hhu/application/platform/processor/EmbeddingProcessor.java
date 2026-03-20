@@ -5,7 +5,7 @@ import top.emilejones.hhu.domain.result.FileNode;
 import top.emilejones.hhu.domain.result.MissionStatus;
 import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
-import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;

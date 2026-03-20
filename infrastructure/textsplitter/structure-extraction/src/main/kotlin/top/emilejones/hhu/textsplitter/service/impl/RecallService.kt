@@ -3,7 +3,7 @@ package top.emilejones.hhu.textsplitter.service.impl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import top.emilejones.hhu.common.env.pojo.RAGConfig
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.model.pojo.RerankResult
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
