@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.neo4jDriver)
     implementation(project(":common"))
     implementation(project(":domain"))
+    implementation(project(":infrastructure:environment"))
     implementation(project(":infrastructure:model"))
     implementation(project(":infrastructure:textsplitter:markdown-corrector"))
 }

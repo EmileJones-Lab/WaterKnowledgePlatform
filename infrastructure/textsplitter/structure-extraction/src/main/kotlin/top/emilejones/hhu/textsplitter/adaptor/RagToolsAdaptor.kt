@@ -3,12 +3,12 @@ package top.emilejones.hhu.textsplitter.adaptor
 import kotlinx.coroutines.*
 import org.springframework.stereotype.Service
 import top.emilejones.hhu.domain.result.TextNode
-import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway
-import top.emilejones.hhu.domain.pipeline.infrastructure.OcrGateway
-import top.emilejones.hhu.domain.pipeline.infrastructure.StructureExtractionGateway
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile
+import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway
+import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway
+import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway
+import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 
-import top.emilejones.hhu.common.env.pojo.RAGConfig
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser

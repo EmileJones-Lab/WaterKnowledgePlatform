@@ -68,6 +68,7 @@ app:
     - `command`: 测试用的命令行工具服务编排。
     - `configuration`: 服务编排配置管理。
 - `infrastructure`: 基础设施实现层。
+    - `environment`: 统一管理应用的外部环境配置，并负责将这些基础设施的服务客户端及其对应的配置属性注入为 Spring Bean。
     - `document`: 原始文档管理与元数据交互。
     - `textsplitter`: **核心算法模块**。
         - `structure-extraction`: 文本结构提取与解析。

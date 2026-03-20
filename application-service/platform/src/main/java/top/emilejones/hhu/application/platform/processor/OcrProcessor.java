@@ -1,20 +1,19 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.common.utils.FileUtils;
+import top.emilejones.hhu.infrastructure.configuration.utils.FileUtils;
 import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.result.ProcessedDocument;
 import top.emilejones.hhu.domain.result.ProcessedDocumentType;
-import top.emilejones.hhu.domain.pipeline.infrastructure.OcrGateway;
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile;
+import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway;
+import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Optional;

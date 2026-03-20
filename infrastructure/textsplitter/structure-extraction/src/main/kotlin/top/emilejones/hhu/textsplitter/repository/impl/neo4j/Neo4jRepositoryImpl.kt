@@ -7,7 +7,7 @@ import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationship
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
-import top.emilejones.hhu.common.env.pojo.Neo4jConfig
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.Neo4jConfig
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.insertRelationship
 

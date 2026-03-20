@@ -37,5 +37,6 @@ include(":infrastructure:textsplitter:mission-manager")
 include(":infrastructure:textsplitter:structure-extraction")
 include(":infrastructure:document")
 include(":infrastructure:knowledge")
+include(":infrastructure:environment")
 
 rootProject.name = "WaterKnowledgePlatform"

@@ -30,7 +30,7 @@ import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
-import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
