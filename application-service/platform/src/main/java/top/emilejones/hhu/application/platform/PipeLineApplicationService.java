@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.utils.DtoConverter;
-import top.emilejones.hhu.common.utils.Pair;
+import top.emilejones.hhu.infrastructure.configuration.utils.Pair;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
@@ -16,7 +16,7 @@ import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalog
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
-import top.emilejones.hhu.domain.pipeline.infrastructure.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.repository.*;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;

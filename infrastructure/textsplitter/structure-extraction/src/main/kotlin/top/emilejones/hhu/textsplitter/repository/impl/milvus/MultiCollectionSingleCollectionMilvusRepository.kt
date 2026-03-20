@@ -19,8 +19,8 @@ import io.milvus.v2.service.vector.response.SearchResp
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
-import top.emilejones.hhu.common.env.pojo.HttpModelClientConfig
-import top.emilejones.hhu.common.env.pojo.MilvusConfig
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.OpenAiConfig
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.MilvusConfig
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 
 
@@ -28,10 +28,10 @@ import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusReposito
 class MultiCollectionSingleCollectionMilvusRepository(
     private val client: MilvusClientV2,
     milvusConfig: MilvusConfig,
-    httpModelClientConfig: HttpModelClientConfig
+    openAiConfig: OpenAiConfig
 ) : IMultiCollectionMilvusRepository {
     private val databaseName: String = milvusConfig.database
-    private val dimension: Int = httpModelClientConfig.dimension
+    private val dimension: Int = openAiConfig.dimension
     private val existsCollection: MutableSet<String> = HashSet()
     private val logger = LoggerFactory.getLogger(MultiCollectionSingleCollectionMilvusRepository::class.java)
     private val gson = Gson()

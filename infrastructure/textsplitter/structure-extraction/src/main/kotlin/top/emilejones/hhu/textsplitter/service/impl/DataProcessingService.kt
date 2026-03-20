@@ -3,10 +3,10 @@ package top.emilejones.hhu.textsplitter.service.impl
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import top.emilejones.hhu.domain.pipeline.infrastructure.dto.MinerUMarkdownFile
+import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
-import top.emilejones.hhu.common.env.pojo.RAGConfig
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
 import top.emilejones.hhu.textsplitter.ocr.MinerUClient

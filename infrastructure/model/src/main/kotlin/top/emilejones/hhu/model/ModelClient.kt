@@ -23,4 +23,13 @@ interface ModelClient {
      * @return 重排序后的结果
      */
     fun rerank(query: String, textList: List<String>): List<RerankResult>
+
+    /**
+     * 通过LLM生成答案
+     *
+     * @param systemPrompt 系统提示词
+     * @param userPrompt 用户提示词
+     * @return LLM生成的结果
+     */
+    fun llm(systemPrompt: String, userPrompt: String): String
 }
