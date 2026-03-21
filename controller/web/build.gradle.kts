@@ -29,7 +29,7 @@ tasks.register<Exec>("deploy-lab") {
     val remoteHost = "10.196.83.122"
     val userName = "emilejones"
     val remotePath = "~/Software/rag/application"
-    val localDist = "${layout.buildDirectory.get()}/install/controller-web"
+    val localDist = "${layout.buildDirectory.get()}/install/web"
     val workDir = "~/Software/rag"
     val scriptName = "web-server.sh"
 
@@ -39,7 +39,7 @@ tasks.register<Exec>("deploy-lab") {
             ssh $userName@$remoteHost 'rm -rf $remotePath/controller-web' && \
             scp -r $localDist $userName@$remoteHost:$remotePath/ && \
             ssh $userName@$remoteHost 'cd $workDir && ./$scriptName restart'
-        """.trimIndent()
+        """
     )
 }
 

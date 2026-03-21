@@ -100,6 +100,19 @@ app:
          ```bash
          java -jar controller/web/build/libs/web.jar --spring.profiles.active=<PROFILE>
          ```
+    - **方式三：通过 Docker 镜像启动**
+      1. 构建镜像：
+         ```bash
+         docker build -t structure-text-splitter .
+         ```
+      2. 运行容器：
+         ```bash
+         docker run -d \
+           -p <YOUR_PORT>:8080 \
+           -e "SPRING_PROFILES_ACTIVE=<PROFILE>" \
+           --name <CONTAINER_NAME> \
+           structure-text-splitter
+         ```
 
 ## 📖 接口文档
 本服务使用 `springdoc` 自动生成接口文档。

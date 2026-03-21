@@ -1,0 +1,15 @@
+.git
+.gradle
+.idea
+.kotlin
+build
+*/build
+**/build
+out
+bin
+Dockerfile
+.dockerignore
+README.md
+LICENSE
+gradlew.bat
+*.sql
