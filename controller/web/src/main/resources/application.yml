@@ -1,6 +1,5 @@
-spring:
-  profiles:
-    active: lab
+server:
+  port: 8080
 
 springdoc:
   api-docs:

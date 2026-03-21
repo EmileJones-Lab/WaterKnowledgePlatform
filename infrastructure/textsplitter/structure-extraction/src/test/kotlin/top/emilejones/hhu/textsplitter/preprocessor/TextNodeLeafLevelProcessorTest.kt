@@ -24,7 +24,7 @@ class TextNodeLeafLevelProcessorTest {
         // Assert
         assertEquals(Int.MAX_VALUE, child1.level)
         assertEquals(TextType.TITLE, child1.type)
-        assertEquals(" Child 1", child1.text)
+        assertEquals("Child 1", child1.text)
 
         assertEquals(Int.MAX_VALUE, child2.level)
         assertEquals(TextType.TITLE, child2.type)
