@@ -1,25 +1,27 @@
-package top.emilejones.hhu
+package top.emilejones.hhu.command
 
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
-import top.emilejones.hhu.command.Application
-import top.emilejones.hhu.command.ConvertCommand
-import top.emilejones.hhu.command.RetrieveCommand
+import top.emilejones.hhu.command.subcommand.ConvertCommand
+import top.emilejones.hhu.command.subcommand.ExtractCommand
+import top.emilejones.hhu.command.subcommand.RetrieveCommand
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = ["top.emilejones.hhu"])
 class RagCommandApplication(
     private val application: Application,
     private val retrieveCommand: RetrieveCommand,
-    private val convertCommand: ConvertCommand
+    private val convertCommand: ConvertCommand,
+    private val extractCommand: ExtractCommand
 ) : CommandLineRunner {
 
     override fun run(vararg args: String) {
         application.subcommands(
             retrieveCommand,
-            convertCommand
+            convertCommand,
+            extractCommand
         ).main(args)
     }
 }
