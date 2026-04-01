@@ -12,6 +12,7 @@ mysql = "9.6.0"
 milvus = "2.6.14"
 minio = "8.6.0"
 neo4j = "6.0.3"
+commonsCodec = "1.18.0"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -23,6 +24,7 @@ mysqlConnector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql"
 milvusSdk = { module = "io.milvus:milvus-sdk-java", version.ref = "milvus" }
 minio = { module = "io.minio:minio", version.ref = "minio" }
 neo4jDriver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "neo4j" }
+commonsCodec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 
 # Libraries can be bundled together for easier import
 [bundles]

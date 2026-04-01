@@ -1,11 +1,11 @@
-package top.emilejones.hhu.command
+package top.emilejones.hhu.command.subcommand
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import org.springframework.stereotype.Component
-import top.emilejones.hhu.application.command.CommandApplicationService
+import top.emilejones.hhu.application.command.OcrApplicationService
 import top.emilejones.hhu.application.command.dto.MinerUMarkdownResponse
 import java.io.File
 
@@ -15,7 +15,7 @@ import java.io.File
  */
 @Component
 class ConvertCommand(
-    private val commandApplicationService: CommandApplicationService
+    private val ocrApplicationService: OcrApplicationService
 ) : CliktCommand(name = "convert") {
 
     private val source by argument(help = "The URL or local path of the PDF file")
@@ -53,7 +53,7 @@ class ConvertCommand(
 
         try {
             // 1. 调用应用服务执行转换
-            val response = commandApplicationService.extractStructure(src)
+            val response = ocrApplicationService.extractStructure(src)
             echo("Conversion successful: $src")
 
             // 2. 如果指定了输出目录，则保存文件

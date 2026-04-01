@@ -12,5 +12,6 @@ dependencies {
     implementation(libs.milvusSdk)
     implementation(libs.minio)
     implementation(libs.neo4jDriver)
+    implementation(libs.commonsCodec)
 }
     

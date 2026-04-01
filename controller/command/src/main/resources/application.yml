@@ -7,39 +7,7 @@ spring:
     log-startup-info: false
     banner-mode: "off"
 
-app:
-  milvus:
-    host: 10.196.83.122
-    port: 3953
-    database: test
-    collection: ej
-  neo4j:
-    host: 10.196.83.122
-    port: 3271
-    user: neo4j
-    password: 12345678
-    database: neo4j
-  model:
-    embeddingUrl: http://10.196.83.122:10007/v1
-    rerankUrl: http://10.196.83.122:10007/v1
-    embeddingModel: bge-m3
-    rerankModel: bge-reranker-v2-m3
-    dimension: 1024
-  rag:
-    maxSentenceLength: 600
-    maxTableLength: 700
-    recallNumber: 7
-  mysql:
-    host: 10.196.83.122
-    port: 3306
-    user: root
-    password: bambooRainP@assword19
-    database: bamboo
-  minerU:
-    host: 10.196.83.122
-    port: 6006
-  minio:
-    host: 10.196.83.122
-    port: 6000
-    user: KKFactory
-    password: HHU@sdb189
+    web-application-type: none
+  profiles:
+    active: emilejones
+
