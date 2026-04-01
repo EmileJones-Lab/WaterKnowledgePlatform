@@ -71,7 +71,7 @@ public class StructureExtractApplicationService {
                 logger.info("结构提取成功完成，生成的根节点 ID 为: {}", fileNodeId);
 
                 // 4. 记录提取结果到本地 CSV
-                processRecordService.recordExtraction(sourceDocumentId, fileName);
+                processRecordService.recordExtraction(sourceDocumentId, fileName, fileNodeId);
                 logger.info("任务成功信息已记录到本地。");
             }
 
