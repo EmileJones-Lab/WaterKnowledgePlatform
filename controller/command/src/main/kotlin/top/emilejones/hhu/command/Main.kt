@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import top.emilejones.hhu.command.subcommand.ConvertCommand
+import top.emilejones.hhu.command.subcommand.EmbedCommand
 import top.emilejones.hhu.command.subcommand.ExtractCommand
 import top.emilejones.hhu.command.subcommand.RetrieveCommand
 
@@ -14,14 +15,16 @@ class RagCommandApplication(
     private val application: Application,
     private val retrieveCommand: RetrieveCommand,
     private val convertCommand: ConvertCommand,
-    private val extractCommand: ExtractCommand
+    private val extractCommand: ExtractCommand,
+    private val embedCommand: EmbedCommand
 ) : CommandLineRunner {
 
     override fun run(vararg args: String) {
         application.subcommands(
             retrieveCommand,
             convertCommand,
-            extractCommand
+            extractCommand,
+            embedCommand
         ).main(args)
     }
 }
