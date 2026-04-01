@@ -8,6 +8,7 @@ import io.milvus.v2.common.IndexParam
 import io.milvus.v2.service.collection.request.AddFieldReq
 import io.milvus.v2.service.collection.request.CreateCollectionReq
 import io.milvus.v2.service.collection.request.DropCollectionReq
+import io.milvus.v2.service.collection.request.HasCollectionReq
 import io.milvus.v2.service.database.request.CreateDatabaseReq
 import io.milvus.v2.service.vector.request.InsertReq
 import io.milvus.v2.service.vector.request.QueryReq
@@ -182,6 +183,17 @@ class MultiCollectionSingleCollectionMilvusRepository(
     }
 
     override fun createCollection(collectionName: String) {
+        // 0. 前置检查：判断 Collection 是否已存在
+        val hasReq = HasCollectionReq.builder()
+            .databaseName(databaseName)
+            .collectionName(collectionName)
+            .build()
+
+        if (client.hasCollection(hasReq)) {
+            logger.debug("Milvus collection named [{}] already exists, skip creation.", collectionName)
+            return
+        }
+
         // 1. 创建schema
         val schema = MilvusClientV2.CreateSchema()
         // 2. 创建字段
