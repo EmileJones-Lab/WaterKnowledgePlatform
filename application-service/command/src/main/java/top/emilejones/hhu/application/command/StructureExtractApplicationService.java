@@ -3,16 +3,14 @@ package top.emilejones.hhu.application.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import top.emilejones.hhu.application.command.record.ProcessRecordService;
 import top.emilejones.hhu.common.util.MD5Utils;
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 
 /**
  * 结构提取应用服务。
@@ -23,9 +21,12 @@ public class StructureExtractApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(StructureExtractApplicationService.class);
     private final StructureExtractionGateway structureExtractionGateway;
+    private final ProcessRecordService processRecordService;
 
-    public StructureExtractApplicationService(StructureExtractionGateway structureExtractionGateway) {
+    public StructureExtractApplicationService(StructureExtractionGateway structureExtractionGateway,
+                                              ProcessRecordService processRecordService) {
         this.structureExtractionGateway = structureExtractionGateway;
+        this.processRecordService = processRecordService;
     }
 
     /**
@@ -34,8 +35,9 @@ public class StructureExtractApplicationService {
      * 该方法会执行以下步骤：
      * 1. 校验文件是否存在。
      * 2. 计算文件内容的 MD5 值作为唯一标识 (sourceDocumentId)。
-     * 3. 调用结构提取网关将文本转换为图节点并持久化到图数据库。
-     * 4. 任务成功后，将结果（MD5 和文件名）追加到当前目录下的 CSV 记录文件中。
+     * 3. 检查记录，判断该 MD5 是否已被处理过。
+     * 4. 调用结构提取网关将文本转换为图节点并持久化到图数据库。
+     * 5. 任务成功后，调用处理记录服务将结果记录到本地 CSV。
      *
      * @param filePath Markdown 文件的本地路径（支持相对或绝对路径）
      * @throws IllegalArgumentException 如果文件不存在
@@ -49,43 +51,33 @@ public class StructureExtractApplicationService {
         }
 
         String fileName = path.getFileName().toString();
-        logger.info("开始处理 Markdown 文件: {}", fileName);
 
         try {
             // 1. 计算文件内容的 MD5 作为 sourceDocumentId
             String sourceDocumentId = MD5Utils.calculateMD5(path);
-            logger.info("文件 MD5 计算完成: {}", sourceDocumentId);
 
-            // 2. 调用结构提取网关
+            // 2. 幂等性检查：判断是否已提取过
+            if (processRecordService.isAlreadyProcessed(sourceDocumentId)) {
+                logger.info("文件 [{}] (MD5: {}) 已被提取过，跳过处理。", fileName, sourceDocumentId);
+                return;
+            }
+
+            logger.info("开始处理 Markdown 文件: {}", fileName);
+
+            // 3. 调用结构提取网关
             try (InputStream inputStream = Files.newInputStream(path)) {
                 logger.info("正在调用结构提取网关进行解析与存储...");
                 String fileNodeId = structureExtractionGateway.extract(inputStream, sourceDocumentId);
                 logger.info("结构提取成功完成，生成的根节点 ID 为: {}", fileNodeId);
 
-                // 3. 将任务成功信息记录到 CSV 文件
-                recordSuccess(sourceDocumentId, fileName);
-                logger.info("任务成功信息已追加到 CSV 文件: structure_extraction_results.csv");
+                // 4. 记录提取结果到本地 CSV
+                processRecordService.recordExtraction(sourceDocumentId, fileName);
+                logger.info("任务成功信息已记录到本地。");
             }
 
         } catch (Exception e) {
             logger.error("处理 Markdown 文件时发生错误: {}", e.getMessage(), e);
             throw new RuntimeException("结构提取任务执行失败", e);
-        }
-    }
-
-    private void recordSuccess(String sourceDocumentId, String fileName) throws IOException {
-        String csvFileName = "structure_extraction_results.csv";
-        Path csvPath = Paths.get(csvFileName);
-        boolean exists = Files.exists(csvPath);
-
-        try (BufferedWriter writer = Files.newBufferedWriter(csvPath,
-                StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-            if (!exists) {
-                writer.write("sourceDocumentId,fileName");
-                writer.newLine();
-            }
-            writer.write(String.format("%s,%s", sourceDocumentId, fileName));
-            writer.newLine();
         }
     }
 }
