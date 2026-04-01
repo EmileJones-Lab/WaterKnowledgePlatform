@@ -1,4 +1,4 @@
-package top.emilejones.hhu.command
+package top.emilejones.hhu.command.subcommand
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context

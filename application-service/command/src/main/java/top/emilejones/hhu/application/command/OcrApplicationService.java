@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class CommandApplicationService {
+public class OcrApplicationService {
     private final OcrGateway ocrGateway;
 
-    public CommandApplicationService(OcrGateway ocrGateway) {
+    public OcrApplicationService(OcrGateway ocrGateway) {
         this.ocrGateway = ocrGateway;
     }
 
