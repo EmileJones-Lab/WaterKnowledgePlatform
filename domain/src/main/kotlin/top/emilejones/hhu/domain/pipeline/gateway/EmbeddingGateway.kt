@@ -34,7 +34,7 @@ interface EmbeddingGateway {
      * 创建一个新的向量集合。
      *
      * 该方法用于在向量数据库中创建一个具有指定名称的新 collection。
-     * 如果 collection 已存在，具体实现可能会选择忽略、抛出异常或进行其他处理。
+     * 如果 collection 已存在，会选择忽略此请求。
      *
      * @param collectionName 要创建的 collection 的名称。
      */
