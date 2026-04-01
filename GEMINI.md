@@ -3,7 +3,7 @@
 ## 1. 项目概述 (Project Overview)
 - **项目类型**: 多模块 后端应用
 - **主要语言**: Kotlin & Java
-- **构建系统**: Gradle 配置 (使用 Kotlin DSL: `build.gradle.kts`)
+- **构建系统**: Gradle(Kotlin)
 - **核心框架**: Spring Boot 3.5.5
 
 ## 2. 核心交互指令 (AI Behavior Rules)
@@ -47,8 +47,13 @@
 - **架构约定**:
     - 遵循领域驱动设计 (DDD) 或清晰的按层架构（Controller层、Service层、Repository/Infrastructure层）。
     - 保持实体 (Entity) 的纯洁性，将业务逻辑封装在 Service 或 Domain 层。
+    - 实现一个方法时，可以尽量拆分为多个子方法，做到代码即文档。
+- **文档规范**:
+    - 每一个public方法都要有方法文档，说明参数和返回值，说明方法用途。
+    - 每一个类都要写类文档，写明这个类大概是干什么，有什么常用方法，如何使用这个类。
 
 ## 6. 常见规避点 (Anti-Patterns to Avoid)
 - **不要**在 Kotlin 代码中使用 `!!` 操作符，请使用安全调用 `?.`、Elvis 操作符 `?:` 或显式的空值检查。
 - **不要**在子模块的 `build.gradle.kts` 中写死版本号，必须通过外部统一管理。
 - **不要**生成过时 (Deprecated) 的 API 替代方案，始终使用最新的稳定版 API。
+- **不要**在用户没有明确要求生成测试类的时候，自己生成测试类。

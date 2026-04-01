@@ -27,7 +27,7 @@ class ModelClientByHttp(
     private val gson = Gson()
 
     override fun embedding(text: String): List<Float> {
-        val url = modelClientConfig.embeddingUrl.removeSuffix("/") + "/embeddings"
+        val url = modelClientConfig.embeddingUrl.removeSuffix("/") + "/v1/embeddings"
         val payload = mapOf(
             "model" to modelClientConfig.embeddingModel,
             "input" to text
@@ -92,7 +92,7 @@ class ModelClientByHttp(
 
     private fun getRerankResult(query: String, textList: List<String>): List<RerankResult> {
 
-        val url = modelClientConfig.rerankUrl.removeSuffix("/") + "/rerank"
+        val url = modelClientConfig.rerankUrl.removeSuffix("/") + "/v1/rerank"
         val payload = mapOf(
             "model" to modelClientConfig.rerankModel,
             "query" to query,

@@ -34,15 +34,22 @@ app:
     user: <username>                    # [必填] Neo4j 用户名
     password: <password>                # [必填] Neo4j 密码
     database: <database_name>           # [必填] Neo4j 数据库名
-  model:
-    embeddingUrl: <url>                 # [必填] Embedding API 地址 (会自动补齐 /embeddings)
-    rerankUrl: <url>                    # [必填] Rerank API 地址 (会自动补齐 /rerank)
-    token: null                         # [选填] 全局 API Key，默认 null
-    embeddingToken: null                # [选填] Embedding 专用 Key，默认继承全局 token
-    rerankToken: null                   # [选填] Rerank 专用 Key，默认继承全局 token
+  openai:
+    baseUrl: <openai_api_base_url>      # [必填] OpenAI URL
+    token: <token>                      # [选填] 全局 API Key，默认 null
+    # LLM 配置信息
+    llmUrl: <llm_service_url>           # [选填] LLM API 地址，默认全局继承 baseUrl
+    llmToken: <llm_api_token>           # [选填] LLM 专用 Key，默认继承全局 token
+    llmModel: <llm_model_name>          # [必填] LLM 模型名称
+    # Embedding 配置信息
+    embeddingUrl: <url>                 # [必填] Embedding API 地址，默认全局继承 baseUrl (会自动补齐 /embeddings)
+    embeddingToken: <embedding_token>   # [选填] Embedding 专用 Key，默认继承全局 token
     embeddingModel: <name>              # [必填] Embedding 模型名称
-    rerankModel: <name>                 # [必填] Rerank 模型名称
     dimension: <int>                    # [必填] 向量维度
+    # Rerank配置信息
+    rerankUrl: <url>                    # [必填] Rerank API 地址，默认全局继承 baseUrl (会自动补齐 /rerank) 
+    rerankToken: <rerank_token>         # [选填] Rerank 专用 Key，默认继承全局 token
+    rerankModel: <name>                 # [必填] Rerank 模型名称
   rag:
     maxSentenceLength: <int>            # [必填] 文本 chunk 最大长度
     maxTableLength: <int>               # [必填] 表格 chunk 最大长度
