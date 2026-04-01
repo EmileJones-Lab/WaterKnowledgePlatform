@@ -21,7 +21,7 @@ class MybatisConfig {
     @Bean
     @Primary
     fun dataSource(mysqlConfig: MysqlConfig): DataSource {
-        val url = "jdbc:mysql://%s:%d/%s?useSSL=false&characterEncoding=utf8&serverTimezone=UTC".format(
+        val url = "jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true".format(
             mysqlConfig.host,
             mysqlConfig.port,
             mysqlConfig.database
