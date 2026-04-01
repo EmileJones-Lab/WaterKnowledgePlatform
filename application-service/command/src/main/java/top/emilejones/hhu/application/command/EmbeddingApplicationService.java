@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class EmbeddingApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmbeddingApplicationService.class);
-    private static final String COLLECTION_NAME = "water_knowledge_platform";
+    public static final String COLLECTION_NAME = "water_knowledge_platform";
 
     private final EmbeddingGateway embeddingGateway;
     private final NodeRepository nodeRepository;
@@ -78,14 +78,18 @@ public class EmbeddingApplicationService {
             String sourceDocumentId = MD5Utils.calculateMD5(path);
             logger.info("开始处理文件向量化，sourceDocumentId: {}", sourceDocumentId);
 
-            // 2. 从仓储中查找该文件下的文本节点
-            List<TextNode> allNodes = nodeRepository.findTextNodeListBySourceDocumentId(sourceDocumentId);
+            // 2. 从本地记录中获取 fileNodeId
+            String fileNodeId = processRecordService.getFileNodeId(sourceDocumentId)
+                    .orElseThrow(() -> new IllegalStateException("未找到文件 [" + filePath + "] 的提取记录，请先执行结构提取。"));
+
+            // 3. 从仓储中查找该文件下的文本节点
+            List<TextNode> allNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
             if (allNodes.isEmpty()) {
-                logger.warn("未找到文件 [{}] (ID: {}) 对应的文本节点，请确保已先执行结构提取。", filePath, sourceDocumentId);
+                logger.warn("未找到文件节点 [{}] 对应的文本节点。", fileNodeId);
                 return;
             }
 
-            // 3. 筛选未向量化的节点
+            // 4. 筛选未向量化的节点
             List<TextNode> nodesToEmbed = allNodes.stream()
                     .filter(node -> !node.isEmbedded())
                     .collect(Collectors.toList());

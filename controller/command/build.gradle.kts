@@ -10,7 +10,6 @@ dependencies {
     implementation(libs.bundles.kotlinxEcosystem)
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
     implementation(project(":application-service:command"))
-    implementation(project(":application-service:platform"))
 }
 
 application {

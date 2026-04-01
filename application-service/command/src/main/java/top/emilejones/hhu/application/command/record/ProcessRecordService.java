@@ -25,7 +25,7 @@ public class ProcessRecordService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProcessRecordService.class);
     private static final String CSV_FILE_NAME = "record.csv";
-    private static final String HEADER = "sourceDocumentId,fileName,isEmbedding";
+    private static final String HEADER = "sourceDocumentId,fileName,fileNodeId,isEmbedding";
 
     @PostConstruct
     public void init() {
@@ -56,14 +56,15 @@ public class ProcessRecordService {
      *
      * @param sourceDocumentId 文档唯一标识
      * @param fileName         文件名
+     * @param fileNodeId       图数据库中的文件节点 ID
      */
-    public synchronized void recordExtraction(String sourceDocumentId, String fileName) {
+    public synchronized void recordExtraction(String sourceDocumentId, String fileName, String fileNodeId) {
         if (isAlreadyProcessed(sourceDocumentId)) {
             return;
         }
         Path csvPath = Paths.get(CSV_FILE_NAME);
         try (BufferedWriter writer = Files.newBufferedWriter(csvPath, StandardOpenOption.APPEND)) {
-            writer.write(String.format("%s,%s,false", sourceDocumentId, fileName));
+            writer.write(String.format("%s,%s,%s,false", sourceDocumentId, fileName, fileNodeId));
             writer.newLine();
         } catch (IOException e) {
             logger.error("记录提取结果失败: {}", e.getMessage());
@@ -86,8 +87,8 @@ public class ProcessRecordService {
             for (String line : allLines) {
                 if (line.startsWith(sourceDocumentId + ",")) {
                     String[] parts = line.split(",");
-                    if (parts.length >= 2) {
-                        lines.add(String.format("%s,%s,%b", parts[0], parts[1], isEmbedding));
+                    if (parts.length >= 3) {
+                        lines.add(String.format("%s,%s,%s,%b", parts[0], parts[1], parts[2], isEmbedding));
                         found = true;
                         continue;
                     }
@@ -101,6 +102,22 @@ public class ProcessRecordService {
         } catch (IOException e) {
             logger.error("更新向量化状态失败: {}", e.getMessage());
         }
+    }
+
+    /**
+     * 根据 sourceDocumentId 获取记录中的 fileNodeId。
+     *
+     * @param sourceDocumentId 文档唯一标识
+     * @return fileNodeId 的 Optional 封装
+     */
+    public Optional<String> getFileNodeId(String sourceDocumentId) {
+        return findRecord(sourceDocumentId).map(line -> {
+            String[] parts = line.split(",");
+            if (parts.length >= 3) {
+                return parts[2];
+            }
+            return null;
+        });
     }
 
     private Optional<String> findRecord(String sourceDocumentId) {
