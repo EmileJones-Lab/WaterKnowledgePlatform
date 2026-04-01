@@ -34,13 +34,15 @@ app:
     user: <neo4j_username>
     password: <neo4j_password>
     database: <neo4j_database_name>
-  model:
-    host: <model_service_host_ip>
-    port: <model_service_port>
-    token: <your_api_token>                # OpenAI 格式服务的 API Key (可选)
-    embeddingModel: <embedding_model_name> # Embedding 模型名称 (OpenAI 格式)
-    rerankModel: <rerank_model_name>       # Rerank 模型名称
-    dimension: <vector_dimension>          # Embedding 模型生成的向量维度 (需与 Milvus 集合维度一致)
+  openai:
+    baseUrl: <openai_api_base_url>
+    llmUrl: <llm_service_url>         # 选填，默认等于 baseUrl
+    token: <your_api_token>           # 选填，默认为空字符串
+    llmToken: <llm_api_token>         # 选填，默认等于 token
+    embeddingModel: <embedding_model_name>
+    rerankModel: <rerank_model_name>
+    llmModel: <llm_model_name>
+    dimension: <vector_dimension>     # Embedding 向量维度
   rag:
     maxSentenceLength: <max_sentence_length> # 文本 chunk 的最大长度
     maxTableLength: <max_table_length>       # 表格 chunk 的最大长度
