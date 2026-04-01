@@ -34,3 +34,8 @@ tasks.withType<Test>().configureEach {
         )
     }
 }
+
+base {
+    // 将 project.path (如 ":application-service:command") 转换为 "application-service-command"
+    archivesName.set(project.path.substring(1).replace(":", "-"))
+}
