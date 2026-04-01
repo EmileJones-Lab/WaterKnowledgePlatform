@@ -14,6 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
+/**
+ * 结构提取应用服务。
+ * 提供将 Markdown 文件解析并转换为图数据库中树形结构的能力，通常用于命令行工具或批量处理场景。
+ */
 @Service
 public class StructureExtractApplicationService {
 
@@ -25,14 +29,17 @@ public class StructureExtractApplicationService {
     }
 
     /**
-     * 调用已经存在的工具，将markdown文件转换为图结构并存储到图数据库中。
-     * 需要打印必要的日志，让用户明白执行到了哪里。
-     * sourceDocumentId使用给定文件的内容的MD5字符串。
-     * 参考方法 top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway.extract
+     * 执行 Markdown 文件结构提取任务。
+     * <p>
+     * 该方法会执行以下步骤：
+     * 1. 校验文件是否存在。
+     * 2. 计算文件内容的 MD5 值作为唯一标识 (sourceDocumentId)。
+     * 3. 调用结构提取网关将文本转换为图节点并持久化到图数据库。
+     * 4. 任务成功后，将结果（MD5 和文件名）追加到当前目录下的 CSV 记录文件中。
      *
-     * 如果任务成功，则在当前目录下创建一个csv文件，在这个文件中追加这条数据的信息，例如：
-     * sourceDocumentId, fileName
-     * @param filePath markdown文件的相对路径或者绝对路径
+     * @param filePath Markdown 文件的本地路径（支持相对或绝对路径）
+     * @throws IllegalArgumentException 如果文件不存在
+     * @throws RuntimeException 如果提取过程或 IO 操作失败
      */
     public void extractStructure(String filePath) {
         Path path = Paths.get(filePath);
