@@ -1,12 +1,14 @@
 package top.emilejones.hhu.textsplitter.service
 
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
+import top.emilejones.hhu.textsplitter.adaptor.RagToolsAdaptor
 import java.io.InputStream
 
 /**
  * 文本预处理的接口定义
  * @author EmileJones
  */
+@Deprecated(message = "这是DDD引入之前的设计，现在已经不在维护")
 interface IDataProcessingService {
 
     /**
