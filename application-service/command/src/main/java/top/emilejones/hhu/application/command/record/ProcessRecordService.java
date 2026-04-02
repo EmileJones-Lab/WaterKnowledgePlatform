@@ -154,6 +154,20 @@ public class ProcessRecordService {
     }
 
     /**
+     * 根据 fileNodeId 获取对应的文件名。
+     *
+     * @param fileNodeId 文件节点 ID
+     * @return 文件名字符串，未找到则返回 "未知"
+     */
+    public synchronized String getFileNameByFileNodeId(String fileNodeId) {
+        return records.values().stream()
+                .filter(record -> fileNodeId.equals(record.fileNodeId()))
+                .map(ProcessRecord::fileName)
+                .findFirst()
+                .orElse("未知");
+    }
+
+    /**
      * 处理记录的数据载体。
      */
     private record ProcessRecord(String sourceDocumentId, String fileName, String fileNodeId, boolean isEmbedding) {
