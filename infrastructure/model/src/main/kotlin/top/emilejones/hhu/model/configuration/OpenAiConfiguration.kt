@@ -21,7 +21,8 @@ class OpenAiConfiguration {
         val openAiApi = openAiApiBuilder.build()
         val options: OpenAiChatOptions? = OpenAiChatOptions.builder()
             .model(modelConfig.llmModel)
-            .temperature(0.7)
+            .extraBody(mapOf("enable_thinking" to false))
+            .temperature(0.1)
             .build()
 
         return OpenAiChatModel.builder().openAiApi(openAiApi).defaultOptions(options).build()

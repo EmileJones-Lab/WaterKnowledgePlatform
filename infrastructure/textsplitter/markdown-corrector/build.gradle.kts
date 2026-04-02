@@ -8,6 +8,7 @@ plugins {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(project(":infrastructure:model"))
+    implementation(libs.gson)
     testImplementation(platform("org.junit:junit-bom:5.10.2"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

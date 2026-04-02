@@ -182,6 +182,7 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
     protected Node extractStructureTree(String originText) {
         this.lines = originText.split("\\R");
         Node root = new Node(-1, TitleType.NilType);
+        root.setLevel(0);
         Node lastNode = root;
 
         for (int i = 0; i < lines.length; i++) {
@@ -196,9 +197,11 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
             if (lastNode.getTitleType() == TitleType.NilType) {
                 root.appendChild(currentNode);
                 currentNode.setParent(root);
+                currentNode.setLevel(root.getLevel() + 1);
             } else if (isFirstTitle(line)) {
                 lastNode.appendChild(currentNode);
                 currentNode.setParent(lastNode);
+                currentNode.setLevel(lastNode.getLevel() + 1);
             } else {
                 Node parentFinder = lastNode;
                 while (parentFinder.getTitleType() != TitleType.NilType) {
@@ -212,9 +215,11 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
                 if (parent != null) {
                     parent.appendChild(currentNode);
                     currentNode.setParent(parent);
+                    currentNode.setLevel(parent.getLevel() + 1);
                 } else {
                     root.appendChild(currentNode);
                     currentNode.setParent(root);
+                    currentNode.setLevel(root.getLevel() + 1);
                 }
             }
             lastNode = currentNode;
@@ -242,8 +247,8 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
 
             if (lineToNode.containsKey(i)) {
                 Node node = lineToNode.get(i);
-                int depth = getDepth(node);
-                String prefix = String.join("", Collections.nCopies(depth + 1, "#"));
+                int depth = node.getLevel() - 1; // 由于根节点NilType是0，第一层标题应该是1，对应一个#
+                String prefix = String.join("", Collections.nCopies(Math.max(1, depth + 1), "#"));
 
                 String originalTitleLine = this.lines[i].trim();
                 sb.append(prefix).append(" ").append(originalTitleLine).append("\n");
@@ -264,13 +269,7 @@ public class TitleTreeExtractor extends AbstractTitleTreeExtractor {
     }
 
     private int getDepth(Node node) {
-        int depth = 0;
-        Node current = node;
-        while (current != null && current.getParent() != null) {
-            depth++;
-            current = current.getParent();
-        }
-        return depth;
+        return Math.max(0, node.getLevel() - 1);
     }
 
     /**
