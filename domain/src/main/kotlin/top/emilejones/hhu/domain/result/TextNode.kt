@@ -15,7 +15,8 @@ class TextNode(
     val level: Int,
     val type: TextType,
     isEmbedded: Boolean,
-    vector: List<Float>?
+    vector: List<Float>?,
+    val summary: String? = null
 ) : AggregateRoot<String>(id) {
     var vector: List<Float>? = vector
         private set
@@ -30,7 +31,14 @@ class TextNode(
     }
 
     companion object {
-        fun create(fileNodeId: String, text: String, seq: Int, level: Int, type: TextType): TextNode {
+        fun create(
+            fileNodeId: String,
+            text: String,
+            seq: Int,
+            level: Int,
+            type: TextType,
+            summary: String? = null
+        ): TextNode {
             return TextNode(
                 id = UUID.randomUUID().toString(),
                 fileNodeId = fileNodeId,
@@ -39,7 +47,8 @@ class TextNode(
                 level = level,
                 type = type,
                 isEmbedded = false,
-                vector = null
+                vector = null,
+                summary = summary
             )
         }
     }

@@ -3,6 +3,7 @@ package top.emilejones.hhu.application.platform.dto.retrieval;
 public class TextNodeDTO {
     private String id;
     private String text;
+    private String summary;
     private Integer seq;
     private Integer level;
     private TextType type;
@@ -21,6 +22,14 @@ public class TextNodeDTO {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 
     public Integer getSeq() {
@@ -52,6 +61,7 @@ public class TextNodeDTO {
         return "TextNodeDTO{" +
                 "id='" + id + "'" +
                 ", text='" + text + "'" +
+                ", summary='" + summary + "'" +
                 ", seq=" + seq +
                 ", level=" + level +
                 ", type=" + type +
