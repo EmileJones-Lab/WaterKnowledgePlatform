@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlinPluginSerialization)
     id("buildsrc.convention.base")
     id("buildsrc.convention.spring-base")
+    id("buildsrc.convention.lombok")
 }
 
 dependencies {
