@@ -103,7 +103,7 @@ public class EmbeddingApplicationService {
 
             // 4. 获取文本列表进行批量向量化
             List<String> texts = nodesToEmbed.stream()
-                    .map(TextNode::getText)
+                    .map(TextNode::getSummary)
                     .collect(Collectors.toList());
 
             List<List<Float>> vectors = embeddingGateway.embed(texts);
