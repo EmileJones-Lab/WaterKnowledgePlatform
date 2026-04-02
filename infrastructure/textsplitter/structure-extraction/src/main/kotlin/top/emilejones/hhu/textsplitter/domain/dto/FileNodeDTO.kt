@@ -9,7 +9,8 @@ package top.emilejones.hhu.textsplitter.domain.dto
  */
 class FileNodeDTO(
     val id: String,
-    fileId: String
+    fileId: String,
+    var fileAbstract: String? = null
 ) {
     var fileId: String = fileId
         set(fileId: String) {

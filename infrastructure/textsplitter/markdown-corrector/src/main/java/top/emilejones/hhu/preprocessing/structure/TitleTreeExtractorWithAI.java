@@ -115,23 +115,42 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
                 .collect(Collectors.joining("\n"));
 
         // 3. 准备 System prompt 和 User prompt
-        String systemPrompt = "你是一个文档结构分析专家。你的任务是根据提供的 Markdown 标题列表（包含行号、当前识别的层级和标题文本），" +
-                "利用语义及上下文逻辑纠正标题的层级结构（level）。\n" +
-                "规则：\n" +
-                "1. level 从 1 开始（代表一级标题）。\n" +
-                "2. 纠正逻辑：分析标题文本的语义从属关系。例如，若标题文本表现出明显的子话题特征（如含有 '1.1' 或语义上被前一标题包含），则应调整其 level。\n" +
-                "3. 保持标题的顺序不变。\n" +
-                "4. 输出必须是严格的 JSON 格式数组，每个对象包含 index（整数）和 level（整数）。\n" +
-                "5. 不要输出任何多余的解释文字、前言或 Markdown 代码块标记。\n\n" +
-                "Example:\n" +
-                "Input:\n" +
-                "(index:0, level:1, text:\"一、背景介绍\")\n" +
-                "(index:10, level:1, text:\"1.1 技术现状\")\n" +
-                "(index:20, level:1, text:\"二、解决方案\")\n" +
-                "Output:\n" +
-                "[{\"index\":0, \"level\":1}, {\"index\":10, \"level\":2}, {\"index\":20, \"level\":1}]";
+        String systemPrompt = """
+                你是一个文档结构分析专家。你的任务是接收包含行号、初始层级和标题文本的 Markdown 标题列表，通过分析语义和上下文逻辑，输出严格修正后的层级结构（level）。
+                
+                【核心规则】
+                1. 层级规范：level 从 1 开始（一级标题）。标题层级递进应保持逻辑连续，避免无故跨级。
+                2. 判定逻辑：
+                   - 显性序号深度映射（最高优先级）：当标题包含标准多级编号（如 "2.3.2", "2.3.2.1"）时，其相对 level 必须严格遵循编号的层级深度。例如，若 "2.3.2" 被定义为 level 1，则 "2.3.2.1" 必须严格向下递进一层为 level 2。
+                   - 异构序号平级兼容：在同一个父标题下，不同体系的子序号（如正文列表项 "（1）" 与结构子标题 "2.3.2.1"）如果均直接从属于该父标题，应当分配相同的 level，编号深度的规则不受中间穿插的其他类型序号干扰。
+                   - 隐性语义：若无序号，基于上下文判断从属关系。若当前标题代表前置标题的子概念或具体步骤，其 level 需相应增加（+1）。
+                   - 并列关系：语义深度、逻辑层级平行或同属一个序号体系的标题，level 必须保持一致。
+                3. 边界约束：绝对保持输入标题的原始顺序，不得增减或修改 index。
+                4. 输出格式：仅输出原生的 JSON 数组格式。严禁输出任何解释性文字、前言或 ```json 等 Markdown 格式控制符。
+                
+                【输入输出示例】
+                
+                示例 1：语义与基础序号推导
+                输入：
+                (index:0, level:1, text:"一、项目背景")
+                (index:10, level:1, text:"1.1 市场现状")
+                (index:15, level:1, text:"数据采集机制")
+                (index:20, level:1, text:"二、核心架构")
+                输出：
+                [{"index":0, "level":1}, {"index":10, "level":2}, {"index":15, "level":3}, {"index":20, "level":1}]
+                
+                示例 2：多套异构序号的深度映射
+                输入：
+                (index:0, level:1, text:"2.3.2 河道流量演算")
+                (index:11, level:2, text:"（1） 先合后演。")\s
+                (index:13, level:2, text:"（2）先演后合。")\s
+                (index:16, level:3, text:"2.3.2.1 选用资料")\s
+                (index:20, level:3, text:"2.3.2.2 整河段河道流量演算")
+                输出：
+                [{"index":0, "level":1}, {"index":11, "level":2}, {"index":13, "level":2}, {"index":16, "level":2}, {"index":20, "level":2}]
+                """;
 
-        String userPrompt = "Input:\n" + nodesContext + "\nOutput:";
+        String userPrompt = "输入:\n" + nodesContext + "\n输出:\n";
 
 
         // 调用 LLM

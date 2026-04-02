@@ -14,9 +14,11 @@ import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
 import top.emilejones.hhu.textsplitter.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
+import top.emilejones.hhu.textsplitter.preprocessor.TextNodeSummaryProcessor
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.IDataProcessingService
+import top.emilejones.hhu.textsplitter.service.ISummarizationService
 import java.io.InputStream
 
 @Service
@@ -25,7 +27,8 @@ class RagToolsAdaptor(
     private val ragConfig: RAGConfig,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
-    private val multiCollectionMilvusRepository: IMultiCollectionMilvusRepository
+    private val multiCollectionMilvusRepository: IMultiCollectionMilvusRepository,
+    private val summarizationService: ISummarizationService
 ) : OcrGateway, StructureExtractionGateway, EmbeddingGateway {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -38,6 +41,7 @@ class RagToolsAdaptor(
         requireNotNull(result.fileNode).fileId = sourceDocumentId
         SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
         TextNodeLeafLevelProcessor(result).run()
+        TextNodeSummaryProcessor(result, summarizationService).run()
         neo4jRepository.insertTree(result)
         return requireNotNull(result.fileNode).id
     }

@@ -5,5 +5,6 @@ data class Neo4jFileNode(
     val id: String,
     val fileId: String,
     val isEmbedded: Boolean,
-    val isDelete: Boolean = false
+    val isDelete: Boolean = false,
+    val fileAbstract: String? = null
 )
