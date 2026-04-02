@@ -10,14 +10,16 @@ import java.util.*
 class FileNode(
     override val id: String,
     val sourceDocumentId: String,
-    var isEmbedded: Boolean
+    var isEmbedded: Boolean,
+    val fileAbstract: String? = null
 ) : AggregateRoot<String>(id) {
     companion object {
-        fun create(sourceDocumentId: String): FileNode {
+        fun create(sourceDocumentId: String, fileAbstract: String? = null): FileNode {
             return FileNode(
                 id = UUID.randomUUID().toString(),
                 sourceDocumentId = sourceDocumentId,
-                isEmbedded = false
+                isEmbedded = false,
+                fileAbstract = fileAbstract
             )
         }
     }

@@ -21,7 +21,8 @@ data class TextNodeDTO(
     var text: String,
     var seq: Int,
     var level: Int,
-    var type: TextType
+    var type: TextType,
+    var summary: String? = null
 ) {
     private val childList: MutableList<TextNodeDTO> = ArrayList()
     var parentNode: TextNodeDTO? = null

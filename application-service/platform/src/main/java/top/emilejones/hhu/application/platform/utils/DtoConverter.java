@@ -139,6 +139,7 @@ public class DtoConverter {
         TextNodeDTO dto = new TextNodeDTO();
         dto.setId(node.getId());
         dto.setText(node.getText());
+        dto.setSummary(node.getSummary());
         dto.setSeq(node.getSeq());
         dto.setLevel(node.getLevel());
         dto.setType(mapTextType(node.getType()));
