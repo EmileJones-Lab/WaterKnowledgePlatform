@@ -15,6 +15,8 @@ public class Node {
     private final int index;
     // 该标题的类型
     private final TitleType titleType;
+    // 该标题在树中的层级（根节点为0）
+    private int level;
     // 该标题的孩子节点
     private final List<Node> children = new ArrayList<>();
     // 该标题的父亲节点
@@ -23,6 +25,14 @@ public class Node {
     public Node(int index, TitleType titleType) {
         this.index = index;
         this.titleType = titleType;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
     }
 
     public TitleType getTitleType() {
