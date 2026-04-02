@@ -11,7 +11,7 @@
     <logger name="org.neo4j.driver" level="ERROR"/>
 
     <!-- 应用日志级别 -->
-    <logger name="top.emilejones.hhu" level="ERROR"/>
+    <logger name="top.emilejones.hhu" level="INFO"/>
 
     <!-- 根日志设置 -->
     <root level="INFO">
