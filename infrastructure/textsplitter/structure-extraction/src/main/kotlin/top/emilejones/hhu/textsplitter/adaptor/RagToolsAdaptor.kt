@@ -10,20 +10,22 @@ import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
+import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
+import top.emilejones.hhu.textsplitter.ocr.MinerUClient
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
 import top.emilejones.hhu.textsplitter.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeSummaryProcessor
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
-import top.emilejones.hhu.textsplitter.service.IDataProcessingService
 import top.emilejones.hhu.textsplitter.service.ISummarizationService
 import java.io.InputStream
 
 @Service
 class RagToolsAdaptor(
-    private val dataProcessingService: IDataProcessingService,
+    private val minerUClient: MinerUClient,
+    private val markdownStructureExtractor: MarkdownStructureExtractor,
     private val ragConfig: RAGConfig,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
@@ -33,7 +35,9 @@ class RagToolsAdaptor(
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun minerU(input: InputStream): MinerUMarkdownFile {
-        return dataProcessingService.ocrFileToMarkdownFile(input).getOrThrow()
+        val markdownFile = minerUClient.ocr(input)
+        val correctLevelMarkdown = markdownStructureExtractor.extract(markdownFile.markdownContent)
+        return markdownFile.copy(markdownContent = correctLevelMarkdown)
     }
 
     override fun extract(inputStream: InputStream, sourceDocumentId: String): String {

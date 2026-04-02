@@ -20,6 +20,7 @@ import java.io.InputStream
 /**
  * @author EmileJones
  */
+@Deprecated(message = "这是DDD引入之前的设计，现在已经不在维护")
 @Service
 class DataProcessingService(
     private val milvusRepository: IMultiCollectionMilvusRepository,
