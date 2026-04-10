@@ -84,3 +84,56 @@ CREATE TABLE `collection_document` (
 ) ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COMMENT='知识库与文档关联表';
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS create_or_alter_table$$
+CREATE PROCEDURE create_or_alter_table()
+BEGIN
+    DECLARE col_exists INT DEFAULT 0;
+
+    -- 检查表是否存在
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables
+                   WHERE table_name = 'col_kb' AND table_schema = DATABASE()) THEN
+        -- 创建新表
+CREATE TABLE col_kb (
+                        id INT NOT NULL AUTO_INCREMENT,
+                        kb_id VARCHAR(255) NOT NULL,
+                        kbname VARCHAR(255),
+                        colname VARCHAR(255),
+                        type INT NOT NULL DEFAULT 0,
+                        create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        permission VARCHAR(255),
+                        isdelete INT NOT NULL DEFAULT 1,
+                        PRIMARY KEY (id, kb_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+ELSE
+        -- 检查并添加type列
+SELECT COUNT(*) INTO col_exists
+FROM information_schema.columns
+WHERE table_name = 'col_kb' AND column_name = 'type'
+  AND table_schema = DATABASE();
+
+IF col_exists = 0 THEN
+ALTER TABLE col_kb ADD COLUMN type INT NOT NULL DEFAULT 0;
+END IF;
+
+        -- 检查并添加isdelete列
+SELECT COUNT(*) INTO col_exists
+FROM information_schema.columns
+WHERE table_name = 'col_kb' AND column_name = 'isdelete'
+  AND table_schema = DATABASE();
+
+IF col_exists = 0 THEN
+ALTER TABLE col_kb ADD COLUMN isdelete INT NOT NULL DEFAULT 1;
+END IF;
+END IF;
+END$$
+
+DELIMITER ;
+
+-- 执行
+CALL create_or_alter_table();
+
+-- 清理（可选）
+DROP PROCEDURE IF EXISTS create_or_alter_table;
