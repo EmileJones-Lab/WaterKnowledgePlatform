@@ -1,4 +1,4 @@
-package top.emilejones.hhu.infrastructure.configuration.utils;
+package top.emilejones.hhu.common.util;
 
 public class Pair<K, V> {
     private final K key;

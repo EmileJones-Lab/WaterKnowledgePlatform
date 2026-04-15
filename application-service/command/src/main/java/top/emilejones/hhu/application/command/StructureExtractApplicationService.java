@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.application.command.record.ProcessRecordService;
+import top.emilejones.hhu.common.Result;
 import top.emilejones.hhu.common.util.MD5Utils;
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway;
 
@@ -67,7 +68,7 @@ public class StructureExtractApplicationService {
             // 3. 调用结构提取网关
             try (InputStream inputStream = Files.newInputStream(path)) {
                 logger.info("正在调用结构提取网关进行解析与存储...");
-                String fileNodeId = structureExtractionGateway.extract(inputStream, sourceDocumentId);
+                String fileNodeId = structureExtractionGateway.extract(inputStream, sourceDocumentId).getOrThrow();
                 logger.info("结构提取成功完成，生成的根节点 ID 为: {}", fileNodeId);
 
                 // 4. 记录提取结果到本地 CSV

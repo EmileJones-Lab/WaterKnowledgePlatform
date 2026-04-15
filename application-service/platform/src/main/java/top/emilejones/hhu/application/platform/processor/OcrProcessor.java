@@ -1,7 +1,8 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.infrastructure.configuration.utils.FileUtils;
+import top.emilejones.hhu.common.FileUtils;
+import top.emilejones.hhu.common.Result;
 import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.result.ProcessedDocument;
@@ -34,7 +35,7 @@ public class OcrProcessor {
     }
 
     public OcrMission process(String sourceDocumentId) {
-        OcrMission ocrMission = OcrMission.Companion.create( sourceDocumentId);
+        OcrMission ocrMission = OcrMission.Companion.create(sourceDocumentId);
         ocrMission.start();
         ocrMissionRepository.save(ocrMission);
         Optional<SourceDocument> sourceDocumentOptional = sourceDocumentRepository.findSourceDocumentById(ocrMission.getSourceDocumentId());
@@ -44,27 +45,34 @@ public class OcrProcessor {
             return ocrMission;
         }
 
-        try {
-            SourceDocument sourceDocument = sourceDocumentOptional.get();
-            BufferedInputStream content = FileUtils.INSTANCE.checkPdf(sourceDocumentRepository.openContent(sourceDocument.getFilePath()));
-            if (content == null)
-                throw new IllegalAccessException("不是一个OCR文件");
-            MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(content);
-            // 保存文件，markdown文件名称随机生成
-            ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(sourceDocument.getId(), generateFilePath(UUID.randomUUID() + ".md"), ProcessedDocumentType.MARKDOWN);
-            minerUMarkdownFile.getImages()
-                    .forEach(minerUImage -> {
-                        ProcessedDocument imageDocument = ProcessedDocument.Companion.create( sourceDocument.getId(), generateFilePath(minerUImage.getRelativePath()), ProcessedDocumentType.IMAGE);
-                        processedDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
-                    });
-            processedDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));
-
-            ocrMission.success(markdownDocument.getId());
-        } catch (Exception ex) {
-            String msg = ex.getMessage() != null ? ex.getMessage() : "未知的异常";
-            ocrMission.failure(msg);
+        SourceDocument sourceDocument = sourceDocumentOptional.get();
+        BufferedInputStream content = FileUtils.INSTANCE.checkPdf(sourceDocumentRepository.openContent(sourceDocument.getFilePath()));
+        if (content == null) {
+            ocrMission.failure("不是一个OCR文件");
+            ocrMissionRepository.save(ocrMission);
+            return ocrMission;
         }
 
+        Result<MinerUMarkdownFile> result = ocrGateway.minerU(content);
+        if (result.isFailure()) {
+            Throwable ex = result.exceptionOrNull();
+            String msg = (ex != null && ex.getMessage() != null) ? ex.getMessage() : "OCR识别失败";
+            ocrMission.failure(msg);
+            ocrMissionRepository.save(ocrMission);
+            return ocrMission;
+        }
+
+        MinerUMarkdownFile minerUMarkdownFile = result.getOrThrow();
+        // 保存文件，markdown文件名称随机生成
+        ProcessedDocument markdownDocument = ProcessedDocument.Companion.create(sourceDocument.getId(), generateFilePath(UUID.randomUUID() + ".md"), ProcessedDocumentType.MARKDOWN);
+        minerUMarkdownFile.getImages()
+                .forEach(minerUImage -> {
+                    ProcessedDocument imageDocument = ProcessedDocument.Companion.create(sourceDocument.getId(), generateFilePath(minerUImage.getRelativePath()), ProcessedDocumentType.IMAGE);
+                    processedDocumentRepository.save(imageDocument, new ByteArrayInputStream(minerUImage.getData()));
+                });
+        processedDocumentRepository.save(markdownDocument, new ByteArrayInputStream(minerUMarkdownFile.getMarkdownContent().getBytes(StandardCharsets.UTF_8)));
+
+        ocrMission.success(markdownDocument.getId());
         ocrMissionRepository.save(ocrMission);
         return ocrMission;
     }

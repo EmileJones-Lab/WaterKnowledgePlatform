@@ -2,11 +2,14 @@ package top.emilejones.hhu.textsplitter.adaptor
 
 import kotlinx.coroutines.*
 import org.springframework.stereotype.Service
+import top.emilejones.hhu.common.Result
+import top.emilejones.hhu.common.toCommonResult
 import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway
 import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
+import top.emilejones.hhu.domain.pipeline.repository.NodeRepository
 
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
@@ -21,6 +24,7 @@ import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusReposito
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.ISummarizationService
 import java.io.InputStream
+import java.util.Objects
 
 @Service
 class RagToolsAdaptor(
@@ -30,26 +34,31 @@ class RagToolsAdaptor(
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
     private val multiCollectionMilvusRepository: IMultiCollectionMilvusRepository,
-    private val summarizationService: ISummarizationService
+    private val summarizationService: ISummarizationService,
+    private val nodeRepository: NodeRepository
 ) : OcrGateway, StructureExtractionGateway, EmbeddingGateway {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun minerU(input: InputStream): MinerUMarkdownFile {
+    override fun minerU(input: InputStream): Result<MinerUMarkdownFile> = runCatching {
         val markdownFile = minerUClient.ocr(input)
         val correctLevelMarkdown = markdownStructureExtractor.extract(markdownFile.markdownContent)
-        return markdownFile.copy(markdownContent = correctLevelMarkdown)
-    }
+        markdownFile.copy(markdownContent = correctLevelMarkdown)
+    }.toCommonResult()
 
-    override fun extract(inputStream: InputStream, sourceDocumentId: String): String {
+    override fun extract(inputStream: InputStream, sourceDocumentId: String): Result<String> = runCatching {
         val result = MarkdownStructureParser(inputStream).get()
         requireNotNull(result.fileNode).fileId = sourceDocumentId
         SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
         TextNodeLeafLevelProcessor(result).run()
         TextNodeSummaryProcessor(result, summarizationService).run()
         neo4jRepository.insertTree(result)
-        return requireNotNull(result.fileNode).id
-    }
+        requireNotNull(result.fileNode).id
+    }.toCommonResult()
 
+    @Deprecated(
+        "建议使用 embed(fileNodeId: String) 以支持完整的领域逻辑封装",
+        replaceWith = ReplaceWith("embed(fileNodeId)")
+    )
     override fun embed(textList: List<String>): List<List<Float>> = runBlocking(scope.coroutineContext) {
         val embeddingData = coroutineScope {
             textList.map {
@@ -61,6 +70,34 @@ class RagToolsAdaptor(
         embeddingData
     }
 
+    override fun embed(fileNodeId: String): Result<String> = runCatching {
+        val finalFileNodeId = Objects.requireNonNull(fileNodeId)
+        val fileNodeOptional = nodeRepository.findFileNodeByFileNodeId(finalFileNodeId)
+        if (fileNodeOptional.isEmpty) {
+            throw IllegalAccessException("结构提取任务存在，但是切割后的FileNode不存在")
+        }
+
+        val fileNode = fileNodeOptional.get()
+        // 找到所有的TextNode
+        val textNodeList = nodeRepository.findTextNodeListByFileNodeId(finalFileNodeId)
+
+        // 向量化所有text属性
+        val vectors = embed(textNodeList.map { it.text })
+
+        // 为所有的TextNode添加vector属性
+        for (i in textNodeList.indices) {
+            textNodeList[i].saveVector(vectors[i])
+        }
+
+        // 为FileNode标记状态
+        fileNode.markAsEmbedded()
+
+        // 保存到Neo4j (通过nodeRepository接口)
+        textNodeList.forEach { nodeRepository.saveTextNode(it) }
+        nodeRepository.saveFileNode(fileNode)
+
+        finalFileNodeId
+    }.toCommonResult()
 
     override fun saveTextNodeToVectorDatabase(textNodeList: List<TextNode>, collectionName: String) {
         textNodeList.forEach { require(it.isEmbedded) { "TextNode[${it.id}] 没有进行向量化" } }

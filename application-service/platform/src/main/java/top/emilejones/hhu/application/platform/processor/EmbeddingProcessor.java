@@ -1,9 +1,7 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
-import top.emilejones.hhu.domain.result.FileNode;
-import top.emilejones.hhu.domain.result.MissionStatus;
-import top.emilejones.hhu.domain.result.TextNode;
+import top.emilejones.hhu.common.Result;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
@@ -11,23 +9,21 @@ import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMissionResult;
+import top.emilejones.hhu.domain.result.MissionStatus;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Component
 public class EmbeddingProcessor {
     private final StructureExtractionMissionRepository structureExtractionMissionRepository;
     private final EmbeddingMissionRepository embeddingMissionRepository;
-    private final NodeRepository nodeRepository;
     private final EmbeddingGateway embeddingGateway;
     private final StructureExtractionProcessor structureExtractionProcessor;
 
-    public EmbeddingProcessor(StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, NodeRepository nodeRepository, EmbeddingGateway embeddingGateway, StructureExtractionProcessor structureExtractionProcessor) {
+    public EmbeddingProcessor(StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, StructureExtractionProcessor structureExtractionProcessor) {
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.embeddingMissionRepository = embeddingMissionRepository;
-        this.nodeRepository = nodeRepository;
         this.embeddingGateway = embeddingGateway;
         this.structureExtractionProcessor = structureExtractionProcessor;
     }
@@ -74,43 +70,32 @@ public class EmbeddingProcessor {
 
     private void executeEmbedding(EmbeddingMission embeddingMission, StructureExtractionMission structureExtractionMission) {
         StructureExtractionMissionResult.Success successResult = structureExtractionMission.getSuccessResult();
-        embeddingMission.start(successResult.getFileNodeId());
+        String fileNodeId = successResult.getFileNodeId();
+        embeddingMission.start(fileNodeId);
 
-        try {
-            doEmbed(embeddingMission, successResult.getFileNodeId());
-        } catch (Exception ex) {
-            String msg = ex.getMessage() != null ? ex.getMessage() : "未知的异常";
+        Result<String> result = embeddingGateway.embed(fileNodeId);
+
+        if (result.isSuccess()) {
+            embeddingMission.success(result.getOrThrow());
+        } else {
+            Throwable exception = result.exceptionOrNull();
+            String msg = (exception != null && exception.getMessage() != null) ? exception.getMessage() : "向量化过程发生未知异常";
             embeddingMission.failure(msg);
         }
 
         embeddingMissionRepository.save(embeddingMission);
     }
 
+    /**
+     * @deprecated 请使用 embeddingGateway.embed(fileNodeId)
+     */
+    @Deprecated
     private void doEmbed(EmbeddingMission embeddingMission, String fileNodeId) throws Exception {
-        // 成功提取结构后的FileNode唯一Id
-        fileNodeId = Objects.requireNonNull(fileNodeId);
-        Optional<FileNode> fileNodeOptional = nodeRepository.findFileNodeByFileNodeId(fileNodeId);
-        if (fileNodeOptional.isEmpty())
-            throw new IllegalAccessException("结构提取任务存在，但是切割后的FileNode不存在");
-
-        FileNode fileNode = fileNodeOptional.get();
-        // 找到所有的TextNode
-        List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
-
-        // 向量化所有text属性
-        List<List<Float>> vectors = embeddingGateway.embed(textNodeList.stream().map(TextNode::getText).toList());
-
-        // 为所有的TextNode添加vector属性
-        for (int i = 0; i < textNodeList.size(); i++) {
-            textNodeList.get(i).saveVector(vectors.get(i));
+        Result<String> result = embeddingGateway.embed(fileNodeId);
+        if (result.isFailure()) {
+            Throwable ex = Objects.requireNonNull(result.exceptionOrNull());
+            embeddingMission.failure(ex.getMessage());
         }
-
-        // 为FileNode标记状态
-        fileNode.markAsEmbedded();
-
-        // 保存
-        textNodeList.forEach(nodeRepository::saveTextNode);
-        nodeRepository.saveFileNode(fileNode);
-        embeddingMission.success(fileNodeId);
+        embeddingMission.success(result.getOrThrow());
     }
 }

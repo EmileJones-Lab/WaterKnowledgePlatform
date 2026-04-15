@@ -1,6 +1,7 @@
 package top.emilejones.hhu.application.platform.processor;
 
 import org.springframework.stereotype.Component;
+import top.emilejones.hhu.common.Result;
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMissionResult;
@@ -74,26 +75,28 @@ public class StructureExtractionProcessor {
         structureExtractionMission.start(markdownDocumentId);
         structureExtractionMissionRepository.save(structureExtractionMission);
 
-        try {
-            doExtract(structureExtractionMission, markdownDocumentId);
-        } catch (Exception ex) {
-            String message = ex.getMessage() != null ? ex.getMessage() : "未知的错误";
+        // 1. 获取markdown文件内容
+        ProcessedDocument processedDocument = processedDocumentRepository.find(markdownDocumentId);
+        if (processedDocument == null) {
+            structureExtractionMission.failure("OCR任务存在，但是提取出来的markdown文件却不存在");
+            structureExtractionMissionRepository.save(structureExtractionMission);
+            return;
+        }
+
+        InputStream inputStream = processedDocumentRepository.openContent(processedDocument.getFilePath());
+        
+        // 2. 提取markdown文件结构
+        Result<String> result = structureExtractionGateway.extract(inputStream, structureExtractionMission.getSourceDocumentId());
+        
+        if (result.isFailure()) {
+            Throwable ex = result.exceptionOrNull();
+            String message = (ex != null && ex.getMessage() != null) ? ex.getMessage() : "结构提取过程发生未知错误";
             structureExtractionMission.failure(message);
+        } else {
+            // 3. 记录任务状态为成功
+            structureExtractionMission.success(result.getOrThrow());
         }
 
         structureExtractionMissionRepository.save(structureExtractionMission);
-    }
-
-    private void doExtract(StructureExtractionMission structureExtractionMission, String markdownDocumentId) throws Exception {
-        // 获取markdown文件内容
-        ProcessedDocument processedDocument = processedDocumentRepository.find(markdownDocumentId);
-        if (processedDocument == null)
-            throw new IllegalAccessException("OCR任务存在，但是提取出来的markdown文件却不存在");
-
-        InputStream inputStream = processedDocumentRepository.openContent(processedDocument.getFilePath());
-        // 提取markdown文件结构
-        String fileNodeId = structureExtractionGateway.extract(inputStream, structureExtractionMission.getSourceDocumentId());
-        // 记录任务状态为成功
-        structureExtractionMission.success(fileNodeId);
     }
 }

@@ -1,5 +1,6 @@
 package top.emilejones.hhu.domain.pipeline.gateway
 
+import top.emilejones.hhu.common.Result
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 import java.io.InputStream
 
@@ -13,10 +14,10 @@ interface OcrGateway {
      * 约定：
      * - 入参为原始文件内容流（图片、PDF 等），调用方负责管理流的生命周期。
      * - 返回包含规范化后的 Markdown 文本与图片二进制数据的结构体；调用方可自行持久化图片，`relativePath` 形如 `images/test.png`（无 `./` 前缀）。
-     * - 实现应保证调用失败时抛出明确的异常，便于上层感知并告警。
+     * - 封装在 Result 中，成功时包含识别结果，失败时包含明确的异常。
      *
      * @param input 待识别的二进制输入流
-     * @return 经 MinerU 识别、转换后的 Markdown 及图片数据
+     * @return 识别结果
      */
-    fun minerU(input: InputStream): MinerUMarkdownFile
+    fun minerU(input: InputStream): Result<MinerUMarkdownFile>
 }

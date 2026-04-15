@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.utils.DtoConverter;
-import top.emilejones.hhu.infrastructure.configuration.utils.Pair;
+import top.emilejones.hhu.common.util.Pair;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
