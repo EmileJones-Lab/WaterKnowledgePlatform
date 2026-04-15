@@ -1,6 +1,7 @@
 package top.emilejones.hhu.application.command;
 
 import org.springframework.stereotype.Service;
+import top.emilejones.hhu.common.Result;
 import top.emilejones.hhu.application.command.dto.MinerUImageResponse;
 import top.emilejones.hhu.application.command.dto.MinerUMarkdownResponse;
 import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway;
@@ -43,7 +44,7 @@ public class OcrApplicationService {
             bufferedInputStream.reset();
 
             // 调用 OCR 网关
-            MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(bufferedInputStream);
+            MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(bufferedInputStream).getOrThrow();
 
             // 映射到 Application 层 DTO
             return mapToResponse(minerUMarkdownFile);

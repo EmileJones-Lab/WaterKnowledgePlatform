@@ -1,4 +1,4 @@
-package top.emilejones.hhu.infrastructure.configuration.utils
+package top.emilejones.hhu.common
 
 import java.io.BufferedInputStream
 import java.io.InputStream
