@@ -11,7 +11,6 @@ import top.emilejones.hhu.infrastructure.configuration.utils.Pair;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
-import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
@@ -260,11 +259,6 @@ public class PipeLineApplicationService {
             // 5. 如果失败，仅打印日志
             e.printStackTrace();
         }
-    }
-
-    @EventListener
-    public void handleCreatedKnowledgeCatalogEvent(CreatedKnowledgeCatalogEvent event) {
-        embeddingGateway.createCollection(event.getNewKnowledgeCatalog().getMilvusCollectionName());
     }
 }
 

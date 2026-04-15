@@ -1,7 +1,6 @@
 package top.emilejones.hhu.domain.knowledge
 
 import top.emilejones.hhu.domain.AggregateRoot
-import top.emilejones.hhu.domain.knowledge.event.CreatedKnowledgeCatalogEvent
 import java.time.Instant
 import java.util.*
 
@@ -25,7 +24,6 @@ data class KnowledgeCatalog(
         ): KnowledgeCatalog {
             val knowledgeCatalog =
                 KnowledgeCatalog(UUID.randomUUID().toString(), name, milvusCollectionName, Instant.now(), type)
-            knowledgeCatalog.raiseEvent(CreatedKnowledgeCatalogEvent(knowledgeCatalog))
             return knowledgeCatalog
         }
     }

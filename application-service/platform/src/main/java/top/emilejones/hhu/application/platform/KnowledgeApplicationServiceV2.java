@@ -113,6 +113,7 @@ public class KnowledgeApplicationServiceV2 {
 
         knowledgeCatalogRepository.save(knowledgeCatalog);
         knowledgeCatalog.pushEvents().forEach(publisher::publishEvent);
+        embeddingGateway.createCollection(milvusCollectionName);
 
         return DtoConverter.toKnowledgeDirectoryDTO(knowledgeCatalog);
     }

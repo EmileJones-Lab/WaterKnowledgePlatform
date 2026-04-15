@@ -106,7 +106,7 @@ public class EmbeddingProcessor {
         }
 
         // 为FileNode标记状态
-        fileNode.setEmbedded(true);
+        fileNode.markAsEmbedded();
 
         // 保存
         textNodeList.forEach(nodeRepository::saveTextNode);
