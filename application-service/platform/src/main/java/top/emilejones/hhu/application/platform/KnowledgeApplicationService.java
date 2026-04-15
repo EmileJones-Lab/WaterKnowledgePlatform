@@ -25,11 +25,9 @@ import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepositor
 import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.knowledge.service.KnowledgeDomainService;
 import top.emilejones.hhu.domain.result.FileNode;
-import top.emilejones.hhu.domain.result.MissionStatus;
 import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
-import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
@@ -411,29 +409,5 @@ public class KnowledgeApplicationService {
         List<CandidateKnowledgeFileDTO> partOfCandidateKnowledgeFileDTO = candidateKnowledgeFileDTOList.subList(pageNum * limit, (pageNum + 1) * limit);
         // 11.封装成LazyPageDTO<CandidateKnowledgeFileDTO>并返回
         return new LazyPageDTO<CandidateKnowledgeFileDTO>(false, partOfCandidateKnowledgeFileDTO);
-    }
-
-    /**
-     * 监听EmbeddingMissionSuccessEvent事件，将成功向量化后的文档添加到知识库。
-     *
-     * @param event 向量化任务成功事件
-     */
-    @EventListener
-    public void addAKnowledgeDocumentFromSuccessfulEmbeddingMission(EmbeddingMissionSuccessEvent event) {
-        // 获取向量化任务
-        EmbeddingMission embeddingMission = event.getEmbeddingMission();
-
-        // 获取当前向量化任务的的状态
-        MissionStatus status = embeddingMission.getStatus();
-
-        // 判断当前状态是否成功
-        if (status != MissionStatus.SUCCESS) {
-            // 不成功，就报错
-            throw new IllegalStateException("失败的EmbeddingMission无法成为一个KnowledgeDocument");
-        }
-
-        // 成功就保存产生的向量化文件
-        KnowledgeDocument knowledgeDocument = KnowledgeDocument.Companion.create(sourceDocumentRepository.findSourceDocumentById(embeddingMission.getSourceDocumentId()).get().getName(), embeddingMission.getId(), KnowledgeDocumentType.STRUCTURE_SPLITTER);
-        knowledgeDocumentRepository.save(knowledgeDocument);
     }
 }

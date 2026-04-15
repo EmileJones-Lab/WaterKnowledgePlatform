@@ -25,11 +25,9 @@ import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepositor
 import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.knowledge.service.KnowledgeDomainService;
 import top.emilejones.hhu.domain.result.FileNode;
-import top.emilejones.hhu.domain.result.MissionStatus;
 import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
-import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
@@ -272,29 +270,6 @@ public class KnowledgeApplicationServiceV2 {
         List<CandidateKnowledgeFileDTO> pagedDtos = performPseudoPagination(allDtos, pageNum, limit);
 
         return new LazyPageDTO<>(false, pagedDtos);
-    }
-
-    /**
-     * 监听向量化任务成功事件
-     */
-    @EventListener
-    public void addAKnowledgeDocumentFromSuccessfulEmbeddingMission(EmbeddingMissionSuccessEvent event) {
-        EmbeddingMission mission = event.getEmbeddingMission();
-
-        if (mission.getStatus() != MissionStatus.SUCCESS) {
-            throw new IllegalStateException("失败的EmbeddingMission无法成为一个KnowledgeDocument");
-        }
-
-        String sourceDocName = sourceDocumentRepository.findSourceDocumentById(mission.getSourceDocumentId())
-                .map(it -> it.getName())
-                .orElse("Unknown File");
-
-        KnowledgeDocument doc = KnowledgeDocument.Companion.create(
-                sourceDocName,
-                mission.getId(),
-                KnowledgeDocumentType.STRUCTURE_SPLITTER
-        );
-        knowledgeDocumentRepository.save(doc);
     }
 
     // ==========================================

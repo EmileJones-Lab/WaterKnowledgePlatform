@@ -2,7 +2,6 @@ package top.emilejones.hhu.domain.pipeline.embedding
 
 import top.emilejones.hhu.domain.AggregateRoot
 import top.emilejones.hhu.domain.result.MissionStatus
-import top.emilejones.hhu.domain.pipeline.event.EmbeddingMissionSuccessEvent
 import java.time.Instant
 import java.util.UUID
 
@@ -63,7 +62,6 @@ class EmbeddingMission(
         result = EmbeddingMissionResult.Success(fileNodeId)
         status = MissionStatus.SUCCESS
         endTime = Instant.now()
-        raiseEvent(EmbeddingMissionSuccessEvent(this))
     }
 
     /**
