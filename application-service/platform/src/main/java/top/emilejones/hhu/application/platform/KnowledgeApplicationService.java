@@ -40,7 +40,6 @@ import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
 import java.util.*;
 
-@Service
 @Transactional(rollbackFor = Exception.class)
 @Deprecated(since = "V1.1.0")
 public class KnowledgeApplicationService {
