@@ -1,5 +1,6 @@
 package top.emilejones.hhu.textsplitter.repository.impl.neo4j.delegates
 
+import top.emilejones.hhu.textsplitter.domain.dto.FileNodeDTO
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import java.util.*
 import kotlin.reflect.KProperty
@@ -20,3 +21,17 @@ private class TextNodeDelegate {
 }
 
 var TextNodeDTO.elementId: String? by TextNodeDelegate()
+
+private class FileNodeDelegate {
+    private val cache = WeakHashMap<FileNodeDTO, String?>()
+
+    operator fun getValue(thisRef: FileNodeDTO, property: KProperty<*>): String? {
+        return cache.getOrPut(thisRef) { null }
+    }
+
+    operator fun setValue(thisRef: FileNodeDTO, property: KProperty<*>, value: String?) {
+        cache[thisRef] = value
+    }
+}
+
+var FileNodeDTO.elementId: String? by FileNodeDelegate()

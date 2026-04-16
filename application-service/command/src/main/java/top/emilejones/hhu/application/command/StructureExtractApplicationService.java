@@ -74,6 +74,15 @@ public class StructureExtractApplicationService {
                 // 4. 记录提取结果到本地 CSV
                 processRecordService.recordExtraction(sourceDocumentId, fileName, fileNodeId);
                 logger.info("任务成功信息已记录到本地。");
+
+                // 5. 调用摘要提取网关生成各级节点的摘要
+                logger.info("正在调用摘要提取网关进行各级节点摘要生成...");
+                structureExtractionGateway.summary(sourceDocumentId).getOrThrow();
+                logger.info("摘要提取成功完成。");
+
+                // 6. 更新摘要提取状态到本地记录
+                processRecordService.updateSummaryStatus(sourceDocumentId, true);
+                logger.info("摘要提取状态已记录到本地。");
             }
 
         } catch (Exception e) {

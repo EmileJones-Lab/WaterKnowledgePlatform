@@ -43,6 +43,10 @@ class Neo4jRepositoryImpl(
         nodeTreeRepository.insertTree(rootNode)
     }
 
+    override fun findTreeByFileNodeId(fileNodeId: String): TextNodeDTO {
+        return nodeTreeRepository.findTreeByFileNodeId(fileNodeId)
+    }
+
     override fun searchNeo4jFileNodeByFileId(fileId: String): Neo4jFileNode? {
         return neo4jFileNodeRepository.searchNeo4jFileNodeByFileId(fileId)
     }

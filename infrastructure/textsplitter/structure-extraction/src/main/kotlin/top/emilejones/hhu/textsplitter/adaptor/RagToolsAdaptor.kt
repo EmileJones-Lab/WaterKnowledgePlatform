@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import top.emilejones.hhu.common.Result
 import top.emilejones.hhu.common.toCommonResult
 import top.emilejones.hhu.domain.result.TextNode
+import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway
 import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway
@@ -14,6 +15,7 @@ import top.emilejones.hhu.domain.pipeline.repository.NodeRepository
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
+import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.ocr.MinerUClient
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
@@ -22,6 +24,7 @@ import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeSummaryProcessor
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
+import top.emilejones.hhu.textsplitter.repository.impl.neo4j.delegates.elementId
 import top.emilejones.hhu.textsplitter.service.ISummarizationService
 import java.io.InputStream
 import java.util.Objects
@@ -50,9 +53,21 @@ class RagToolsAdaptor(
         requireNotNull(result.fileNode).fileId = sourceDocumentId
         SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
         TextNodeLeafLevelProcessor(result).run()
-        TextNodeSummaryProcessor(result, summarizationService).run()
         neo4jRepository.insertTree(result)
         requireNotNull(result.fileNode).id
+    }.toCommonResult()
+
+    override fun summary(sourceDocumentId: String): Result<String> = runCatching {
+        val neo4jFileNode = neo4jRepository.searchNeo4jFileNodeByFileId(sourceDocumentId)
+            ?: throw NoSuchElementException("未找到 fileId 为 [$sourceDocumentId] 的 FileNode")
+
+        val rootNode = neo4jRepository.findTreeByFileNodeId(neo4jFileNode.id)
+        TextNodeSummaryProcessor(rootNode, summarizationService).run()
+
+        // 更新 Neo4j 中的摘要信息
+        updateTreeSummary(rootNode)
+
+        neo4jFileNode.id
     }.toCommonResult()
 
     @Deprecated(
@@ -122,5 +137,37 @@ class RagToolsAdaptor(
             vector = textNode.vector!!,
             neo4jNodeId = textNode.id
         )
+    }
+
+
+    private fun updateTreeSummary(rootNode: TextNodeDTO) {
+        // 更新 FileNode 的 fileAbstract
+        rootNode.fileNode?.let { fileNodeDTO ->
+            val elementId = fileNodeDTO.elementId
+            if (elementId != null) {
+                neo4jRepository.updateNodeByElementId(
+                    elementId,
+                    mapOf("fileAbstract" to fileNodeDTO.fileAbstract)
+                )
+            }
+        }
+
+        // 递归更新所有 TextNode 的 summary
+        deepUpdateSummary(rootNode)
+    }
+
+    private fun deepUpdateSummary(node: TextNodeDTO) {
+        if (node.type != TextType.NULL) {
+            val elementId = node.elementId
+            if (elementId != null && node.summary != null) {
+                neo4jRepository.updateNodeByElementId(
+                    elementId,
+                    mapOf("summary" to node.summary)
+                )
+            }
+        }
+        for (i in 0 until node.childNum()) {
+            deepUpdateSummary(node.getChild(i))
+        }
     }
 }

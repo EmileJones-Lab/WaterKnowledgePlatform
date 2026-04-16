@@ -22,4 +22,18 @@ interface StructureExtractionGateway {
      * @return 封装了 FileNodeId 的 Result
      */
     fun extract(inputStream: InputStream, sourceDocumentId: String): Result<String>
+
+    /**
+     * 针对已持久化的文档结构，递归生成各级节点的语义摘要并回填。
+     *
+     * 约定：
+     * - 调用前提：必须保证 [sourceDocumentId] 对应的文档结构已通过 extract 方法成功持久化。
+     * - 摘要策略：采用自底向上的递归生成方式。叶子节点对原文进行摘要，中间节点对子节点摘要列表进行聚合。
+     * - 数据存储：生成的摘要将直接更新至数据库中各 TextNode 的 summary 字段，根节点摘要将同步至 FileNode 的 fileAbstract。
+     * - 封装在 Result 中，成功时返回该文档树的根节点 ID (FileNodeId)，失败时包含详细异常信息。
+     *
+     * @param sourceDocumentId 源文件ID，用于检索对应的文档树结构
+     * @return 封装了 FileNodeId 的 Result
+     */
+    fun summary(sourceDocumentId: String): Result<String>
 }

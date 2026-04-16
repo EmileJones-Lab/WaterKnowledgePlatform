@@ -25,7 +25,7 @@ public class ProcessRecordService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProcessRecordService.class);
     private static final String CSV_FILE_NAME = "record.csv";
-    private static final String HEADER = "sourceDocumentId,fileName,fileNodeId,isEmbedding";
+    private static final String HEADER = "sourceDocumentId,fileName,fileNodeId,isEmbedding,isSummary";
 
     // 使用 LinkedHashMap 保持记录的插入顺序，key 为 sourceDocumentId
     private final Map<String, ProcessRecord> records = new LinkedHashMap<>();
@@ -63,8 +63,8 @@ public class ProcessRecordService {
                     continue;
                 }
                 String[] parts = line.split(",");
-                if (parts.length >= 4) {
-                    records.put(parts[0], new ProcessRecord(parts[0], parts[1], parts[2], Boolean.parseBoolean(parts[3])));
+                if (parts.length >= 5) {
+                    records.put(parts[0], new ProcessRecord(parts[0], parts[1], parts[2], Boolean.parseBoolean(parts[3]), Boolean.parseBoolean(parts[4])));
                 }
             }
             logger.info("已从文件加载 {} 条处理记录", records.size());
@@ -95,7 +95,7 @@ public class ProcessRecordService {
             return;
         }
 
-        ProcessRecord record = new ProcessRecord(sourceDocumentId, fileName, fileNodeId, false);
+        ProcessRecord record = new ProcessRecord(sourceDocumentId, fileName, fileNodeId, false, false);
         // 先添加到内存
         records.put(sourceDocumentId, record);
 
@@ -119,7 +119,23 @@ public class ProcessRecordService {
         ProcessRecord record = records.get(sourceDocumentId);
         if (record != null) {
             // 更新内存记录
-            records.put(sourceDocumentId, new ProcessRecord(record.sourceDocumentId(), record.fileName(), record.fileNodeId(), isEmbedding));
+            records.put(sourceDocumentId, new ProcessRecord(record.sourceDocumentId(), record.fileName(), record.fileNodeId(), isEmbedding, record.isSummary()));
+            // 同步回文件
+            syncToFile();
+        }
+    }
+
+    /**
+     * 更新摘要生成状态。
+     *
+     * @param sourceDocumentId 文档唯一标识
+     * @param isSummary        摘要生成状态
+     */
+    public synchronized void updateSummaryStatus(String sourceDocumentId, boolean isSummary) {
+        ProcessRecord record = records.get(sourceDocumentId);
+        if (record != null) {
+            // 更新内存记录
+            records.put(sourceDocumentId, new ProcessRecord(record.sourceDocumentId(), record.fileName(), record.fileNodeId(), record.isEmbedding(), isSummary));
             // 同步回文件
             syncToFile();
         }
@@ -170,9 +186,9 @@ public class ProcessRecordService {
     /**
      * 处理记录的数据载体。
      */
-    private record ProcessRecord(String sourceDocumentId, String fileName, String fileNodeId, boolean isEmbedding) {
+    private record ProcessRecord(String sourceDocumentId, String fileName, String fileNodeId, boolean isEmbedding, boolean isSummary) {
         public String toCsvLine() {
-            return String.format("%s,%s,%s,%b", sourceDocumentId, fileName, fileNodeId, isEmbedding);
+            return String.format("%s,%s,%s,%b,%b", sourceDocumentId, fileName, fileNodeId, isEmbedding, isSummary);
         }
     }
 }
