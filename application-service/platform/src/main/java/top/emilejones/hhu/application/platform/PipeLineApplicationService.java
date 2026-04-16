@@ -1,6 +1,5 @@
 package top.emilejones.hhu.application.platform;
 
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
@@ -22,6 +21,7 @@ import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.repository.*;
+import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.result.MissionStatus;
 import top.emilejones.hhu.domain.result.TextNode;
@@ -36,6 +36,7 @@ public class PipeLineApplicationService {
     private final StructureExtractionMissionRepository structureExtractionMissionRepository;
     private final EmbeddingMissionRepository embeddingMissionRepository;
     private final EmbeddingGateway embeddingGateway;
+    private final TextNodeVectorRepository textNodeVectorRepository;
     private final NodeRepository nodeRepository;
     private final OcrMissionRepository ocrMissionRepository;
     private final KnowledgeDocumentRepository knowledgeDocumentRepository;
@@ -44,10 +45,11 @@ public class PipeLineApplicationService {
     private final SourceDocumentRepository sourceDocumentRepository;
     private final StateMachineFactory<PipelineState, PipelineEvent> stateMachineFactory;
 
-    public PipeLineApplicationService(StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository, ProcessedDocumentRepository processedDocumentRepository, SourceDocumentRepository sourceDocumentRepository, StateMachineFactory<PipelineState, PipelineEvent> stateMachineFactory) {
+    public PipeLineApplicationService(StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, TextNodeVectorRepository textNodeVectorRepository, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository, ProcessedDocumentRepository processedDocumentRepository, SourceDocumentRepository sourceDocumentRepository, StateMachineFactory<PipelineState, PipelineEvent> stateMachineFactory) {
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.embeddingGateway = embeddingGateway;
+        this.textNodeVectorRepository = textNodeVectorRepository;
         this.nodeRepository = nodeRepository;
         this.ocrMissionRepository = ocrMissionRepository;
         this.knowledgeDocumentRepository = knowledgeDocumentRepository;
@@ -106,7 +108,7 @@ public class PipeLineApplicationService {
                 // 将每个知识文件和知识库解绑
                 knowledgeCatalogList.forEach(knowledgeCatalog -> {
                     knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalog.getId(), List.of(knowledgeDocument.getId()));
-                    embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
+                    textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
                 });
                 // 删除知识文件
                 knowledgeDocumentRepository.delete(knowledgeDocument.getId());

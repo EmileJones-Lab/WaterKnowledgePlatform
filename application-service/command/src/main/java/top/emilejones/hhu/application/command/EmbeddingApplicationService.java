@@ -8,6 +8,7 @@ import top.emilejones.hhu.application.command.record.ProcessRecordService;
 import top.emilejones.hhu.common.util.MD5Utils;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
+import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
 import top.emilejones.hhu.domain.result.TextNode;
 
 import java.nio.file.Files;
@@ -27,13 +28,16 @@ public class EmbeddingApplicationService {
     public static final String COLLECTION_NAME = "water_knowledge_platform";
 
     private final EmbeddingGateway embeddingGateway;
+    private final TextNodeVectorRepository textNodeVectorRepository;
     private final NodeRepository nodeRepository;
     private final ProcessRecordService processRecordService;
 
     public EmbeddingApplicationService(EmbeddingGateway embeddingGateway,
-                                     NodeRepository nodeRepository,
-                                     ProcessRecordService processRecordService) {
+                                       TextNodeVectorRepository textNodeVectorRepository,
+                                       NodeRepository nodeRepository,
+                                       ProcessRecordService processRecordService) {
         this.embeddingGateway = embeddingGateway;
+        this.textNodeVectorRepository = textNodeVectorRepository;
         this.nodeRepository = nodeRepository;
         this.processRecordService = processRecordService;
     }
@@ -45,7 +49,7 @@ public class EmbeddingApplicationService {
     public void init() {
         try {
             logger.info("正在初始化向量数据库集合: {}", COLLECTION_NAME);
-            embeddingGateway.createCollection(COLLECTION_NAME);
+            textNodeVectorRepository.createCollection(COLLECTION_NAME);
             logger.info("向量数据库集合初始化完成。");
         } catch (Exception e) {
             logger.error("初始化向量数据库集合失败: {}", e.getMessage(), e);
@@ -121,7 +125,7 @@ public class EmbeddingApplicationService {
             }
 
             // 6. 保存到向量数据库
-            embeddingGateway.saveTextNodeToVectorDatabase(nodesToEmbed, COLLECTION_NAME);
+            textNodeVectorRepository.saveTextNodeToVectorDatabase(nodesToEmbed, COLLECTION_NAME);
 
             // 7. 更新本地记录的向量化状态
             processRecordService.updateEmbeddingStatus(sourceDocumentId, true);

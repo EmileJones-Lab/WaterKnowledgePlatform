@@ -29,6 +29,7 @@ import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.result.FileNode;
 import top.emilejones.hhu.domain.result.TextNode;
@@ -53,6 +54,7 @@ public class KnowledgeApplicationServiceV2 {
     private final KnowledgeDomainService knowledgeDomainService;
     private final NodeRepository nodeRepository;
     private final EmbeddingGateway embeddingGateway;
+    private final TextNodeVectorRepository textNodeVectorRepository;
 
     public KnowledgeApplicationServiceV2(ApplicationEventPublisher publisher,
                                          KnowledgeCatalogRepository knowledgeCatalogRepository,
@@ -63,7 +65,8 @@ public class KnowledgeApplicationServiceV2 {
                                          SourceDocumentRepository sourceDocumentRepository,
                                          KnowledgeDomainService knowledgeDomainService,
                                          NodeRepository nodeRepository,
-                                         EmbeddingGateway embeddingGateway) {
+                                         EmbeddingGateway embeddingGateway,
+                                         TextNodeVectorRepository textNodeVectorRepository) {
         this.publisher = publisher;
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
         this.knowledgeDocumentRepository = knowledgeDocumentRepository;
@@ -74,6 +77,7 @@ public class KnowledgeApplicationServiceV2 {
         this.knowledgeDomainService = knowledgeDomainService;
         this.nodeRepository = nodeRepository;
         this.embeddingGateway = embeddingGateway;
+        this.textNodeVectorRepository = textNodeVectorRepository;
     }
 
     /**
@@ -109,7 +113,7 @@ public class KnowledgeApplicationServiceV2 {
 
         knowledgeCatalogRepository.save(knowledgeCatalog);
         knowledgeCatalog.pushEvents().forEach(publisher::publishEvent);
-        embeddingGateway.createCollection(milvusCollectionName);
+        textNodeVectorRepository.createCollection(milvusCollectionName);
 
         return DtoConverter.toKnowledgeDirectoryDTO(knowledgeCatalog);
     }
@@ -147,7 +151,7 @@ public class KnowledgeApplicationServiceV2 {
 
         // 执行删除与解绑逻辑
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(Objects.requireNonNull(catalog.getId()), docIds);
-        embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName()));
         knowledgeCatalogRepository.delete(id);
     }
 
@@ -216,7 +220,7 @@ public class KnowledgeApplicationServiceV2 {
 
         List<TextNode> textNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
         if (!textNodes.isEmpty()) {
-            embeddingGateway.saveTextNodeToVectorDatabase(textNodes, catalog.getMilvusCollectionName());
+            textNodeVectorRepository.saveTextNodeToVectorDatabase(textNodes, catalog.getMilvusCollectionName());
         }
 
 
@@ -240,7 +244,7 @@ public class KnowledgeApplicationServiceV2 {
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);
         List<String> textNodeIds = findTextNodeIdsByDocumentIds(documentIds);
 
-        embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName()));
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(dirId, documentIds);
     }
 
