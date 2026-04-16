@@ -111,7 +111,7 @@ public class KnowledgeApplicationService {
         // 3.新增知识库
         knowledgeCatalogRepository.save(knowledgeCatalog);
         knowledgeCatalog.pushEvents().forEach(publisher::publishEvent);
-        textNodeVectorRepository.createCollection(milvusCollectionName);
+        textNodeVectorRepository.createTextNodeCollection(milvusCollectionName);
 
         // 4.将KnowledgeCatalog信息封装为KnowledgeDirectoryDTO
         KnowledgeDirectoryDTO knowledgeDirectoryDTO = DtoConverter.toKnowledgeDirectoryDTO(knowledgeCatalog);
