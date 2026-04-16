@@ -58,4 +58,12 @@ interface INeo4jTreeRepository {
      * @return 孩子节点信息列表
      */
     fun children(id: String): List<Neo4jTextNode>
+
+    /**
+     * 根据 fileNodeId 查询出结构化的树状结构
+     *
+     * @param fileNodeId 文件节点唯一标识
+     * @return 树状结构的根节点（NULL 类型的 TextNodeDTO）
+     */
+    fun findTreeByFileNodeId(fileNodeId: String): TextNodeDTO
 }

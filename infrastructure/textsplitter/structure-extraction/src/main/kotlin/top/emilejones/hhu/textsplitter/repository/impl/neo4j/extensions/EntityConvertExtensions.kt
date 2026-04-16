@@ -97,3 +97,22 @@ fun Neo4jTextNode.asTextNode(fileNode: Neo4jFileNode): TextNode {
         isEmbedded = this.vector != null
     )
 }
+
+fun Neo4jTextNode.toTextNodeDTO(): TextNodeDTO {
+    return TextNodeDTO(
+        id = this.id,
+        text = this.text,
+        seq = this.seq,
+        level = this.level,
+        type = this.type,
+        summary = this.summary
+    )
+}
+
+fun Neo4jFileNode.toFileNodeDTO(): FileNodeDTO {
+    return FileNodeDTO(
+        id = this.id,
+        fileId = this.fileId,
+        fileAbstract = this.fileAbstract
+    )
+}
