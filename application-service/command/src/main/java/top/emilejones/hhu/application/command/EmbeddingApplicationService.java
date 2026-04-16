@@ -49,7 +49,7 @@ public class EmbeddingApplicationService {
     public void init() {
         try {
             logger.info("正在初始化向量数据库集合: {}", COLLECTION_NAME);
-            textNodeVectorRepository.createCollection(COLLECTION_NAME);
+            textNodeVectorRepository.createTextNodeCollection(COLLECTION_NAME);
             logger.info("向量数据库集合初始化完成。");
         } catch (Exception e) {
             logger.error("初始化向量数据库集合失败: {}", e.getMessage(), e);

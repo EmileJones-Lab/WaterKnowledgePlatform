@@ -118,42 +118,6 @@ class Neo4jNodeRepositoryAdaptorTest {
         assertEquals(newNodeId, stored?.id)
     }
     
-    // 重新编写测试方法，先注入 ModelClient
-    @Autowired
-    private lateinit var modelClient: top.emilejones.hhu.model.ModelClient
-
-    @Test
-    fun `recallTextNode should return mapped text nodes`() {
-        // 1. Prepare data in Neo4j
-        val sample = insertSampleTree()
-        val textNodeId = sample.textNodeIds.first()
-        val text = "first text node"
-
-        // 2. Prepare data in Milvus
-        // Get embedding for the text to ensure it can be recalled
-        val vector = modelClient.embedding(text)
-        
-        val datum = EmbeddingDatum(
-            neo4jNodeId = textNodeId,
-            vector = vector
-        )
-        milvusRepository.insert(testCollection, datum)
-        
-        // Wait for Milvus consistency
-        Thread.sleep(1000)
-
-        // 3. Call method
-        val result = adaptor.recallTextNode(text, testCollection)
-
-        // 4. Verify
-        // Should find at least one node (the one we just inserted)
-        assertTrue(result.isNotEmpty(), "Should recall at least one node")
-        val recalledNode = result.first { it.id == textNodeId }
-        assertEquals(textNodeId, recalledNode.id)
-        assertEquals(sample.fileNodeId, recalledNode.fileNodeId)
-        assertEquals(text, recalledNode.text)
-    }
-
     @Test
     fun `deleteAllNodeByFileNodeId should remove file and related text nodes`() {
         val sample = insertSampleTree()
@@ -218,7 +182,7 @@ class Neo4jNodeRepositoryAdaptorTest {
 
         return SampleTree(
             fileNodeId = fileNode.id,
-            fileId = fileNode.fileId!!,
+            fileId = fileNode.fileId,
             textNodeIds = listOf(first.id, second.id)
         )
     }

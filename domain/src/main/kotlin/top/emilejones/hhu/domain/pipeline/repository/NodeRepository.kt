@@ -50,17 +50,6 @@ interface NodeRepository {
     fun saveTextNode(textNode: TextNode)
 
     /**
-     * 根据问题召回相关节点。
-     *
-     * 约定：依赖向量库/全文检索结果，需保证可重复调用且按照相关度排序（排序规则由实现决定）。
-     *
-     * @param query 用户问题
-     * @param collectionName 目标知识库/向量集合
-     * @return 和问题相关的节点列表
-     */
-    fun recallTextNode(query: String, collectionName: String): List<TextNode>
-
-    /**
      * 删除指定的文件节点以及其下的所有子节点。
      *
      * 约定：调用方需保证Id合法；实现应执行级联删除，确保FileNode及其所有关联的TextNode等子节点被清理。

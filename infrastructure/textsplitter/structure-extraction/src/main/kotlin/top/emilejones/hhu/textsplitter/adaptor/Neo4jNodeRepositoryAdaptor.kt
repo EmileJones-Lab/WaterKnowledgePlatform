@@ -6,13 +6,11 @@ import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.*
-import top.emilejones.hhu.textsplitter.service.IRecallService
 import java.util.*
 
 @Service
 class Neo4jNodeRepositoryAdaptor(
-    private val neo4jRepository: INeo4jRepository,
-    private val recallService: IRecallService
+    private val neo4jRepository: INeo4jRepository
 ) : NodeRepository {
     override fun findFileNodeByFileNodeId(fileNodeId: String): Optional<FileNode> {
         return Optional.ofNullable(neo4jRepository.searchNeo4jFileNodeByNodeId(fileNodeId)?.asFileNode())
@@ -50,14 +48,6 @@ class Neo4jNodeRepositoryAdaptor(
             return
         }
         neo4jRepository.updateNodeByElementId(dbDatum.elementId!!, dbDatum.diff(newDatum))
-    }
-
-    override fun recallTextNode(query: String, collectionName: String): List<TextNode> {
-        return recallService.recallNode(query, collectionName)
-            .map {
-                val fileNode = neo4jRepository.searchNeo4jFileNodeByTextNode(it.id)
-                it.asTextNode(fileNode)
-            }.toList()
     }
 
     override fun deleteAllNodeByFileNodeId(id: String) {

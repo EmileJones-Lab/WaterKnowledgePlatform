@@ -5,13 +5,18 @@ import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository
 import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
+import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
+import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.asTextNode
+import top.emilejones.hhu.textsplitter.service.IRecallService
 
 /**
  * 向量库仓库的适配器实现，负责与 Milvus 进行交互。
  */
 @Service
 class TextNodeVectorRepositoryAdaptor(
-    private val multiCollectionMilvusRepository: IMultiCollectionMilvusRepository
+    private val multiCollectionMilvusRepository: IMultiCollectionMilvusRepository,
+    private val recallService: IRecallService,
+    private val neo4jRepository: INeo4jRepository
 ) : TextNodeVectorRepository {
 
     override fun saveTextNodeToVectorDatabase(textNodeList: List<TextNode>, collectionName: String) {
@@ -24,8 +29,16 @@ class TextNodeVectorRepositoryAdaptor(
         multiCollectionMilvusRepository.batchDelete(collectionName, textNodeIdList)
     }
 
-    override fun createCollection(collectionName: String) {
+    override fun createTextNodeCollection(collectionName: String) {
         multiCollectionMilvusRepository.createCollection(collectionName)
+    }
+
+    override fun recallTextNode(query: String, collectionName: String): List<TextNode> {
+        return recallService.recallNode(query, collectionName)
+            .map {
+                val fileNode = neo4jRepository.searchNeo4jFileNodeByTextNode(it.id)
+                it.asTextNode(fileNode)
+            }.toList()
     }
 
     /**

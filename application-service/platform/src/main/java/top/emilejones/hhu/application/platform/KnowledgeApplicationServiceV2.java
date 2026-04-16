@@ -113,7 +113,7 @@ public class KnowledgeApplicationServiceV2 {
 
         knowledgeCatalogRepository.save(knowledgeCatalog);
         knowledgeCatalog.pushEvents().forEach(publisher::publishEvent);
-        textNodeVectorRepository.createCollection(milvusCollectionName);
+        textNodeVectorRepository.createTextNodeCollection(milvusCollectionName);
 
         return DtoConverter.toKnowledgeDirectoryDTO(knowledgeCatalog);
     }

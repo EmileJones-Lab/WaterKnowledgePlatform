@@ -26,7 +26,7 @@ interface TextNodeVectorRepository {
      *
      * @param collectionName 要创建的 collection 的名称。
      */
-    fun createCollection(collectionName: String)
+    fun createTextNodeCollection(collectionName: String)
 
     /**
      * 从向量数据库中删除指定文本节点。
@@ -39,4 +39,15 @@ interface TextNodeVectorRepository {
      * @param collectionName 目标向量库/集合名称
      */
     fun deleteTextNodeFromVectorDatabases(textNodeIdList: List<String>, collectionName: String)
+
+    /**
+     * 根据问题召回相关节点。
+     *
+     * 约定：依赖向量库/全文检索结果，需保证可重复调用且按照相关度排序（排序规则由实现决定）。
+     *
+     * @param query 用户问题
+     * @param collectionName 目标知识库/向量集合
+     * @return 和问题相关的节点列表
+     */
+    fun recallTextNode(query: String, collectionName: String): List<TextNode>
 }
