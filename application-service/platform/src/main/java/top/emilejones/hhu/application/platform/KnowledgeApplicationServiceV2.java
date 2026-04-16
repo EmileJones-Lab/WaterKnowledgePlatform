@@ -1,7 +1,6 @@
 package top.emilejones.hhu.application.platform;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.platform.dto.LazyPageDTO;
@@ -18,24 +17,23 @@ import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
-import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
-import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
 import top.emilejones.hhu.domain.knowledge.service.KnowledgeDomainService;
-import top.emilejones.hhu.domain.result.FileNode;
-import top.emilejones.hhu.domain.result.TextNode;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
-import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
+import top.emilejones.hhu.domain.result.FileNode;
+import top.emilejones.hhu.domain.result.TextNode;
 
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -57,15 +55,15 @@ public class KnowledgeApplicationServiceV2 {
     private final EmbeddingGateway embeddingGateway;
 
     public KnowledgeApplicationServiceV2(ApplicationEventPublisher publisher,
-                                       KnowledgeCatalogRepository knowledgeCatalogRepository,
-                                       KnowledgeDocumentRepository knowledgeDocumentRepository,
-                                       EmbeddingMissionRepository embeddingMissionRepository,
-                                       OcrMissionRepository ocrMissionRepository,
-                                       StructureExtractionMissionRepository structureExtractionMissionRepository,
-                                       SourceDocumentRepository sourceDocumentRepository,
-                                       KnowledgeDomainService knowledgeDomainService,
-                                       NodeRepository nodeRepository,
-                                       EmbeddingGateway embeddingGateway) {
+                                         KnowledgeCatalogRepository knowledgeCatalogRepository,
+                                         KnowledgeDocumentRepository knowledgeDocumentRepository,
+                                         EmbeddingMissionRepository embeddingMissionRepository,
+                                         OcrMissionRepository ocrMissionRepository,
+                                         StructureExtractionMissionRepository structureExtractionMissionRepository,
+                                         SourceDocumentRepository sourceDocumentRepository,
+                                         KnowledgeDomainService knowledgeDomainService,
+                                         NodeRepository nodeRepository,
+                                         EmbeddingGateway embeddingGateway) {
         this.publisher = publisher;
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
         this.knowledgeDocumentRepository = knowledgeDocumentRepository;
@@ -204,24 +202,34 @@ public class KnowledgeApplicationServiceV2 {
         KnowledgeDocument doc = knowledgeDocumentRepository.find(documentId);
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);
 
-        // 领域服务执行绑定
-        KnowledgeDocumentAddedToCatalogEvent event = knowledgeDomainService.bindKnowledgeDocumentToKnowledgeCatalog(doc, catalog);
-        knowledgeCatalogRepository.bind(doc, catalog, event.getBindTime());
+        // 1. 领域服务执行绑定校验并获取绑定时间
+        Instant bindTime = knowledgeDomainService.bindKnowledgeDocumentToKnowledgeCatalog(doc, catalog);
+        knowledgeCatalogRepository.bind(doc, catalog, bindTime);
 
-        // 获取任务背景信息
+        // 2. 获取向量化任务信息
         EmbeddingMission embeddingMission = checkAndGetEmbeddingMission(doc.getEmbeddingMissionId());
-        MissionContext context = fetchMissionContext(embeddingMission.getSourceDocumentId());
 
-        // 封装 DTO
+        // 3. 将向量化数据存入向量数据库
+        String fileNodeId = embeddingMission.getFileNodeId();
+        if (fileNodeId == null)
+            throw new NullPointerException("不存在的fileNode: " + fileNodeId);
+
+        List<TextNode> textNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
+        if (!textNodes.isEmpty()) {
+            embeddingGateway.saveTextNodeToVectorDatabase(textNodes, catalog.getMilvusCollectionName());
+        }
+
+
+        // 4. 获取任务背景信息并封装 DTO
+        MissionContext context = fetchMissionContext(embeddingMission.getSourceDocumentId());
         KnowledgeFileDTO dto = new KnowledgeFileDTO();
         dto.setId(doc.getId());
         dto.setType(DtoConverter.mapKnowledgeDocumentType(doc.getType()));
-        dto.setBindTime(event.getBindTime());
+        dto.setBindTime(bindTime);
         dto.setOcrMission(context.ocrMissions());
         dto.setExtractStructureMission(context.splitMissions());
         dto.setEmbeddingMission(context.embeddingMissions());
 
-        publisher.publishEvent(event);
         return dto;
     }
 
@@ -381,5 +389,6 @@ public class KnowledgeApplicationServiceV2 {
             List<OcrMissionDTO> ocrMissions,
             List<DocumentSplittingMissionDTO> splitMissions,
             List<EmbeddingMissionDTO> embeddingMissions
-    ) {}
+    ) {
+    }
 }

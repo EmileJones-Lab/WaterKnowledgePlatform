@@ -5,7 +5,6 @@ import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType
-import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent
 import java.time.Instant
 
 /**
@@ -15,23 +14,19 @@ import java.time.Instant
 class KnowledgeDomainService {
     /**
      * 添加知识文件到知识库中，如果违规操作会抛出异常。
-     * 负责校验业务规则并生成领域事件，具体的持久化与事件发布由上层应用服务处理。
+     * 负责校验业务规则并返回绑定时间。
      * @param knowledgeDocument 知识文件
      * @param knowledgeCatalog 知识库
-     * @return KnowledgeDocumentAddedToCatalogEvent 绑定成功的领域事件
+     * @return Instant 绑定成功的时间戳
      */
     fun bindKnowledgeDocumentToKnowledgeCatalog(
         knowledgeDocument: KnowledgeDocument,
         knowledgeCatalog: KnowledgeCatalog
-    ): KnowledgeDocumentAddedToCatalogEvent {
+    ): Instant {
         if (knowledgeCatalog.type == KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR) {
             require(knowledgeDocument.type == KnowledgeDocumentType.STRUCTURE_SPLITTER) { "结构化知识库只能存储结构化内容" }
         }
         
-        return KnowledgeDocumentAddedToCatalogEvent(
-            knowledgeDocument = knowledgeDocument,
-            knowledgeCatalog = knowledgeCatalog,
-            bindTime = Instant.now()
-        )
+        return Instant.now()
     }
 }
