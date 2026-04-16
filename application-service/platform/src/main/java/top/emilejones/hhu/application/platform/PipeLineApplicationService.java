@@ -1,13 +1,18 @@
 package top.emilejones.hhu.application.platform;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.statemachine.StateMachine;
+import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMissionDTO;
 import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
+import top.emilejones.hhu.application.platform.statemachine.PipelineContext;
+import top.emilejones.hhu.application.platform.statemachine.PipelineEvent;
+import top.emilejones.hhu.application.platform.statemachine.PipelineState;
 import top.emilejones.hhu.application.platform.utils.DtoConverter;
-import top.emilejones.hhu.common.util.Pair;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
@@ -29,7 +34,6 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class PipeLineApplicationService {
-    private final ApplicationEventPublisher publisher;
     private final StructureExtractionMissionRepository structureExtractionMissionRepository;
     private final EmbeddingMissionRepository embeddingMissionRepository;
     private final EmbeddingGateway embeddingGateway;
@@ -39,9 +43,9 @@ public class PipeLineApplicationService {
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;
     private final ProcessedDocumentRepository processedDocumentRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
+    private final StateMachineFactory<PipelineState, PipelineEvent> stateMachineFactory;
 
-    public PipeLineApplicationService(ApplicationEventPublisher publisher, StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository, ProcessedDocumentRepository processedDocumentRepository, SourceDocumentRepository sourceDocumentRepository) {
-        this.publisher = publisher;
+    public PipeLineApplicationService(StructureExtractionMissionRepository structureExtractionMissionRepository, EmbeddingMissionRepository embeddingMissionRepository, EmbeddingGateway embeddingGateway, NodeRepository nodeRepository, OcrMissionRepository ocrMissionRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, KnowledgeCatalogRepository knowledgeCatalogRepository, ProcessedDocumentRepository processedDocumentRepository, SourceDocumentRepository sourceDocumentRepository, StateMachineFactory<PipelineState, PipelineEvent> stateMachineFactory) {
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.embeddingGateway = embeddingGateway;
@@ -51,6 +55,7 @@ public class PipeLineApplicationService {
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
         this.processedDocumentRepository = processedDocumentRepository;
         this.sourceDocumentRepository = sourceDocumentRepository;
+        this.stateMachineFactory = stateMachineFactory;
     }
 
     /**
@@ -138,37 +143,45 @@ public class PipeLineApplicationService {
         }
 
         return sourceDocumentIdList.stream()
-                // 1. 查找已存在的有效任务
                 .map(id -> {
                     Optional<StructureExtractionMission> existing = structureExtractionMissionRepository.findBySourceDocumentId(id).stream()
                             .filter(mission -> mission.isSuccess() ||
                                     MissionStatus.RUNNING.equals(mission.getStatus()) ||
                                     MissionStatus.PENDING.equals(mission.getStatus()))
                             .findFirst();
-                    return new Pair<>(id, existing);
-                })
-                // 2. 如果不存在则创建新任务，并标记为新建
-                .map(entry -> {
-                    if (entry.getValue().isPresent()) {
-                        return new Pair<>(entry.getValue().get(), false);
+
+                    StructureExtractionMission mission;
+                    if (existing.isPresent()) {
+                        mission = existing.get();
                     } else {
-                        StructureExtractionMission newMission = StructureExtractionMission.Companion.create(
-                                entry.getKey()
-                        );
-                        return new Pair<>(newMission, true);
+                        mission = StructureExtractionMission.Companion.create(id);
+                        structureExtractionMissionRepository.save(mission);
+                        startPipeline(id, PipelineState.STRUCTURE_EXTRACTION, mission.getId());
                     }
+                    return mission;
                 })
-                // 3. 发布新建任务事件
-                .peek(entry -> {
-                    if (entry.getValue()) {
-                        publisher.publishEvent(entry.getKey());
-                    }
-                })
-                // 4. 提取任务实体
-                .map(Pair::getKey)
-                // 5. 转换为DTO
                 .map(DtoConverter::toDocumentSplittingMissionDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 启动文档处理流水线。
+     *
+     * @param sourceDocumentId 源文件唯一标识 ID。
+     * @param targetState      流水线预期的目标终点状态。
+     * @param topMissionId     发起此次流水线的最顶层任务 ID。
+     */
+    private void startPipeline(String sourceDocumentId, PipelineState targetState, String topMissionId) {
+        StateMachine<PipelineState, PipelineEvent> stateMachine = stateMachineFactory.getStateMachine();
+        PipelineContext context = PipelineContext.builder()
+                .sourceDocumentId(sourceDocumentId)
+                .targetState(targetState)
+                .currentTopMissionId(topMissionId)
+                .build();
+        stateMachine.getExtendedState().getVariables().put("context", context);
+        stateMachine.startReactively()
+                .thenMany(stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(PipelineEvent.TO_OCR).build())))
+                .subscribe();
     }
 
     /**
@@ -192,35 +205,23 @@ public class PipeLineApplicationService {
         }
 
         return sourceDocumentIdList.stream()
-                // 1. 查找已存在的有效任务
                 .map(id -> {
                     Optional<EmbeddingMission> existing = embeddingMissionRepository.findBySourceDocumentId(id).stream()
                             .filter(mission -> mission.isSuccess() ||
                                     MissionStatus.RUNNING.equals(mission.getStatus()) ||
                                     MissionStatus.PENDING.equals(mission.getStatus()))
                             .findFirst();
-                    return new Pair<>(id, existing);
-                })
-                // 2. 如果不存在则创建新任务，并标记为新建
-                .map(entry -> {
-                    if (entry.getValue().isPresent()) {
-                        return new Pair<>(entry.getValue().get(), false);
+
+                    EmbeddingMission mission;
+                    if (existing.isPresent()) {
+                        mission = existing.get();
                     } else {
-                        EmbeddingMission newMission = EmbeddingMission.Companion.create(
-                                entry.getKey()
-                        );
-                        return new Pair<>(newMission, true);
+                        mission = EmbeddingMission.Companion.create(id);
+                        embeddingMissionRepository.save(mission);
+                        startPipeline(id, PipelineState.EMBEDDING, mission.getId());
                     }
+                    return mission;
                 })
-                // 3. 发布新建任务事件
-                .peek(entry -> {
-                    if (entry.getValue()) {
-                        publisher.publishEvent(entry.getKey());
-                    }
-                })
-                // 4. 提取任务实体
-                .map(Pair::getKey)
-                // 5. 转换为DTO
                 .map(DtoConverter::toEmbeddingMissionDTO)
                 .collect(Collectors.toList());
     }

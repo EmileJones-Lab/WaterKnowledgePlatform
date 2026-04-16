@@ -1,44 +1,87 @@
-package top.emilejones.hhu.application.platform.processor;
+package top.emilejones.hhu.application.platform.statemachine.actions;
 
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.statemachine.StateContext;
+import org.springframework.statemachine.action.Action;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+import top.emilejones.hhu.application.platform.statemachine.PipelineContext;
+import top.emilejones.hhu.application.platform.statemachine.PipelineEvent;
+import top.emilejones.hhu.application.platform.statemachine.PipelineState;
 import top.emilejones.hhu.common.FileUtils;
 import top.emilejones.hhu.common.Result;
 import top.emilejones.hhu.domain.document.SourceDocument;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
-import top.emilejones.hhu.domain.result.ProcessedDocument;
-import top.emilejones.hhu.domain.result.ProcessedDocumentType;
 import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway;
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile;
+import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository;
-import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
+import top.emilejones.hhu.domain.result.ProcessedDocument;
+import top.emilejones.hhu.domain.result.ProcessedDocumentType;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class OcrProcessor {
+public class OcrAction implements Action<PipelineState, PipelineEvent> {
     private final OcrMissionRepository ocrMissionRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
     private final OcrGateway ocrGateway;
     private final ProcessedDocumentRepository processedDocumentRepository;
 
-    public OcrProcessor(OcrMissionRepository ocrMissionRepository, SourceDocumentRepository sourceDocumentRepository, OcrGateway ocrGateway, ProcessedDocumentRepository processedDocumentRepository) {
+    public OcrAction(OcrMissionRepository ocrMissionRepository,
+                     SourceDocumentRepository sourceDocumentRepository,
+                     OcrGateway ocrGateway,
+                     ProcessedDocumentRepository processedDocumentRepository) {
         this.ocrMissionRepository = ocrMissionRepository;
         this.sourceDocumentRepository = sourceDocumentRepository;
         this.ocrGateway = ocrGateway;
         this.processedDocumentRepository = processedDocumentRepository;
     }
 
-    public OcrMission process(String sourceDocumentId) {
+    @Override
+    public void execute(StateContext<PipelineState, PipelineEvent> context) {
+        PipelineContext pipelineContext = context.getExtendedState().get("context", PipelineContext.class);
+        String fileId = pipelineContext.getSourceDocumentId();
+
+        try {
+            // 查找成功的 OCR 任务
+            List<OcrMission> existingMissions = ocrMissionRepository.findBySourceDocumentId(fileId);
+            OcrMission ocrMission = existingMissions.stream()
+                    .filter(OcrMission::isSuccess)
+                    .findFirst()
+                    .orElseGet(() -> performOcr(fileId));
+
+            if (ocrMission.isSuccess()) {
+                pipelineContext.setOcrMission(ocrMission);
+                // OCR 任务结束后不允许直接完成，必须进入结构提取阶段
+                sendEvent(context, PipelineEvent.TO_STRUCTURE_EXTRACTION);
+            } else {
+                sendEvent(context, PipelineEvent.TO_FAILED);
+            }
+        } catch (Exception e) {
+            sendEvent(context, PipelineEvent.TO_FAILED);
+        }
+    }
+
+    private void sendEvent(StateContext<PipelineState, PipelineEvent> context, PipelineEvent event) {
+        context.getStateMachine()
+                .sendEvent(Mono.just(MessageBuilder.withPayload(event).build()))
+                .subscribe();
+    }
+
+    private OcrMission performOcr(String sourceDocumentId) {
         OcrMission ocrMission = OcrMission.Companion.create(sourceDocumentId);
         ocrMission.start();
         ocrMissionRepository.save(ocrMission);
-        Optional<SourceDocument> sourceDocumentOptional = sourceDocumentRepository.findSourceDocumentById(ocrMission.getSourceDocumentId());
+
+        Optional<SourceDocument> sourceDocumentOptional = sourceDocumentRepository.findSourceDocumentById(sourceDocumentId);
         if (sourceDocumentOptional.isEmpty()) {
             ocrMission.failure("源文件不存在！");
             ocrMissionRepository.save(ocrMission);

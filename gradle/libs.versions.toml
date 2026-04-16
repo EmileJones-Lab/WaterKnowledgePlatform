@@ -14,6 +14,7 @@ minio = "8.6.0"
 neo4j = "6.0.3"
 commonsCodec = "1.18.0"
 gson = "2.12.1"
+springStatemachine = "4.0.1"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -27,6 +28,8 @@ minio = { module = "io.minio:minio", version.ref = "minio" }
 neo4jDriver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "neo4j" }
 commonsCodec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+spring-statemachine-bom = { group = "org.springframework.statemachine", name = "spring-statemachine-bom", version.ref = "springStatemachine" }
+spring-statemachine-starter = { group = "org.springframework.statemachine", name = "spring-statemachine-starter" }
 
 # Libraries can be bundled together for easier import
 [bundles]
