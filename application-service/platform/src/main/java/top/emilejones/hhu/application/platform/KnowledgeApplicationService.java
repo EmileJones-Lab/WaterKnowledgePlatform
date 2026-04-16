@@ -19,7 +19,6 @@ import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
-import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
@@ -36,6 +35,7 @@ import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionR
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
+import java.time.Instant;
 import java.util.*;
 
 @Transactional(rollbackFor = Exception.class)
@@ -278,10 +278,10 @@ public class KnowledgeApplicationService {
         }
 
         // 3.绑定之前发布绑定的事件，获得绑定事件
-        KnowledgeDocumentAddedToCatalogEvent knowledgeDocumentAddedToCatalogEvent = knowledgeDomainService.bindKnowledgeDocumentToKnowledgeCatalog(knowledgeDocument, knowledgeCatalog);
+        Instant bindTime = knowledgeDomainService.bindKnowledgeDocumentToKnowledgeCatalog(knowledgeDocument, knowledgeCatalog);
 
         // 4.绑定
-        knowledgeCatalogRepository.bind(knowledgeDocument, knowledgeCatalog, knowledgeDocumentAddedToCatalogEvent.getBindTime());
+        knowledgeCatalogRepository.bind(knowledgeDocument, knowledgeCatalog, bindTime);
 
         // 4.根据embeddingMissionId查询embeddingMission
         EmbeddingMission embeddingMission = embeddingMissionRepository.find(knowledgeDocument.getEmbeddingMissionId());
@@ -289,6 +289,19 @@ public class KnowledgeApplicationService {
         // 判空
         if (embeddingMission == null) {
             throw new NullPointerException("当前embeddingMission不存在！");
+        }
+
+        // 保存文本节点到向量数据库 (迁移自 PipeLineApplicationService)
+        try {
+            String fileNodeId = embeddingMission.getFileNodeId();
+            if (fileNodeId != null) {
+                List<TextNode> textNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
+                if (!textNodes.isEmpty()) {
+                    embeddingGateway.saveTextNodeToVectorDatabase(textNodes, knowledgeCatalog.getMilvusCollectionName());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         // 5.根据fileId查询对应的ocrMission、extractStructureMission和embeddingMission
@@ -315,12 +328,10 @@ public class KnowledgeApplicationService {
         KnowledgeFileDTO knowledgeFileDTO = new KnowledgeFileDTO();
         knowledgeFileDTO.setId(knowledgeDocument.getId());
         knowledgeFileDTO.setType(DtoConverter.mapKnowledgeDocumentType(knowledgeDocument.getType()));
-        knowledgeFileDTO.setBindTime(knowledgeDocumentAddedToCatalogEvent.getBindTime());
+        knowledgeFileDTO.setBindTime(bindTime);
         knowledgeFileDTO.setOcrMission(ocrMissionDTOList);
         knowledgeFileDTO.setExtractStructureMission(documentSplittingMissionDTOList);
         knowledgeFileDTO.setEmbeddingMission(embeddingMissionDTOList);
-
-        publisher.publishEvent(knowledgeDocumentAddedToCatalogEvent);
 
         return knowledgeFileDTO;
     }

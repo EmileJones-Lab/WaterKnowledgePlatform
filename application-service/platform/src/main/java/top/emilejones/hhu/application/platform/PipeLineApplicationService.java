@@ -16,7 +16,6 @@ import top.emilejones.hhu.application.platform.utils.DtoConverter;
 import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
-import top.emilejones.hhu.domain.knowledge.event.KnowledgeDocumentAddedToCatalogEvent;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
@@ -224,42 +223,6 @@ public class PipeLineApplicationService {
                 })
                 .map(DtoConverter::toEmbeddingMissionDTO)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 监听 KnowledgeDocumentAddedToCatalogEvent 事件，负责将向量化数据存入 Milvus。
-     *
-     * @param event 添加知识文档到知识库目录的事件。
-     */
-    @EventListener
-    public void handleKnowledgeDocumentAddedToCatalogEvent(KnowledgeDocumentAddedToCatalogEvent event) {
-        String embeddingMissionId = event.getKnowledgeDocument().getEmbeddingMissionId();
-        String milvusCollectionName = event.getKnowledgeCatalog().getMilvusCollectionName();
-
-        try {
-            // 2. 从 embeddingMissionRepository 查找对应的 EmbeddingMission
-            EmbeddingMission mission = embeddingMissionRepository.find(embeddingMissionId);
-            if (mission == null) {
-                throw new RuntimeException("EmbeddingMission not found for ID: " + embeddingMissionId);
-            }
-
-            // 3. 从 nodeRepository 获取与 EmbeddingMission 关联的 TextNodes
-            String fileNodeId = mission.getFileNodeId();
-            if (fileNodeId == null) {
-                throw new RuntimeException("EmbeddingMission has no fileNodeId associated. Mission ID: " + embeddingMissionId);
-            }
-            List<TextNode> textNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
-
-            if (textNodes.isEmpty()) {
-                return;
-            }
-
-            // 4. 调用 embeddingGateway.saveTextNodeToVectorDatabase 将 TextNodes 存入 Milvus (副作用)
-            embeddingGateway.saveTextNodeToVectorDatabase(textNodes, milvusCollectionName);
-        } catch (Exception e) {
-            // 5. 如果失败，仅打印日志
-            e.printStackTrace();
-        }
     }
 }
 
