@@ -1,8 +1,6 @@
 package top.emilejones.hhu.application.platform;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.platform.dto.LazyPageDTO;
 import top.emilejones.hhu.application.platform.dto.knowledge.CandidateKnowledgeFileDTO;
@@ -18,7 +16,6 @@ import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
-import top.emilejones.hhu.domain.knowledge.KnowledgeDocumentType;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeCatalogRepository;
 import top.emilejones.hhu.domain.knowledge.repository.KnowledgeDocumentRepository;
 import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithBindTime;
@@ -32,6 +29,7 @@ import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
 import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
+import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
@@ -51,8 +49,9 @@ public class KnowledgeApplicationService {
     private final KnowledgeDomainService knowledgeDomainService;
     private final NodeRepository nodeRepository;
     private final EmbeddingGateway embeddingGateway;
+    private final TextNodeVectorRepository textNodeVectorRepository;
 
-    public KnowledgeApplicationService(ApplicationEventPublisher publisher, KnowledgeCatalogRepository knowledgeCatalogRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, EmbeddingMissionRepository embeddingMissionRepository, OcrMissionRepository ocrMissionRepository, StructureExtractionMissionRepository structureExtractionMissionRepository, SourceDocumentRepository sourceDocumentRepository, KnowledgeDomainService knowledgeDomainService, NodeRepository nodeRepository, EmbeddingGateway embeddingGateway) {
+    public KnowledgeApplicationService(ApplicationEventPublisher publisher, KnowledgeCatalogRepository knowledgeCatalogRepository, KnowledgeDocumentRepository knowledgeDocumentRepository, EmbeddingMissionRepository embeddingMissionRepository, OcrMissionRepository ocrMissionRepository, StructureExtractionMissionRepository structureExtractionMissionRepository, SourceDocumentRepository sourceDocumentRepository, KnowledgeDomainService knowledgeDomainService, NodeRepository nodeRepository, EmbeddingGateway embeddingGateway, TextNodeVectorRepository textNodeVectorRepository) {
         this.publisher = publisher;
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
         this.knowledgeDocumentRepository = knowledgeDocumentRepository;
@@ -63,6 +62,7 @@ public class KnowledgeApplicationService {
         this.knowledgeDomainService = knowledgeDomainService;
         this.nodeRepository = nodeRepository;
         this.embeddingGateway = embeddingGateway;
+        this.textNodeVectorRepository = textNodeVectorRepository;
     }
 
     /**
@@ -111,7 +111,7 @@ public class KnowledgeApplicationService {
         // 3.新增知识库
         knowledgeCatalogRepository.save(knowledgeCatalog);
         knowledgeCatalog.pushEvents().forEach(publisher::publishEvent);
-        embeddingGateway.createCollection(milvusCollectionName);
+        textNodeVectorRepository.createCollection(milvusCollectionName);
 
         // 4.将KnowledgeCatalog信息封装为KnowledgeDirectoryDTO
         KnowledgeDirectoryDTO knowledgeDirectoryDTO = DtoConverter.toKnowledgeDirectoryDTO(knowledgeCatalog);
@@ -168,7 +168,7 @@ public class KnowledgeApplicationService {
         // 解绑所有的知识文件
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(Objects.requireNonNull(knowledgeCatalog.getId()), knowledgeDocumentIdList);
         // 删除知识库中的milvus数据
-        embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
         // 删除知识库
         knowledgeCatalogRepository.delete(id);
     }
@@ -297,7 +297,7 @@ public class KnowledgeApplicationService {
             if (fileNodeId != null) {
                 List<TextNode> textNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
                 if (!textNodes.isEmpty()) {
-                    embeddingGateway.saveTextNodeToVectorDatabase(textNodes, knowledgeCatalog.getMilvusCollectionName());
+                    textNodeVectorRepository.saveTextNodeToVectorDatabase(textNodes, knowledgeCatalog.getMilvusCollectionName());
                 }
             }
         } catch (Exception e) {
@@ -350,7 +350,7 @@ public class KnowledgeApplicationService {
             if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
         }).map(Optional::get).map(FileNode::getId).map(nodeRepository::findTextNodeListByFileNodeId).flatMap(List::stream).map(TextNode::getId).toList();
 
-        embeddingGateway.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(dirId, documentIds);
     }
 

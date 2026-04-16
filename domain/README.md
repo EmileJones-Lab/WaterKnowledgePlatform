@@ -38,7 +38,8 @@
 定义了对外部系统的调用契约：
 - `OcrGateway`: 抽象 OCR 能力（如 MinerU），处理文件流并返回 Markdown 与图片。
 - `StructureExtractionGateway`: 抽象结构解析能力，将文本转换为树状节点。
-- `EmbeddingGateway`: 抽象向量模型调用及向量数据库存储。
+- `EmbeddingGateway`: 抽象向量模型调用。
+- `VectorRepository`: 抽象向量数据库存储。
 
 ### 5. 处理结果领域 (Result Domain)
 描述文档处理后的最终产物：

@@ -4,11 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import top.emilejones.hhu.TextSplitterTestMain
-import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
-import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
+import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository
 import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.domain.result.TextType
+import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
+import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
 import top.emilejones.hhu.textsplitter.repository.impl.milvus.MultiCollectionSingleCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.Neo4jRepositoryImpl
@@ -35,6 +36,9 @@ class RagToolsAdaptorTest {
 
     @Autowired
     private lateinit var adaptor: RagToolsAdaptor
+
+    @Autowired
+    private lateinit var textNodeVectorRepository: TextNodeVectorRepository
 
     private val testCollection = "test_rag_tools_adaptor"
 
@@ -160,7 +164,7 @@ class RagToolsAdaptorTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            adaptor.saveTextNodeToVectorDatabase(listOf(notEmbedded), testCollection)
+            textNodeVectorRepository.saveTextNodeToVectorDatabase(listOf(notEmbedded), testCollection)
         }
     }
 
@@ -188,6 +192,6 @@ class RagToolsAdaptorTest {
             vector = List(1024) { it.toFloat() }
         )
 
-        adaptor.saveTextNodeToVectorDatabase(listOf(embedded1, embedded2), testCollection)
+        textNodeVectorRepository.saveTextNodeToVectorDatabase(listOf(embedded1, embedded2), testCollection)
     }
 }
