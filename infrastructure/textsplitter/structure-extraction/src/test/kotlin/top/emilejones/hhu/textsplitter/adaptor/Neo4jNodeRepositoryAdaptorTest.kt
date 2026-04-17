@@ -9,8 +9,6 @@ import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.textsplitter.domain.dto.FileNodeDTO
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
-import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
-import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
@@ -24,12 +22,8 @@ class Neo4jNodeRepositoryAdaptorTest {
     @Autowired
     private lateinit var neo4jRepository: INeo4jRepository
 
-    @Autowired
-    private lateinit var milvusRepository: IMultiCollectionMilvusRepository
-
     private val createdFileNodeIds = mutableListOf<String>()
     private val createdTextNodeIds = mutableListOf<String>()
-    private val testCollection = "test_collection_neo4j_adaptor"
 
     @AfterEach
     fun tearDown() {

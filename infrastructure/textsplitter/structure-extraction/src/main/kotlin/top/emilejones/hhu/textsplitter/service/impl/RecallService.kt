@@ -55,10 +55,10 @@ class RecallService(
 
     private fun generateCypherByNeo4jTextNodeList(Neo4jTextNodeList: List<Neo4jTextNode>): String {
         val list = Neo4jTextNodeList.stream()
-            .map(Neo4jTextNode::elementId)
+            .map(Neo4jTextNode::id)
             .map { "\"" + it + "\"" }
             .collect(Collectors.joining(", ", "[", "]"))
-        return "MATCH (n: Neo4jTextNode) WHERE elementId(n) IN %s MATCH (f:Neo4jFileNode)-[:CONTAIN]->(n) RETURN n,f".format(
+        return "MATCH (n: TextNode) WHERE n.id IN %s MATCH (f:FileNode)-[:CONTAIN]->(n) RETURN n,f".format(
             list
         )
     }

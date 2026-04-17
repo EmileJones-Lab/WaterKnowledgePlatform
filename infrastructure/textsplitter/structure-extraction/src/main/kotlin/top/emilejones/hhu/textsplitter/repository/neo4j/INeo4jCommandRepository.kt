@@ -37,12 +37,12 @@ interface INeo4jCommandRepository {
     fun insertNeo4jRelationship(relationship: Neo4jRelationship): Neo4jRelationship
 
     /**
-     * 根据elementId去修改节点的属性，如果属性不存在，则添加。
+     * 根据 id 去修改节点的属性，如果属性不存在，则添加。
      *
-     * @param elementId 节点唯一标识
+     * @param id 节点唯一标识
      * @param needUpdatedAttr 需要更新的节点属性
      */
-    fun updateNodeByElementId(elementId: String, needUpdatedAttr: Map<String, Any?>)
+    fun updateNodeById(id: String, needUpdatedAttr: Map<String, Any?>)
 
     /**
      * 通过节点id软删除TextNode

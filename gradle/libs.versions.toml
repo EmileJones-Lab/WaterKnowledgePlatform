@@ -26,6 +26,7 @@ mysqlConnector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql"
 milvusSdk = { module = "io.milvus:milvus-sdk-java", version.ref = "milvus" }
 minio = { module = "io.minio:minio", version.ref = "minio" }
 neo4jDriver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "neo4j" }
+kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 commonsCodec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 spring-statemachine-bom = { group = "org.springframework.statemachine", name = "spring-statemachine-bom", version.ref = "springStatemachine" }
