@@ -45,7 +45,7 @@ fun FileNodeDTO.toNeo4jFileNode(): Neo4jFileNode {
  * 执行逻辑：执行字段的一一映射转换。
  */
 fun Neo4jTextNode.toTextNodeDTO(): TextNodeDTO {
-    val dto = TextNodeDTO(
+    return TextNodeDTO(
         id = this.id,
         text = this.text,
         seq = this.seq,
@@ -54,7 +54,6 @@ fun Neo4jTextNode.toTextNodeDTO(): TextNodeDTO {
         summary = this.summary,
         vector = this.vector
     )
-    return dto
 }
 
 /**
@@ -69,7 +68,8 @@ fun TextNode.toNeo4jTextNode(): Neo4jTextNode {
         level = this.level,
         type = this.type,
         vector = this.vector,
-        isDelete = false
+        isDelete = false,
+        summary = this.summary
     )
 }
 
