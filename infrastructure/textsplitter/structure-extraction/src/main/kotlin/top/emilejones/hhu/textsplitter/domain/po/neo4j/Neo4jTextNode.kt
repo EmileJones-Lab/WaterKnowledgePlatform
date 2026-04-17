@@ -1,4 +1,4 @@
-package top.emilejones.hhu.textsplitter.domain.po
+package top.emilejones.hhu.textsplitter.domain.po.neo4j
 
 import top.emilejones.hhu.domain.result.TextType
 

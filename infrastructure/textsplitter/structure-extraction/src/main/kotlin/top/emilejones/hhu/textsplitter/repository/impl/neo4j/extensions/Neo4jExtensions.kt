@@ -5,10 +5,10 @@ import org.neo4j.driver.Values
 import org.neo4j.driver.types.Node
 import org.neo4j.driver.types.Relationship
 import top.emilejones.hhu.domain.result.TextType
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationshipType
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationship
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jRelationshipType
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jRelationship
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 
 fun Node.asNeo4jTextNode(): Neo4jTextNode {
     return Neo4jTextNode(

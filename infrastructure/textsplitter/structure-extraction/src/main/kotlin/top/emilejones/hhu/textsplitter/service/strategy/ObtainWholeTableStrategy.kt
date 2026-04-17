@@ -1,8 +1,8 @@
 package top.emilejones.hhu.textsplitter.service.strategy
 
 import top.emilejones.hhu.domain.result.TextType
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 
 class ObtainWholeTableStrategy(private val neo4jRepository: INeo4jRepository) : RecallStrategy {

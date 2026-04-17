@@ -4,7 +4,7 @@ import org.neo4j.driver.Driver
 import org.neo4j.driver.SessionConfig
 import org.neo4j.driver.Values
 import org.springframework.stereotype.Repository
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.Neo4jConfig
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.asNeo4jTextNode
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.insertTextNode

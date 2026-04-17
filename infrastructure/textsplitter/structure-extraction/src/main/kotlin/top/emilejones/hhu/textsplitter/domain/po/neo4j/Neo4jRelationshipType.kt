@@ -1,4 +1,4 @@
-package top.emilejones.hhu.textsplitter.domain.po
+package top.emilejones.hhu.textsplitter.domain.po.neo4j
 
 enum class Neo4jRelationshipType(val comment: String) {
     PARENT("父节点"),

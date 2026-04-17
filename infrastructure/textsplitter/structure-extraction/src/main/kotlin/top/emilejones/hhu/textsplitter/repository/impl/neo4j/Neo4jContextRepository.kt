@@ -5,8 +5,8 @@ import org.neo4j.driver.Record
 import org.neo4j.driver.SessionConfig
 import org.neo4j.driver.types.Node
 import org.springframework.stereotype.Repository
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.Neo4jConfig
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.asNeo4jFileNode
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.asNeo4jTextNode

@@ -1,8 +1,8 @@
 package top.emilejones.hhu.textsplitter.repository.neo4j
 
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 
 /**
  * Neo4j 树形结构仓库接口

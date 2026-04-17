@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.model.pojo.RerankResult
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
-import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.repository.ITextNodeMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.IRecallService
 import java.util.stream.Collectors
@@ -17,7 +17,7 @@ import java.util.stream.Collectors
  */
 @Service
 class RecallService(
-    private val milvusRepository: IMultiCollectionMilvusRepository,
+    private val textNodeMilvusRepository: ITextNodeMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
     private val client: ModelClient,
     private val ragConfig: RAGConfig
@@ -33,7 +33,7 @@ class RecallService(
 
         // 从向量数据库中召回数据
         val queryVector: List<Float> = client.embedding(query)
-        val searchResults = milvusRepository.searchByVector(collectionName, queryVector, 100, filter)
+        val searchResults = textNodeMilvusRepository.searchByVector(collectionName, queryVector, 100, filter)
 
         // 从Neo4j获取文本节点
         val neo4jNodes = neo4jRepository.batchSearchNeo4jTextNodeByNodeId(searchResults.map { it.neo4jNodeId })
