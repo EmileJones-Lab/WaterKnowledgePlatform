@@ -218,7 +218,7 @@ public class KnowledgeApplicationServiceV2 {
         if (fileNodeId == null)
             throw new NullPointerException("不存在的fileNode: " + fileNodeId);
 
-        textNodeVectorRepository.saveTextNodeToVectorDatabase(fileNodeId, catalog.getMilvusCollectionName()).getOrThrow();
+        textNodeVectorRepository.saveTextNodeToVectorDatabase(List.of(fileNodeId), catalog.getMilvusCollectionName()).getOrThrow();
 
 
         // 4. 获取任务背景信息并封装 DTO
