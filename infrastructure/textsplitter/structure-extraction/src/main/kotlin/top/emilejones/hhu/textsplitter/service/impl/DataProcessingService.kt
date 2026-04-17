@@ -94,7 +94,7 @@ class DataProcessingService(
             throw IllegalAccessException("The file [${fileId}] was not embedding")
 
         val textNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileId)
-        val embeddingData = textNodeList.map { convertTextNodeToEmbeddingDatum(it) }
+        val embeddingData = textNodeList.map { convertTextNodeToEmbeddingDatum(it, fileNode.id) }
         milvusRepository.batchInsert(collectionName, embeddingData)
     }
 
@@ -102,10 +102,11 @@ class DataProcessingService(
      * 将TextNode转换为EmbeddingDatum。
      * 注意: TextNode必须被向量化过，否则会报错，请调用此方法时做好安全检查。
      */
-    private fun convertTextNodeToEmbeddingDatum(textNode: Neo4jTextNode): EmbeddingDatum {
+    private fun convertTextNodeToEmbeddingDatum(textNode: Neo4jTextNode, fileNodeId: String): EmbeddingDatum {
         return EmbeddingDatum(
             vector = textNode.vector!!,
             neo4jNodeId = textNode.elementId!!,
+            fileNodeId = fileNodeId
         )
     }
 }

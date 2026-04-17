@@ -36,7 +36,7 @@ public class RecallApplicationService {
     public List<String> recallText(String query, String knowledgeCatalogId) {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(knowledgeCatalogId);
         String milvusCollectionName = Objects.requireNonNull(knowledgeCatalog).getMilvusCollectionName();
-        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, milvusCollectionName);
+        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, milvusCollectionName, null);
         return textNodes.stream().map(TextNode::getText).toList();
     }
 }

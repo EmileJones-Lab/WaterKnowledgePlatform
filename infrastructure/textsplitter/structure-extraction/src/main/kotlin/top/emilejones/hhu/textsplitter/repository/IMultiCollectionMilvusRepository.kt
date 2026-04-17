@@ -31,17 +31,13 @@ interface IMultiCollectionMilvusRepository {
     fun batchInsert(collectionName: String, data: List<EmbeddingDatum>): Boolean
 
     /**
-     * 批量删除指定 collection 中的记录。
-     *
-     * 约定：
-     * - 调用方传入的 ID 应对应 collection 主键（当前为 neo4jNodeId）。
-     * - 具体实现需处理部分删除失败或 collection 不存在的场景，并暴露可定位的异常信息。
+     * 根据 fileNodeId 批量删除指定 collection 中的记录。
      *
      * @param collectionName 目标 collection 名称。
-     * @param ids 需要删除的数据主键列表。
+     * @param fileNodeIds 需要删除的 fileNodeId 列表。
      * @return 删除是否成功。
      */
-    fun batchDelete(collectionName: String, ids: List<String>): Boolean
+    fun batchDeleteByFileNodeIds(collectionName: String, fileNodeIds: List<String>): Boolean
 
     /**
      * 使用向量检索并返回完整 EmbeddingDatum。

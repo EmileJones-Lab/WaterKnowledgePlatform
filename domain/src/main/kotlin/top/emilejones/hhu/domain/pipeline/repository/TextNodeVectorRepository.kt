@@ -1,5 +1,6 @@
 package top.emilejones.hhu.domain.pipeline.repository
 
+import top.emilejones.hhu.common.Result
 import top.emilejones.hhu.domain.result.TextNode
 
 /**
@@ -7,16 +8,18 @@ import top.emilejones.hhu.domain.result.TextNode
  */
 interface TextNodeVectorRepository {
     /**
-     * 将向量化后的文本节点存入向量数据库。
+     * 将指定文件节点下的所有已向量化的文本节点存入向量数据库。
      *
      * 约定：
-     * - 调用方需保证传入节点已包含向量信息。
+     * - 实现方需根据 fileNodeId 查询关联的文本节点。
+     * - 仅存储已包含向量信息的节点。
      * - collection 不存在时的处理由实现决定（自动创建或抛出异常），失败需抛出可定位的异常。
      *
-     * @param textNodeList 已包含向量信息的文本节点
+     * @param fileNodeId 文件节点唯一标识
      * @param collectionName 目标向量库/集合名称，若不存在由实现决定是否创建
+     * @return 操作结果包装，成功时无返回值
      */
-    fun saveTextNodeToVectorDatabase(textNodeList: List<TextNode>, collectionName: String)
+    fun saveTextNodeToVectorDatabase(fileNodeId: String, collectionName: String): Result<Void>
 
     /**
      * 创建一个新的向量集合。
@@ -25,20 +28,21 @@ interface TextNodeVectorRepository {
      * 如果 collection 已存在，会选择忽略此请求。
      *
      * @param collectionName 要创建的 collection 的名称。
+     * @return 操作结果包装，成功时无返回值
      */
-    fun createTextNodeCollection(collectionName: String)
+    fun createCollection(collectionName: String): Result<Void>
 
     /**
-     * 从向量数据库中删除指定文本节点。
+     * 从向量数据库中删除指定文件的所有文本节点。
      *
      * 约定：
-     * - 由实现方负责确认集合存在与否，并处理不存在或部分删除失败的场景。
-     * - textNodeIdList 应对应向量库内部存储的节点唯一标识。
+     * - 由实现方负责确认集合存在与否，并处理不存在或删除失败的场景。
      *
-     * @param textNodeIdList 待删除的文本节点 ID 列表
+     * @param fileNodeIds 待删除的文件节点 ID 列表
      * @param collectionName 目标向量库/集合名称
+     * @return 操作结果包装，成功时无返回值
      */
-    fun deleteTextNodeFromVectorDatabases(textNodeIdList: List<String>, collectionName: String)
+    fun deleteTextNodeFromVectorDatabases(fileNodeIds: List<String>, collectionName: String): Result<Void>
 
     /**
      * 根据问题召回相关节点。
@@ -47,7 +51,8 @@ interface TextNodeVectorRepository {
      *
      * @param query 用户问题
      * @param collectionName 目标知识库/向量集合
+     * @param fileNodeIdList 可选：指定召回的文件节点 ID 列表。如果为空或 null，则在全库进行召回。
      * @return 和问题相关的节点列表
      */
-    fun recallTextNode(query: String, collectionName: String): List<TextNode>
+    fun recallTextNode(query: String, collectionName: String, fileNodeIdList: List<String>? = null): List<TextNode>
 }

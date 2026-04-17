@@ -22,18 +22,18 @@ class RecallService(
     private val client: ModelClient,
     private val ragConfig: RAGConfig
 ) : IRecallService {
-    override fun recallText(query: String, collectionName: String): List<String> {
-        return recallNode(query, collectionName).stream()
+    override fun recallText(query: String, collectionName: String, filter: String?): List<String> {
+        return recallNode(query, collectionName, filter).stream()
             .map { it.text }
             .toList()
     }
 
-    override fun recallNode(query: String, collectionName: String): List<Neo4jTextNode> {
+    override fun recallNode(query: String, collectionName: String, filter: String?): List<Neo4jTextNode> {
         val maxResultNumber = ragConfig.recallNumber
 
         // 从向量数据库中召回数据
         val queryVector: List<Float> = client.embedding(query)
-        val searchResults = milvusRepository.searchByVector(collectionName, queryVector, 100)
+        val searchResults = milvusRepository.searchByVector(collectionName, queryVector, 100, filter)
 
         // 从Neo4j获取文本节点
         val neo4jNodes = neo4jRepository.batchSearchNeo4jTextNodeByNodeId(searchResults.map { it.neo4jNodeId })

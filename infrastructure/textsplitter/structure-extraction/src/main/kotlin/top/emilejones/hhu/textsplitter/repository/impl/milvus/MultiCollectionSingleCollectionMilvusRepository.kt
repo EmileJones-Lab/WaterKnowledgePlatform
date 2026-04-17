@@ -88,24 +88,29 @@ class MultiCollectionSingleCollectionMilvusRepository(
         return true
     }
 
-    override fun batchDelete(collectionName: String, ids: List<String>): Boolean {
-        if (ids.isEmpty()) {
+    override fun batchDeleteByFileNodeIds(collectionName: String, fileNodeIds: List<String>): Boolean {
+        if (fileNodeIds.isEmpty()) {
             logger.debug("Batch delete called with empty ids for collection [{}]", collectionName)
             return true
         }
         if (!ensureCollectionExists(collectionName)) {
-            logger.warn("Collection [{}] does not exist, skip delete for ids [{}]", collectionName, ids)
+            logger.warn("Collection [{}] does not exist, skip delete for ids [{}]", collectionName, fileNodeIds)
             return false
         }
+        
+        // 构建根据 fileNodeId 过滤的查询语句
+        val fileIdsString = fileNodeIds.joinToString("\", \"", "\"", "\"")
+        val filter = "fileNodeId in [$fileIdsString]"
+
         val queryReq = QueryReq.builder()
             .databaseName(databaseName)
             .collectionName(collectionName)
-            .ids(ids)
-            .outputFields(listOf("neo4jNodeId", "vector", "isDelete"))
+            .filter(filter)
+            .outputFields(listOf("neo4jNodeId", "fileNodeId", "vector", "isDelete"))
             .build()
         val queryResults = client.query(queryReq).queryResults ?: emptyList()
         if (queryResults.isEmpty()) {
-            logger.warn("No embedding nodes found in collection [{}] for ids [{}]", collectionName, ids)
+            logger.warn("No embedding nodes found in collection [{}] for fileNodeIds [{}]", collectionName, fileNodeIds)
             return true
         }
 
@@ -142,7 +147,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
             SearchReq.builder().databaseName(databaseName).collectionName(collectionName).annsField("vector").topK(topK)
                 .data(mutableListOf).apply {
                     filter(buildFilter(filter))
-                }.outputFields(listOf("neo4jNodeId", "vector", "isDelete"))
+                }.outputFields(listOf("neo4jNodeId", "fileNodeId", "vector", "isDelete"))
                 .searchParams(searchParamsMap).build()
 
         // 发起搜索
@@ -167,9 +172,15 @@ class MultiCollectionSingleCollectionMilvusRepository(
     private fun checkCollectionExistOrCreate(collectionName: String) {
         if (existsCollection.contains(collectionName))
             return
-        val resp = client.listCollections()
-        if (!resp.collectionNames.contains(collectionName))
+        
+        val hasReq = HasCollectionReq.builder()
+            .databaseName(databaseName)
+            .collectionName(collectionName)
+            .build()
+
+        if (!client.hasCollection(hasReq)) {
             createCollection(collectionName)
+        }
         existsCollection.add(collectionName)
     }
 
@@ -202,6 +213,11 @@ class MultiCollectionSingleCollectionMilvusRepository(
             AddFieldReq.builder().fieldName("neo4jNodeId").dataType(DataType.VarChar).isPrimaryKey(true).autoID(false)
                 .maxLength(36) // 必须指定长度
                 .build()
+        )
+
+        // 2.2 fileNodeId (VarChar)
+        schema.addField(
+            AddFieldReq.builder().fieldName("fileNodeId").dataType(DataType.VarChar).maxLength(128).build()
         )
 
         // 2.3 vector (FloatVector，存储向量)
@@ -237,8 +253,9 @@ class MultiCollectionSingleCollectionMilvusRepository(
         val vectorValue = entity["vector"] ?: return null
         val vector = convertVector(vectorValue) ?: return null
         val neo4jId = entity["neo4jNodeId"]?.toString() ?: return null
+        val fileNodeId = entity["fileNodeId"]?.toString() ?: ""
         val isDelete = overrideIsDelete ?: (entity["isDelete"] as? Boolean ?: false)
-        return EmbeddingDatum(vector = vector, neo4jNodeId = neo4jId, isDelete = isDelete)
+        return EmbeddingDatum(vector = vector, neo4jNodeId = neo4jId, fileNodeId = fileNodeId, isDelete = isDelete)
     }
 
     private fun convertVector(vector: Any): List<Float>? {
@@ -265,6 +282,7 @@ class MultiCollectionSingleCollectionMilvusRepository(
         return JsonObject().apply {
             add("vector", gson.toJsonTree(vectorArray))
             addProperty("neo4jNodeId", neo4jNodeId)
+            addProperty("fileNodeId", fileNodeId)
             addProperty("isDelete", isDelete)
         }
     }
@@ -273,8 +291,11 @@ class MultiCollectionSingleCollectionMilvusRepository(
         if (existsCollection.contains(collectionName)) {
             return true
         }
-        val resp = client.listCollections()
-        val exists = resp.collectionNames.contains(collectionName)
+        val hasReq = HasCollectionReq.builder()
+            .databaseName(databaseName)
+            .collectionName(collectionName)
+            .build()
+        val exists = client.hasCollection(hasReq)
         if (exists) {
             existsCollection.add(collectionName)
         }

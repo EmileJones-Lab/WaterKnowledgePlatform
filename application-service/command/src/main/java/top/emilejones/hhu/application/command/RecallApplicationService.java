@@ -36,7 +36,7 @@ public class RecallApplicationService {
      * @return 与查询最相关的文本列表
      */
     public List<String> recallText(String query) {
-        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, EmbeddingApplicationService.COLLECTION_NAME);
+        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, EmbeddingApplicationService.COLLECTION_NAME, null);
         return textNodes.stream()
                 .map(TextNode::getText)
                 .collect(Collectors.toList());
@@ -49,7 +49,7 @@ public class RecallApplicationService {
      * @return 与查询最相关的文本节点列表
      */
     public List<TextNodeDTO> recallTextNodes(String query) {
-        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, EmbeddingApplicationService.COLLECTION_NAME);
+        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, EmbeddingApplicationService.COLLECTION_NAME, null);
         return textNodes.stream()
                 .map(node -> TextNodeDTO.builder()
                         .id(node.getId())
