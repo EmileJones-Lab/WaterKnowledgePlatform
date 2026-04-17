@@ -12,7 +12,6 @@ import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jRelationship
 import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jRelationshipType
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.Neo4jConfig
-import top.emilejones.hhu.textsplitter.repository.impl.neo4j.delegates.elementId
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.*
 import java.util.*
 
@@ -24,9 +23,20 @@ class NodeTreeRepository(
 
     private val logger = LoggerFactory.getLogger(NodeTreeRepository::class.java)
 
+    /**
+     * 递归插入整个文档树结构。
+     * 执行逻辑：开启写事务，首先持久化文件节点；随后从根节点开始递归遍历文档树，依次插入文本节点并建立父子 (CHILD/PARENT)、序列 (NEXT/PRE_SEQUENCE) 以及所属 (CONTAIN) 关系；最后提交事务或在失败时回滚。
+     * 
+     * @param rootNode 树的虚拟根节点，必须包含有效的 fileNode 且至少有一个子节点
+     * @throws IllegalArgumentException 参数非法时抛出
+     * @throws RuntimeException 事务失败时抛出
+     */
     fun insertTree(rootNode: TextNodeDTO) {
         if (rootNode.fileNode == null)
             throw IllegalArgumentException("The fileNode of rootNode must be not null!")
+
+        if (rootNode.childNum() == 0)
+            throw IllegalArgumentException("The rootNode must have at least one child!")
 
         rootNode.getChild(0).preNode = null
         for (i in 0..<rootNode.childNum()) {
@@ -58,6 +68,14 @@ class NodeTreeRepository(
         }
     }
 
+    /**
+     * 从数据库加载并重组指定文件的树状结构。
+     * 执行逻辑：在只读事务中分步执行：1. 获取文件节点；2. 获取该文件关联的所有文本节点；3. 批量查询并重建 CHILD/PARENT 关系；4. 批量查询并重建序列关系；5. 构建虚拟根节点并将顶层节点挂载，最终返回完整的内存树模型。
+     * 
+     * @param fileNodeId 文件节点唯一标识
+     * @return 包含完整层级结构的虚拟根节点
+     * @throws NoSuchElementException 若找不到指定的文件节点
+     */
     fun findTreeByFileNodeId(fileNodeId: String): TextNodeDTO {
         driver.session(SessionConfig.forDatabase(neo4jConfig.database)).use { session ->
             return session.executeRead { tx ->
@@ -69,7 +87,6 @@ class NodeTreeRepository(
                 if (!fileNodeResult.hasNext()) throw NoSuchElementException("FileNode not found: ${'$'}fileNodeId")
                 val neo4jFileNode = fileNodeResult.single()["f"].asNode().asNeo4jFileNode()
                 val fileNodeDTO = neo4jFileNode.toFileNodeDTO()
-                fileNodeDTO.elementId = neo4jFileNode.elementId
 
                 // 2. Fetch all TextNodes for this FileNode
                 val nodesResult = tx.run(
@@ -78,8 +95,6 @@ class NodeTreeRepository(
                 )
                 val nodes = nodesResult.list().map { it["t"].asNode().asNeo4jTextNode() }
                 val dtoMap = nodes.associate { it.id to it.toTextNodeDTO() }
-                // Set elementId for each DTO
-                nodes.forEach { dtoMap[it.id]?.elementId = it.elementId }
 
                 // 3. Fetch CHILD relationships
                 val childRelResult = tx.run(
@@ -139,13 +154,19 @@ class NodeTreeRepository(
         }
     }
 
+    /**
+     * 深度优先遍历树节点并插入。
+     * 
+     * @param fileNode 关联的文件节点
+     * @param nowNode 当前正在处理的节点
+     * @param queryRunner 用于执行 Cypher 的驱动对象
+     */
     private fun deepVisitAndInsertNode(
         fileNode: Neo4jFileNode,
         nowNode: TextNodeDTO,
         queryRunner: QueryRunner
     ) {
-        val nowNeo4jTextNode = queryRunner.insertTextNode(nowNode.toNeo4jTextNode())
-        nowNode.elementId = nowNeo4jTextNode.elementId
+        queryRunner.insertTextNode(nowNode.toNeo4jTextNode())
         insertAllRelationShip(fileNode, nowNode, queryRunner)
 
         for (i in 0..<nowNode.childNum()) {
@@ -153,19 +174,27 @@ class NodeTreeRepository(
         }
     }
 
+    /**
+     * 为节点插入所有的关联关系。
+     * 包括：CHILD（父到子）、PARENT（子到父）、PRE_SEQUENCE（后到前）、NEXT_SEQUENCE（前到后）以及 CONTAIN（文件到文本）。
+     * 
+     * @param fileNode 所属文件节点
+     * @param nowNode 当前文本节点
+     * @param queryRunner 用于执行 Cypher 的驱动对象
+     */
     private fun insertAllRelationShip(
         fileNode: Neo4jFileNode,
         nowNode: TextNodeDTO,
         queryRunner: QueryRunner
     ) {
-        val nowNodeElementId = nowNode.elementId!!
+        val nowNodeId = nowNode.id
 
         if (nowNode.parentNode != null) {
             // 孩子关系
             queryRunner.insertRelationship(
                 Neo4jRelationship(
-                    startNodeElementId = nowNode.parentNode!!.elementId!!,
-                    endNodeElementId = nowNodeElementId,
+                    startNodeId = nowNode.parentNode!!.id,
+                    endNodeId = nowNodeId,
                     type = Neo4jRelationshipType.CHILD
                 )
             )
@@ -173,8 +202,8 @@ class NodeTreeRepository(
             // 父亲关系
             queryRunner.insertRelationship(
                 Neo4jRelationship(
-                    startNodeElementId = nowNodeElementId,
-                    endNodeElementId = nowNode.parentNode!!.elementId!!,
+                    startNodeId = nowNodeId,
+                    endNodeId = nowNode.parentNode!!.id,
                     type = Neo4jRelationshipType.PARENT
                 )
             )
@@ -185,8 +214,8 @@ class NodeTreeRepository(
             // 前序关系
             queryRunner.insertRelationship(
                 Neo4jRelationship(
-                    startNodeElementId = nowNodeElementId,
-                    endNodeElementId = nowNode.preNode!!.elementId!!,
+                    startNodeId = nowNodeId,
+                    endNodeId = nowNode.preNode!!.id,
                     type = Neo4jRelationshipType.PRE_SEQUENCE
                 )
             )
@@ -194,8 +223,8 @@ class NodeTreeRepository(
             // 后序关系
             queryRunner.insertRelationship(
                 Neo4jRelationship(
-                    startNodeElementId = nowNode.preNode!!.elementId!!,
-                    endNodeElementId = nowNodeElementId,
+                    startNodeId = nowNode.preNode!!.id,
+                    endNodeId = nowNodeId,
                     type = Neo4jRelationshipType.NEXT_SEQUENCE
                 )
             )
@@ -204,8 +233,8 @@ class NodeTreeRepository(
         // 文件包含关系
         queryRunner.insertRelationship(
             Neo4jRelationship(
-                startNodeElementId = fileNode.elementId!!,
-                endNodeElementId = nowNodeElementId,
+                startNodeId = fileNode.id,
+                endNodeId = nowNodeId,
                 type = Neo4jRelationshipType.CONTAIN
             )
         )

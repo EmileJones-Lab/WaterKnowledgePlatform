@@ -57,7 +57,7 @@ class DataProcessingService(
         logger.info("Success save tree structure of the file [{}] in neo4j", fileId)
         val existsFileNode = neo4jRepository.searchNeo4jFileNodeByFileId(fileId)!!
 
-        return Result.success(existsFileNode.elementId!!)
+        return Result.success(existsFileNode.id)
     }
 
     override fun embedTextNodes(fileId: String): Result<Unit> = runCatching {
@@ -78,11 +78,11 @@ class DataProcessingService(
                 }.awaitAll()
             }
             embeddingData.forEach {
-                logger.debug("Insert vector field in TextNode [{}] ", it.elementId)
-                neo4jRepository.updateNodeByElementId(it.elementId!!, mapOf(Pair("vector", it.vector!!)))
+                logger.debug("Insert vector field in TextNode [{}] ", it.id)
+                neo4jRepository.updateNodeById(it.id, mapOf(Pair("vector", it.vector!!)))
             }
             logger.debug("Changing FileNode [{}] field isEmbedding from false to true in Neo4j", fileId);
-            neo4jRepository.updateNodeByElementId(fileNode.elementId!!, mapOf(Pair("isEmbedded", true)))
+            neo4jRepository.updateNodeById(fileNode.id, mapOf(Pair("isEmbedded", true)))
             logger.info("Success save all nodes about file [{}] in milvus", fileId)
         }
     }

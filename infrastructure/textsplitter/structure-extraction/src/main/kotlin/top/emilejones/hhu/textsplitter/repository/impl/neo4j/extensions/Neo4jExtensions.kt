@@ -10,9 +10,12 @@ import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
 import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jRelationship
 import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 
+/**
+ * 将 Neo4j 驱动返回的 Node 对象转换为 Neo4jTextNode PO。
+ * 执行逻辑：从 Node 属性中提取文本、序列、类型等字段，处理可能的 null 向量。
+ */
 fun Node.asNeo4jTextNode(): Neo4jTextNode {
     return Neo4jTextNode(
-        elementId = this.elementId(),
         text = this["text"].asString(),
         summary = this["summary"].takeUnless { it.isNull }?.asString(),
         seq = this["seq"].asInt(),
@@ -24,9 +27,12 @@ fun Node.asNeo4jTextNode(): Neo4jTextNode {
     )
 }
 
+/**
+ * 将 Neo4j 驱动返回的 Node 对象转换为 Neo4jFileNode PO。
+ * 执行逻辑：从 Node 属性中映射文件标识及状态位。
+ */
 fun Node.asNeo4jFileNode(): Neo4jFileNode {
     return Neo4jFileNode(
-        elementId = this.elementId(),
         fileId = this["fileId"].asString(),
         isEmbedded = this["isEmbedded"].asBoolean(),
         id = this["id"].asString(),
@@ -35,15 +41,22 @@ fun Node.asNeo4jFileNode(): Neo4jFileNode {
     )
 }
 
+/**
+ * 将 Neo4j 驱动返回的 Relationship 对象转换为 Neo4jRelationship PO。
+ * 执行逻辑：映射起始/结束节点 ID 及关系类型。
+ */
 fun Relationship.asNeo4jRelationship(): Neo4jRelationship {
     return Neo4jRelationship(
-        elementId = this.elementId(),
-        startNodeElementId = this.startNodeElementId(),
-        endNodeElementId = this.endNodeElementId(),
+        startNodeId = this.startNodeElementId(), // 这里的驱动方法名虽然叫 elementId，但在本场景下我们通过属性映射处理
+        endNodeId = this.endNodeElementId(),
         type = Neo4jRelationshipType.valueOf(this.type())
     )
 }
 
+/**
+ * 持久化文本节点。
+ * 执行逻辑：执行 `CREATE (n:TextNode ...)` Cypher 语句，并返回持久化后的节点。
+ */
 fun QueryRunner.insertTextNode(neo4jTextNode: Neo4jTextNode): Neo4jTextNode {
     val insertTextNodeResult = this.run(
         """
@@ -77,6 +90,10 @@ fun QueryRunner.insertTextNode(neo4jTextNode: Neo4jTextNode): Neo4jTextNode {
     return insertTextNodeResult["n"].asNode().asNeo4jTextNode()
 }
 
+/**
+ * 持久化文件节点。
+ * 执行逻辑：执行 `CREATE (n:FileNode ...)` Cypher 语句，并返回持久化后的节点。
+ */
 fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
     val insertFileNodeResult = this.run(
         """
@@ -102,18 +119,22 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
     return insertFileNodeResult["n"].asNode().asNeo4jFileNode()
 }
 
+/**
+ * 持久化节点间的关系。
+ * 执行逻辑：通过 `MATCH` 查找起止节点，随后执行 `CREATE (startNode)-[r:...]->(endNode)` 建立关系。
+ */
 fun QueryRunner.insertRelationship(neo4jRelationship: Neo4jRelationship): Neo4jRelationship {
     val insertRelationshipResult = this.run(
         """
             MATCH (startNode)
-            WHERE elementId(startNode) = "%s" 
+            WHERE startNode.id = "%s" 
             MATCH (endNode)
-            WHERE elementId(endNode) = "%s"
+            WHERE endNode.id = "%s"
             CREATE (startNode)-[r:`%s`]->(endNode)
             RETURN r
         """.trimIndent().format(
-            neo4jRelationship.startNodeElementId,
-            neo4jRelationship.endNodeElementId,
+            neo4jRelationship.startNodeId,
+            neo4jRelationship.endNodeId,
             neo4jRelationship.type.name
         )
     ).single()

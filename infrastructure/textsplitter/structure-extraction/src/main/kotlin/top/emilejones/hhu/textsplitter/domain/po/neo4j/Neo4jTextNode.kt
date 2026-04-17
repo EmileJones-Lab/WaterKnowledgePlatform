@@ -3,7 +3,6 @@ package top.emilejones.hhu.textsplitter.domain.po.neo4j
 import top.emilejones.hhu.domain.result.TextType
 
 data class Neo4jTextNode(
-    val elementId: String? = null,
     val id: String,
     val text: String,
     val seq: Int,

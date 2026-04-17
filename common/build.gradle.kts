@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(libs.bundles.kotlinxEcosystem)
+    implementation(libs.kotlinReflect)
     implementation(libs.mybatisStarter)
     implementation(libs.mysqlConnector)
     implementation(libs.milvusSdk)

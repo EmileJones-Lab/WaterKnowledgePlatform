@@ -20,7 +20,6 @@ import top.emilejones.hhu.textsplitter.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeSummaryProcessor
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
-import top.emilejones.hhu.textsplitter.repository.impl.neo4j.delegates.elementId
 import top.emilejones.hhu.textsplitter.service.ISummarizationService
 import java.io.InputStream
 import java.util.Objects
@@ -122,13 +121,11 @@ class RagToolsAdaptor(
     private fun updateTreeSummary(rootNode: TextNodeDTO) {
         // 更新 FileNode 的 fileAbstract
         rootNode.fileNode?.let { fileNodeDTO ->
-            val elementId = fileNodeDTO.elementId
-            if (elementId != null) {
-                neo4jRepository.updateNodeByElementId(
-                    elementId,
-                    mapOf("fileAbstract" to fileNodeDTO.fileAbstract)
-                )
-            }
+            val id = fileNodeDTO.id
+            neo4jRepository.updateNodeById(
+                id,
+                mapOf("fileAbstract" to fileNodeDTO.fileAbstract)
+            )
         }
 
         // 递归更新所有 TextNode 的 summary
@@ -137,10 +134,10 @@ class RagToolsAdaptor(
 
     private fun deepUpdateSummary(node: TextNodeDTO) {
         if (node.type != TextType.NULL) {
-            val elementId = node.elementId
-            if (elementId != null && node.summary != null) {
-                neo4jRepository.updateNodeByElementId(
-                    elementId,
+            val id = node.id
+            if (node.summary != null) {
+                neo4jRepository.updateNodeById(
+                    id,
                     mapOf("summary" to node.summary)
                 )
             }

@@ -23,10 +23,10 @@ interface IDataProcessingService {
 
     /**
      * 从指定Markdown文件中提取出文本结构，并将其存入neo4j中
-     * @param inputStream 需要提取文件结构的id
-     * @return neo4j中的FileNode的elementId
+     * @param inputStream markdown文件输入流
+     * @return neo4j中的FileNode的id
      */
-    fun extractMarkdownStructure(fileId: String, inputStream: InputStream): Result<String>
+     fun extractMarkdownStructure(fileId: String, inputStream: InputStream): Result<String>
 
     /**
      * 将指定的Markdown文件的文本结构片段向量化并保存

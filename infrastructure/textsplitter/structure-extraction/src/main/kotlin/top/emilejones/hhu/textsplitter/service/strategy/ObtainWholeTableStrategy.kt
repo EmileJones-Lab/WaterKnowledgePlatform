@@ -16,14 +16,14 @@ class ObtainWholeTableStrategy(private val neo4jRepository: INeo4jRepository) : 
             var nowPair: Pair<Neo4jFileNode, Neo4jTextNode>? = datum
             while (nowPair != null && TextType.TABLE == nowPair.second.type) {
                 resultSet.add(nowPair)
-                nowPair = neo4jRepository.nextNode(nowPair.second.elementId!!)
+                nowPair = neo4jRepository.nextNode(nowPair.second.id)
                 if (resultSet.contains(nowPair)) break
             }
             // 向上找
             nowPair = datum
             while (TextType.TABLE == nowPair!!.second.type) {
                 resultSet.add(nowPair)
-                nowPair = neo4jRepository.preNode(nowPair.second.elementId!!)
+                nowPair = neo4jRepository.preNode(nowPair.second.id)
                 if (resultSet.contains(nowPair)) break
             }
         }

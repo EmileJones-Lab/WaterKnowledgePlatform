@@ -1,12 +1,11 @@
 package top.emilejones.hhu.application.command;
 
-import top.emilejones.hhu.application.command.dto.TextNodeDTO;
 import org.springframework.stereotype.Service;
+import top.emilejones.hhu.application.command.dto.FileNodeDTO;
+import top.emilejones.hhu.application.command.dto.TextNodeDTO;
 import top.emilejones.hhu.application.command.record.ProcessRecordService;
 import top.emilejones.hhu.domain.pipeline.repository.FileNodeVectorRepository;
-import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
-import top.emilejones.hhu.domain.result.FileNode;
 import top.emilejones.hhu.domain.result.TextNode;
 
 import java.util.List;
@@ -19,16 +18,14 @@ import java.util.stream.Collectors;
 @Service
 public class RecallApplicationService {
 
-    private final NodeRepository nodeRepository;
     private final TextNodeVectorRepository textNodeVectorRepository;
     private final FileNodeVectorRepository fileNodeVectorRepository;
     private final ProcessRecordService processRecordService;
 
-    public RecallApplicationService(NodeRepository nodeRepository,
-                                    TextNodeVectorRepository textNodeVectorRepository,
-                                    FileNodeVectorRepository fileNodeVectorRepository,
-                                    ProcessRecordService processRecordService) {
-        this.nodeRepository = nodeRepository;
+    public RecallApplicationService(
+            TextNodeVectorRepository textNodeVectorRepository,
+            FileNodeVectorRepository fileNodeVectorRepository,
+            ProcessRecordService processRecordService) {
         this.textNodeVectorRepository = textNodeVectorRepository;
         this.fileNodeVectorRepository = fileNodeVectorRepository;
         this.processRecordService = processRecordService;
@@ -44,13 +41,13 @@ public class RecallApplicationService {
     public List<String> recallText(String query) {
         // 1. 先根据问题召回相关文件的 fileNodeId
         List<String> fileNodeIds = recallFileNodes(query).stream()
-                .map(FileNode::getId)
+                .map(FileNodeDTO::getId)
                 .collect(Collectors.toList());
 
         // 2. 在指定的文件范围内召回相关的 textNode
         List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(
-                query, 
-                EmbeddingApplicationService.COLLECTION_NAME, 
+                query,
+                EmbeddingApplicationService.COLLECTION_NAME,
                 fileNodeIds
         );
 
@@ -69,13 +66,13 @@ public class RecallApplicationService {
     public List<TextNodeDTO> recallTextNodes(String query) {
         // 1. 先根据问题召回相关文件的 fileNodeId
         List<String> fileNodeIds = recallFileNodes(query).stream()
-                .map(FileNode::getId)
+                .map(FileNodeDTO::getId)
                 .collect(Collectors.toList());
 
         // 2. 在指定的文件范围内召回相关的 textNode
         List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(
-                query, 
-                EmbeddingApplicationService.COLLECTION_NAME, 
+                query,
+                EmbeddingApplicationService.COLLECTION_NAME,
                 fileNodeIds
         );
 
@@ -99,11 +96,19 @@ public class RecallApplicationService {
      * @param query 用户问题
      * @return 与问题相关的 FileNode 列表
      */
-    public List<FileNode> recallFileNodes(String query) {
+    public List<FileNodeDTO> recallFileNodes(String query) {
         return fileNodeVectorRepository.recallFileNode(
-                query, 
-                EmbeddingApplicationService.FILE_COLLECTION_NAME, 
-                null
-        );
+                        query,
+                        EmbeddingApplicationService.FILE_COLLECTION_NAME,
+                        null
+                ).stream()
+                .map(node -> FileNodeDTO.builder()
+                        .id(node.getId())
+                        .sourceDocumentId(node.getSourceDocumentId())
+                        .isEmbedded(node.isEmbedded())
+                        .fileAbstract(node.getFileAbstract())
+                        .fileName(processRecordService.getFileNameByFileNodeId(node.getId()))
+                        .build())
+                .collect(Collectors.toList());
     }
 }

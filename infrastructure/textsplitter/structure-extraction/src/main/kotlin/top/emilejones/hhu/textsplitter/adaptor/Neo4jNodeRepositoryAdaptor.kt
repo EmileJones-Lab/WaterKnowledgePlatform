@@ -6,6 +6,7 @@ import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.*
+import top.emilejones.hhu.common.diff
 import java.util.*
 
 @Service
@@ -47,7 +48,10 @@ class Neo4jNodeRepositoryAdaptor(
             neo4jRepository.insertNeo4jTextNode(newDatum)
             return
         }
-        neo4jRepository.updateNodeByElementId(dbDatum.elementId!!, dbDatum.diff(newDatum))
+        val diffAttr = dbDatum.diff(newDatum)
+        if (diffAttr.isNotEmpty()) {
+            neo4jRepository.updateNodeById(dbDatum.id, diffAttr)
+        }
     }
 
     override fun deleteAllNodeByFileNodeId(id: String) {
@@ -65,6 +69,9 @@ class Neo4jNodeRepositoryAdaptor(
             neo4jRepository.insertNeo4jFileNode(newDatum)
             return
         }
-        neo4jRepository.updateNodeByElementId(dbDatum.elementId!!, dbDatum.diff(newDatum))
+        val diffAttr = dbDatum.diff(newDatum)
+        if (diffAttr.isNotEmpty()) {
+            neo4jRepository.updateNodeById(dbDatum.id, diffAttr)
+        }
     }
 }
