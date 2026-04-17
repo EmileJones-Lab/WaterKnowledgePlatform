@@ -292,7 +292,7 @@ public class KnowledgeApplicationService {
         try {
             String fileNodeId = embeddingMission.getFileNodeId();
             if (fileNodeId != null) {
-                textNodeVectorRepository.saveTextNodeToVectorDatabase(fileNodeId, knowledgeCatalog.getMilvusCollectionName()).getOrThrow();
+                textNodeVectorRepository.saveTextNodeToVectorDatabase(List.of(fileNodeId), knowledgeCatalog.getMilvusCollectionName()).getOrThrow();
             }
         } catch (Exception e) {
             e.printStackTrace();

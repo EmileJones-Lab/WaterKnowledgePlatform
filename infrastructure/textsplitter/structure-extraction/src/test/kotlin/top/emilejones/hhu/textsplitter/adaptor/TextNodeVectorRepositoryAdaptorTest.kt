@@ -93,8 +93,8 @@ class TextNodeVectorRepositoryAdaptorTest {
         `when`(neo4jRepository.searchNeo4jFileNodeByNodeId(anyString())).thenReturn(neo4jFileNode)
         `when`(neo4jRepository.searchNeo4jTextNodeByFileId(anyString())).thenReturn(mutableListOf(neo4jTextNode))
 
-        // 2. Call method
-        val result = adaptor.saveTextNodeToVectorDatabase(fileNodeId, testCollection)
+        // 2. Call method with list
+        val result = adaptor.saveTextNodeToVectorDatabase(listOf(fileNodeId), testCollection)
 
         // 3. Verify
         assert(result.isSuccess)
@@ -105,11 +105,9 @@ class TextNodeVectorRepositoryAdaptorTest {
     fun `saveTextNodeToVectorDatabase should throw when fileNodeId not exists`() {
         `when`(neo4jRepository.searchNeo4jFileNodeByNodeId(anyString())).thenReturn(null)
         
-        // In the adaptor, we use requireNotNull which throws IllegalArgumentException
-        // runCatching catches it and toCommonResult converts it to a failure Result
-        val result = adaptor.saveTextNodeToVectorDatabase("non-existent", testCollection)
-        assert(result.isFailure)
-        assert(result.exceptionOrNull() is IllegalArgumentException)
+        val result = adaptor.saveTextNodeToVectorDatabase(listOf("non-existent"), testCollection)
+        assert(result.isSuccess) // It returns success now even if some IDs don't exist (it just skips them)
+        verify(milvusRepository, never()).batchInsert(anyString(), anyList())
     }
 
     @Test

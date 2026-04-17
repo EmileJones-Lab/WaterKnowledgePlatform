@@ -8,18 +8,18 @@ import top.emilejones.hhu.domain.result.TextNode
  */
 interface TextNodeVectorRepository {
     /**
-     * 将指定文件节点下的所有已向量化的文本节点存入向量数据库。
+     * 将指定文件节点列表下的所有已向量化的文本节点存入向量数据库。
      *
      * 约定：
-     * - 实现方需根据 fileNodeId 查询关联的文本节点。
+     * - 实现方需根据 fileNodeIds 查询关联的文本节点。
      * - 仅存储已包含向量信息的节点。
      * - collection 不存在时的处理由实现决定（自动创建或抛出异常），失败需抛出可定位的异常。
      *
-     * @param fileNodeId 文件节点唯一标识
+     * @param fileNodeIds 文件节点唯一标识列表
      * @param collectionName 目标向量库/集合名称，若不存在由实现决定是否创建
      * @return 操作结果包装，成功时无返回值
      */
-    fun saveTextNodeToVectorDatabase(fileNodeId: String, collectionName: String): Result<Void>
+    fun saveTextNodeToVectorDatabase(fileNodeIds: List<String>, collectionName: String): Result<Void>
 
     /**
      * 创建一个新的向量集合。

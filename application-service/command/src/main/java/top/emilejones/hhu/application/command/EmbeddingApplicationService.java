@@ -125,7 +125,7 @@ public class EmbeddingApplicationService {
             }
 
             // 6. 保存到向量数据库
-            textNodeVectorRepository.saveTextNodeToVectorDatabase(fileNodeId, COLLECTION_NAME).getOrThrow();
+            textNodeVectorRepository.saveTextNodeToVectorDatabase(List.of(fileNodeId), COLLECTION_NAME).getOrThrow();
 
             // 7. 更新本地记录的向量化状态
             processRecordService.updateEmbeddingStatus(sourceDocumentId, true);

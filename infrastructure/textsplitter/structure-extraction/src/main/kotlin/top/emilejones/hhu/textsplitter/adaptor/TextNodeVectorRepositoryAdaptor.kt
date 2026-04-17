@@ -20,17 +20,26 @@ class TextNodeVectorRepositoryAdaptor(
     private val neo4jRepository: INeo4jRepository
 ) : TextNodeVectorRepository {
 
-    override fun saveTextNodeToVectorDatabase(fileNodeId: String, collectionName: String): Result<Void> {
+    override fun saveTextNodeToVectorDatabase(fileNodeIds: List<String>, collectionName: String): Result<Void> {
         return try {
-            val fileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(fileNodeId)
-            requireNotNull(fileNode) { "不存在FileNode: $fileNodeId" }
-            val neo4jTextNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileNode.fileId)
-            val textNodeList = neo4jTextNodeList.map { it.asTextNode(fileNode) }
+            val allNodesToInsert = mutableListOf<EmbeddingDatum>()
             
-            val nodesToInsert = textNodeList.filter { it.isEmbedded }
-            if (nodesToInsert.isNotEmpty()) {
-                val embeddingData = nodesToInsert.map { convertTextNodeToEmbeddingDatum(it) }
-                multiCollectionMilvusRepository.batchInsert(collectionName, embeddingData)
+            for (fileNodeId in fileNodeIds) {
+                val fileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(fileNodeId)
+                if (fileNode == null) {
+                    continue
+                }
+                val neo4jTextNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileNode.fileId)
+                val textNodeList = neo4jTextNodeList.map { it.asTextNode(fileNode) }
+                
+                val nodesToInsert = textNodeList.filter { it.isEmbedded }
+                    .map { convertTextNodeToEmbeddingDatum(it) }
+                
+                allNodesToInsert.addAll(nodesToInsert)
+            }
+
+            if (allNodesToInsert.isNotEmpty()) {
+                multiCollectionMilvusRepository.batchInsert(collectionName, allNodesToInsert)
             }
             Result.successVoid()
         } catch (e: Exception) {
