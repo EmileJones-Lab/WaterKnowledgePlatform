@@ -19,18 +19,35 @@ class RetrieveCommand(
 
     private val query by argument(help = "要查询的问题")
     private val verbose by option("-v", "--verbose", help = "详细模式，展示更多元数据").flag()
+    private val showFile by option("-f", "--file", help = "展示召回的相关文件信息").flag()
 
     override fun help(context: Context): String = "根据问题召回相关的知识片段"
 
     override fun run() {
         echo("正在检索与 \"$query\" 相关的内容...")
 
+        // 1. 如果开启了 -f 参数，展示召回的文件信息
+        if (showFile) {
+            val files = recallApplicationService.recallFileNodes(query)
+            if (files.isEmpty()) {
+                echo("[文件] 未找到相关文件。")
+            } else {
+                echo("[文件] 共召回 ${files.size} 个相关文件：")
+                files.forEachIndexed { index, file ->
+                    echo("  ${index + 1}. ID: ${file.id} | 源文档ID: ${file.sourceDocumentId}")
+                    file.fileAbstract?.let { echo("     摘要: $it") }
+                }
+                echo("")
+            }
+        }
+
+        // 2. 正常展示文本召回结果
         if (verbose) {
             val nodes = recallApplicationService.recallTextNodes(query)
             if (nodes.isEmpty()) {
                 echo("未找到相关内容。")
             } else {
-                echo("共找到 ${nodes.size} 条相关内容：")
+                echo("共找到 ${nodes.size} 条文本片段：")
                 nodes.forEachIndexed { index, node ->
                     echo("--- 结果 ${index + 1} ---")
                     echo("ID      : ${node.id}")
@@ -51,7 +68,7 @@ class RetrieveCommand(
             if (results.isEmpty()) {
                 echo("未找到相关内容。")
             } else {
-                echo("共找到 ${results.size} 条相关内容：")
+                echo("共找到 ${results.size} 条文本片段：")
                 results.forEachIndexed { index, text ->
                     echo("--- 结果 ${index + 1} ---")
                     echo(text)

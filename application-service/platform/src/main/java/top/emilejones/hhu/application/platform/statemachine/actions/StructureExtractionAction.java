@@ -69,8 +69,8 @@ public class StructureExtractionAction implements Action<PipelineState, Pipeline
             if (mission.isSuccess()) {
                 pipelineContext.setStructureExtractionMission(mission);
                 // 决定下一步
-                if (pipelineContext.getTargetState() == PipelineState.EMBEDDING) {
-                    sendEvent(context, PipelineEvent.TO_EMBEDDING);
+                if (pipelineContext.getTargetState() == PipelineState.EMBEDDING || pipelineContext.getTargetState() == PipelineState.SUMMARY) {
+                    sendEvent(context, PipelineEvent.TO_SUMMARY);
                 } else {
                     sendEvent(context, PipelineEvent.TO_COMPLETED);
                 }

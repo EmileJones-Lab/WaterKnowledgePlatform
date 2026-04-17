@@ -4,6 +4,7 @@ public enum PipelineState {
     IDLE,
     OCR,
     STRUCTURE_EXTRACTION,
+    SUMMARY,
     EMBEDDING,
     COMPLETED,
     FAILED

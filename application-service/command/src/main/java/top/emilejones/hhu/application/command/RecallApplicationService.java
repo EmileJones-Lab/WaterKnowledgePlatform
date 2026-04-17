@@ -3,8 +3,10 @@ package top.emilejones.hhu.application.command;
 import top.emilejones.hhu.application.command.dto.TextNodeDTO;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.application.command.record.ProcessRecordService;
+import top.emilejones.hhu.domain.pipeline.repository.FileNodeVectorRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
+import top.emilejones.hhu.domain.result.FileNode;
 import top.emilejones.hhu.domain.result.TextNode;
 
 import java.util.List;
@@ -19,24 +21,39 @@ public class RecallApplicationService {
 
     private final NodeRepository nodeRepository;
     private final TextNodeVectorRepository textNodeVectorRepository;
+    private final FileNodeVectorRepository fileNodeVectorRepository;
     private final ProcessRecordService processRecordService;
 
     public RecallApplicationService(NodeRepository nodeRepository,
                                     TextNodeVectorRepository textNodeVectorRepository,
+                                    FileNodeVectorRepository fileNodeVectorRepository,
                                     ProcessRecordService processRecordService) {
         this.nodeRepository = nodeRepository;
         this.textNodeVectorRepository = textNodeVectorRepository;
+        this.fileNodeVectorRepository = fileNodeVectorRepository;
         this.processRecordService = processRecordService;
     }
 
     /**
      * 根据查询语句召回相关的文本内容。
+     * 逻辑：先召回相关的文件，再在这些文件中召回文本。
      *
      * @param query 查询字符串
      * @return 与查询最相关的文本列表
      */
     public List<String> recallText(String query) {
-        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, EmbeddingApplicationService.COLLECTION_NAME, null);
+        // 1. 先根据问题召回相关文件的 fileNodeId
+        List<String> fileNodeIds = recallFileNodes(query).stream()
+                .map(FileNode::getId)
+                .collect(Collectors.toList());
+
+        // 2. 在指定的文件范围内召回相关的 textNode
+        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(
+                query, 
+                EmbeddingApplicationService.COLLECTION_NAME, 
+                fileNodeIds
+        );
+
         return textNodes.stream()
                 .map(TextNode::getText)
                 .collect(Collectors.toList());
@@ -44,12 +61,24 @@ public class RecallApplicationService {
 
     /**
      * 根据查询语句召回相关的文本节点。
+     * 逻辑：先召回相关的文件，再在这些文件中召回文本节点。
      *
      * @param query 查询字符串
      * @return 与查询最相关的文本节点列表
      */
     public List<TextNodeDTO> recallTextNodes(String query) {
-        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(query, EmbeddingApplicationService.COLLECTION_NAME, null);
+        // 1. 先根据问题召回相关文件的 fileNodeId
+        List<String> fileNodeIds = recallFileNodes(query).stream()
+                .map(FileNode::getId)
+                .collect(Collectors.toList());
+
+        // 2. 在指定的文件范围内召回相关的 textNode
+        List<TextNode> textNodes = textNodeVectorRepository.recallTextNode(
+                query, 
+                EmbeddingApplicationService.COLLECTION_NAME, 
+                fileNodeIds
+        );
+
         return textNodes.stream()
                 .map(node -> TextNodeDTO.builder()
                         .id(node.getId())
@@ -62,5 +91,19 @@ public class RecallApplicationService {
                         .summary(node.getSummary())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据用户问题召回相关的 FileNode。
+     *
+     * @param query 用户问题
+     * @return 与问题相关的 FileNode 列表
+     */
+    public List<FileNode> recallFileNodes(String query) {
+        return fileNodeVectorRepository.recallFileNode(
+                query, 
+                EmbeddingApplicationService.FILE_COLLECTION_NAME, 
+                null
+        );
     }
 }

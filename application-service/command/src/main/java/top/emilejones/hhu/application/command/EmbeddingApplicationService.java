@@ -7,49 +7,61 @@ import org.springframework.stereotype.Service;
 import top.emilejones.hhu.application.command.record.ProcessRecordService;
 import top.emilejones.hhu.common.util.MD5Utils;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
+import top.emilejones.hhu.domain.pipeline.repository.FileNodeVectorRepository;
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
 import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
-import top.emilejones.hhu.domain.result.TextNode;
+import top.emilejones.hhu.domain.result.FileNode;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.NoSuchElementException;
 
 /**
  * 向量化应用服务。
- * 负责将指定文件中的文本内容进行向量化处理，并将结果存储到向量数据库中。
+ * 负责将指定文件中的内容进行向量化处理，并将结果（文本节点与文件节点）分别存储到不同的向量集合中。
  */
 @Service
 public class EmbeddingApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmbeddingApplicationService.class);
+    
+    /** 文本节点集合名称 */
     public static final String COLLECTION_NAME = "water_knowledge_platform";
+    /** 文件节点集合名称 */
+    public static final String FILE_COLLECTION_NAME = "water_knowledge_platform_file";
 
     private final EmbeddingGateway embeddingGateway;
     private final TextNodeVectorRepository textNodeVectorRepository;
+    private final FileNodeVectorRepository fileNodeVectorRepository;
     private final NodeRepository nodeRepository;
     private final ProcessRecordService processRecordService;
 
     public EmbeddingApplicationService(EmbeddingGateway embeddingGateway,
                                        TextNodeVectorRepository textNodeVectorRepository,
+                                       FileNodeVectorRepository fileNodeVectorRepository,
                                        NodeRepository nodeRepository,
                                        ProcessRecordService processRecordService) {
         this.embeddingGateway = embeddingGateway;
         this.textNodeVectorRepository = textNodeVectorRepository;
+        this.fileNodeVectorRepository = fileNodeVectorRepository;
         this.nodeRepository = nodeRepository;
         this.processRecordService = processRecordService;
     }
 
     /**
-     * 初始化方法，在 Spring Bean 创建后确保向量数据库的 Collection 已创建。
+     * 初始化方法，在 Spring Bean 创建后确保向量数据库的两个 Collection 已创建。
      */
     @PostConstruct
     public void init() {
         try {
-            logger.info("正在初始化向量数据库集合: {}", COLLECTION_NAME);
+            logger.info("正在初始化文本节点向量集合: {}", COLLECTION_NAME);
             textNodeVectorRepository.createCollection(COLLECTION_NAME).getOrThrow();
+            
+            logger.info("正在初始化文件节点向量集合: {}", FILE_COLLECTION_NAME);
+            fileNodeVectorRepository.createCollection(FILE_COLLECTION_NAME).getOrThrow();
+            
             logger.info("向量数据库集合初始化完成。");
         } catch (Exception e) {
             logger.error("初始化向量数据库集合失败: {}", e.getMessage(), e);
@@ -57,16 +69,7 @@ public class EmbeddingApplicationService {
     }
 
     /**
-     * 将文件内容进行向量化并存入向量数据库。
-     * <p>
-     * 处理逻辑如下：
-     * 1. 校验文件是否存在。
-     * 2. 计算文件的 MD5 值作为 sourceDocumentId。
-     * 3. 从仓储中获取该文件对应的所有文本节点。
-     * 4. 筛选出尚未进行向量化的节点。
-     * 5. 调用向量化网关获取文本的向量。
-     * 6. 更新节点向量信息并保存回仓储。
-     * 7. 将向量化后的节点存入向量数据库（Milvus）。
+     * 将文件内容进行向量化并分别存入文本节点和文件节点向量库。
      *
      * @param filePath 文件路径
      */
@@ -86,51 +89,23 @@ public class EmbeddingApplicationService {
             String fileNodeId = processRecordService.getFileNodeId(sourceDocumentId)
                     .orElseThrow(() -> new IllegalStateException("未找到文件 [" + filePath + "] 的提取记录，请先执行结构提取。"));
 
-            // 3. 从仓储中查找该文件下的文本节点
-            List<TextNode> allNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
-            if (allNodes.isEmpty()) {
-                logger.warn("未找到文件节点 [{}] 对应的文本节点。", fileNodeId);
-                return;
-            }
+            // 3. 调用新的 embed 方法进行完整向量化（内部会处理 TextNode 和 FileNode 的向量化并更新 Neo4j）
+            embeddingGateway.embed(fileNodeId).getOrThrow();
 
-            // 4. 筛选未向量化的节点
-            List<TextNode> nodesToEmbed = allNodes.stream()
-                    .filter(node -> !node.isEmbedded())
-                    .collect(Collectors.toList());
+            // 4. 从仓储中获取更新后的 FileNode
+            FileNode fileNode = nodeRepository.findFileNodeByFileNodeId(fileNodeId)
+                    .orElseThrow(() -> new NoSuchElementException("未找到 fileNodeId 为 [" + fileNodeId + "] 的文件节点"));
 
-            if (nodesToEmbed.isEmpty()) {
-                logger.info("文件 [{}] (ID: {}) 的所有文本节点均已向量化，跳过处理。", filePath, sourceDocumentId);
-                return;
-            }
-
-            logger.info("准备对 {} 个文本节点进行向量化...", nodesToEmbed.size());
-
-            // 4. 获取文本列表进行批量向量化
-            List<String> texts = nodesToEmbed.stream()
-                    .map(TextNode::getSummary)
-                    .collect(Collectors.toList());
-
-            List<List<Float>> vectors = embeddingGateway.embed(texts);
-
-            if (vectors.size() != nodesToEmbed.size()) {
-                throw new RuntimeException("向量化结果数量与输入文本节点数量不匹配");
-            }
-
-            // 5. 更新节点并保存回仓储
-            for (int i = 0; i < nodesToEmbed.size(); i++) {
-                TextNode node = nodesToEmbed.get(i);
-                List<Float> vector = vectors.get(i);
-                node.saveVector(vector);
-                nodeRepository.saveTextNode(node);
-            }
-
-            // 6. 保存到向量数据库
+            // 5. 将文本节点数据同步到向量数据库
             textNodeVectorRepository.saveTextNodeToVectorDatabase(List.of(fileNodeId), COLLECTION_NAME).getOrThrow();
+
+            // 6. 将文件节点数据同步到专属的向量数据库集合
+            fileNodeVectorRepository.saveFileNodeToVectorDatabase(List.of(fileNode), FILE_COLLECTION_NAME).getOrThrow();
 
             // 7. 更新本地记录的向量化状态
             processRecordService.updateEmbeddingStatus(sourceDocumentId, true);
 
-            logger.info("文件 [{}] (ID: {}) 向量化任务成功完成。", filePath, sourceDocumentId);
+            logger.info("文件 [{}] (ID: {}) 向量化及双库同步任务成功完成。", filePath, sourceDocumentId);
 
         } catch (Exception e) {
             logger.error("文件向量化处理失败: {}", e.getMessage(), e);

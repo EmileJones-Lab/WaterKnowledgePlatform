@@ -65,10 +65,6 @@ class RagToolsAdaptor(
         neo4jFileNode.id
     }.toCommonResult()
 
-    @Deprecated(
-        "建议使用 embed(fileNodeId: String) 以支持完整的领域逻辑封装",
-        replaceWith = ReplaceWith("embed(fileNodeId)")
-    )
     override fun embed(textList: List<String>): List<List<Float>> = runBlocking(scope.coroutineContext) {
         val embeddingData = coroutineScope {
             textList.map {
@@ -91,16 +87,29 @@ class RagToolsAdaptor(
         // 找到所有的TextNode
         val textNodeList = nodeRepository.findTextNodeListByFileNodeId(finalFileNodeId)
 
-        // 向量化所有text属性
-        val vectors = embed(textNodeList.map { it.text })
+        // 收集待向量化的文本：FileNode 的 fileAbstract 和 TextNode 的 summary
+        // 校验：所有节点必须具备摘要
+        val textsToEmbed = mutableListOf<String>()
+        
+        val fileAbstract = fileNode.fileAbstract ?: throw IllegalStateException("FileNode $finalFileNodeId 没有执行摘要生成任务。")
+        textsToEmbed.add(fileAbstract)
 
-        // 为所有的TextNode添加vector属性
-        for (i in textNodeList.indices) {
-            textNodeList[i].saveVector(vectors[i])
+        textNodeList.forEach { node ->
+            val summary = node.summary ?: throw IllegalStateException("FileNode $finalFileNodeId 没有执行摘要生成任务。")
+            textsToEmbed.add(summary)
         }
 
-        // 为FileNode标记状态
-        fileNode.markAsEmbedded()
+        // 批量向量化
+        val vectors = embed(textsToEmbed)
+
+        var vectorIndex = 0
+        // 为 FileNode 添加 vector 属性
+        fileNode.saveVector(vectors[vectorIndex++])
+
+        // 为所有的 TextNode 添加 vector 属性
+        for (i in textNodeList.indices) {
+            textNodeList[i].saveVector(vectors[vectorIndex++])
+        }
 
         // 保存到Neo4j (通过nodeRepository接口)
         textNodeList.forEach { nodeRepository.saveTextNode(it) }
