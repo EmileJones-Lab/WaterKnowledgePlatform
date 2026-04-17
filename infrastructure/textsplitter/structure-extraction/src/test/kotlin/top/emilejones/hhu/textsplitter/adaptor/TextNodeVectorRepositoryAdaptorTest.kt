@@ -7,16 +7,14 @@ import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import top.emilejones.hhu.common.Result
 import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.model.ModelClient
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
-import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.repository.ITextNodeMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.IRecallService
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 
 @SpringBootTest
 class TextNodeVectorRepositoryAdaptorTest {
@@ -28,7 +26,7 @@ class TextNodeVectorRepositoryAdaptorTest {
     private lateinit var neo4jRepository: INeo4jRepository
 
     @MockitoBean
-    private lateinit var milvusRepository: IMultiCollectionMilvusRepository
+    private lateinit var textNodeMilvusRepository: ITextNodeMilvusRepository
 
     @MockitoBean
     private lateinit var recallService: IRecallService
@@ -57,7 +55,8 @@ class TextNodeVectorRepositoryAdaptorTest {
         val neo4jFileNode = Neo4jFileNode(
             id = fileNodeId,
             fileId = "doc-1",
-            isEmbedded = false
+            isEmbedded = false,
+            vector = null
         )
 
         `when`(recallService.recallNode(anyString(), anyString(), anyOrNull())).thenReturn(listOf(neo4jTextNode))
@@ -80,7 +79,7 @@ class TextNodeVectorRepositoryAdaptorTest {
         val textNodeId = "text-1"
         val vector = listOf(0.1f, 0.2f)
 
-        val neo4jFileNode = Neo4jFileNode(id = fileNodeId, fileId = fileId, isEmbedded = true)
+        val neo4jFileNode = Neo4jFileNode(id = fileNodeId, fileId = fileId, isEmbedded = true, vector = null)
         val neo4jTextNode = Neo4jTextNode(
             id = textNodeId,
             text = "content",
@@ -98,7 +97,7 @@ class TextNodeVectorRepositoryAdaptorTest {
 
         // 3. Verify
         assert(result.isSuccess)
-        verify(milvusRepository).batchInsert(anyString(), anyList())
+        verify(textNodeMilvusRepository).batchInsert(anyString(), anyList())
     }
 
     @Test
@@ -107,7 +106,7 @@ class TextNodeVectorRepositoryAdaptorTest {
         
         val result = adaptor.saveTextNodeToVectorDatabase(listOf("non-existent"), testCollection)
         assert(result.isSuccess) // It returns success now even if some IDs don't exist (it just skips them)
-        verify(milvusRepository, never()).batchInsert(anyString(), anyList())
+        verify(textNodeMilvusRepository, never()).batchInsert(anyString(), anyList())
     }
 
     @Test
@@ -115,7 +114,7 @@ class TextNodeVectorRepositoryAdaptorTest {
         val fileNodeId = "file-1"
         val result = adaptor.deleteTextNodeFromVectorDatabases(listOf(fileNodeId), testCollection)
         assert(result.isSuccess)
-        verify(milvusRepository).batchDeleteByFileNodeIds(anyString(), anyList())
+        verify(textNodeMilvusRepository).batchDeleteByFileNodeIds(anyString(), anyList())
     }
 
     // Helper for Mockito to avoid NPE with nullable parameters in Kotlin

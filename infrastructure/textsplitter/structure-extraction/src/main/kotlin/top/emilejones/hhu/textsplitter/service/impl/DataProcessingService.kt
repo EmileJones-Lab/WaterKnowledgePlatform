@@ -4,15 +4,15 @@ import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
-import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.domain.po.milvus.TextNodeEmbeddingDatum
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
 import top.emilejones.hhu.textsplitter.ocr.MinerUClient
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
 import top.emilejones.hhu.textsplitter.preprocessor.SplitTextNodeTool
-import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
+import top.emilejones.hhu.textsplitter.repository.ITextNodeMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.IDataProcessingService
 import java.io.InputStream
@@ -23,7 +23,7 @@ import java.io.InputStream
 @Deprecated(message = "这是DDD引入之前的设计，现在已经不在维护")
 @Service
 class DataProcessingService(
-    private val milvusRepository: IMultiCollectionMilvusRepository,
+    private val textNodeMilvusRepository: ITextNodeMilvusRepository,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
     private val ragConfig: RAGConfig,
@@ -95,17 +95,17 @@ class DataProcessingService(
 
         val textNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileId)
         val embeddingData = textNodeList.map { convertTextNodeToEmbeddingDatum(it, fileNode.id) }
-        milvusRepository.batchInsert(collectionName, embeddingData)
+        textNodeMilvusRepository.batchInsert(collectionName, embeddingData)
     }
 
     /**
-     * 将TextNode转换为EmbeddingDatum。
+     * 将TextNode转换为TextNodeEmbeddingDatum。
      * 注意: TextNode必须被向量化过，否则会报错，请调用此方法时做好安全检查。
      */
-    private fun convertTextNodeToEmbeddingDatum(textNode: Neo4jTextNode, fileNodeId: String): EmbeddingDatum {
-        return EmbeddingDatum(
+    private fun convertTextNodeToEmbeddingDatum(textNode: Neo4jTextNode, fileNodeId: String): TextNodeEmbeddingDatum {
+        return TextNodeEmbeddingDatum(
             vector = textNode.vector!!,
-            neo4jNodeId = textNode.elementId!!,
+            neo4jNodeId = textNode.id,
             fileNodeId = fileNodeId
         )
     }

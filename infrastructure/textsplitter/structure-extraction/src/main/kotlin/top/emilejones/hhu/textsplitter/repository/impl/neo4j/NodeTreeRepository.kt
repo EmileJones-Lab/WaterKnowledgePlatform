@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationship
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jRelationshipType
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jFileNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jRelationship
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jRelationshipType
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.Neo4jConfig
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.delegates.elementId
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.*

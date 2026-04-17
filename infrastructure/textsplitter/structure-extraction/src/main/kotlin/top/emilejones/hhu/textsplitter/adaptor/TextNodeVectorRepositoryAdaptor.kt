@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service
 import top.emilejones.hhu.common.Result
 import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository
 import top.emilejones.hhu.domain.result.TextNode
-import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
-import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
+import top.emilejones.hhu.textsplitter.domain.po.milvus.TextNodeEmbeddingDatum
+import top.emilejones.hhu.textsplitter.repository.ITextNodeMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.extensions.asTextNode
 import top.emilejones.hhu.textsplitter.service.IRecallService
@@ -15,14 +15,14 @@ import top.emilejones.hhu.textsplitter.service.IRecallService
  */
 @Service
 class TextNodeVectorRepositoryAdaptor(
-    private val multiCollectionMilvusRepository: IMultiCollectionMilvusRepository,
+    private val textNodeMilvusRepository: ITextNodeMilvusRepository,
     private val recallService: IRecallService,
     private val neo4jRepository: INeo4jRepository
 ) : TextNodeVectorRepository {
 
     override fun saveTextNodeToVectorDatabase(fileNodeIds: List<String>, collectionName: String): Result<Void> {
         return try {
-            val allNodesToInsert = mutableListOf<EmbeddingDatum>()
+            val allNodesToInsert = mutableListOf<TextNodeEmbeddingDatum>()
             
             for (fileNodeId in fileNodeIds) {
                 val fileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(fileNodeId)
@@ -39,7 +39,7 @@ class TextNodeVectorRepositoryAdaptor(
             }
 
             if (allNodesToInsert.isNotEmpty()) {
-                multiCollectionMilvusRepository.batchInsert(collectionName, allNodesToInsert)
+                textNodeMilvusRepository.batchInsert(collectionName, allNodesToInsert)
             }
             Result.successVoid()
         } catch (e: Exception) {
@@ -49,7 +49,7 @@ class TextNodeVectorRepositoryAdaptor(
 
     override fun deleteTextNodeFromVectorDatabases(fileNodeIds: List<String>, collectionName: String): Result<Void> {
         return try {
-            multiCollectionMilvusRepository.batchDeleteByFileNodeIds(collectionName, fileNodeIds)
+            textNodeMilvusRepository.batchDeleteByFileNodeIds(collectionName, fileNodeIds)
             Result.successVoid()
         } catch (e: Exception) {
             Result.failure(e)
@@ -58,7 +58,7 @@ class TextNodeVectorRepositoryAdaptor(
 
     override fun createCollection(collectionName: String): Result<Void> {
         return try {
-            multiCollectionMilvusRepository.createCollection(collectionName)
+            textNodeMilvusRepository.createCollection(collectionName)
             Result.successVoid()
         } catch (e: Exception) {
             Result.failure(e)
@@ -81,11 +81,11 @@ class TextNodeVectorRepositoryAdaptor(
     }
 
     /**
-     * 将TextNode转换为EmbeddingDatum。
+     * 将TextNode转换为TextNodeEmbeddingDatum。
      * 注意: TextNode必须被向量化过，否则会报错，请调用此方法时做好安全检查。
      */
-    private fun convertTextNodeToEmbeddingDatum(textNode: TextNode): EmbeddingDatum {
-        return EmbeddingDatum(
+    private fun convertTextNodeToEmbeddingDatum(textNode: TextNode): TextNodeEmbeddingDatum {
+        return TextNodeEmbeddingDatum(
             vector = textNode.vector!!,
             neo4jNodeId = textNode.id,
             fileNodeId = textNode.fileNodeId

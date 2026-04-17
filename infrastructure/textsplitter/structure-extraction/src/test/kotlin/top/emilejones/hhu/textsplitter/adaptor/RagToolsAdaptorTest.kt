@@ -11,7 +11,7 @@ import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
-import top.emilejones.hhu.textsplitter.repository.impl.milvus.MultiCollectionSingleCollectionMilvusRepository
+import top.emilejones.hhu.textsplitter.repository.impl.milvus.TextNodeMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.Neo4jRepositoryImpl
 import top.emilejones.hhu.textsplitter.service.impl.DataProcessingService
 import java.io.ByteArrayInputStream
@@ -20,7 +20,7 @@ import kotlin.test.*
 @SpringBootTest(classes = [TextSplitterTestMain::class])
 class RagToolsAdaptorTest {
     @MockitoBean
-    private lateinit var milvusRepository: MultiCollectionSingleCollectionMilvusRepository
+    private lateinit var milvusRepository: TextNodeMilvusRepository
 
     @MockitoBean
     private lateinit var neo4jRepository: Neo4jRepositoryImpl

@@ -1,6 +1,6 @@
 package top.emilejones.hhu.textsplitter.service
 
-import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
+import top.emilejones.hhu.textsplitter.domain.po.neo4j.Neo4jTextNode
 
 /**
  * 用来负责处理召回任务
