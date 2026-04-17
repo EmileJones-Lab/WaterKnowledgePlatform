@@ -1,133 +1,128 @@
 package top.emilejones.hhu.textsplitter.adaptor
 
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.mockito.ArgumentMatchers.anyList
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import top.emilejones.hhu.TextSplitterTestMain
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import top.emilejones.hhu.common.Result
 import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.model.ModelClient
-import top.emilejones.hhu.textsplitter.domain.dto.FileNodeDTO
-import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
-import top.emilejones.hhu.textsplitter.domain.po.EmbeddingDatum
+import top.emilejones.hhu.textsplitter.domain.po.Neo4jFileNode
+import top.emilejones.hhu.textsplitter.domain.po.Neo4jTextNode
 import top.emilejones.hhu.textsplitter.repository.IMultiCollectionMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
-import kotlin.test.AfterTest
+import top.emilejones.hhu.textsplitter.service.IRecallService
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 
-@SpringBootTest(classes = [TextSplitterTestMain::class])
+@SpringBootTest
 class TextNodeVectorRepositoryAdaptorTest {
 
     @Autowired
     private lateinit var adaptor: TextNodeVectorRepositoryAdaptor
 
-    @Autowired
+    @MockitoBean
     private lateinit var neo4jRepository: INeo4jRepository
 
-    @Autowired
+    @MockitoBean
     private lateinit var milvusRepository: IMultiCollectionMilvusRepository
 
-    @Autowired
+    @MockitoBean
+    private lateinit var recallService: IRecallService
+    
+    @MockitoBean
     private lateinit var modelClient: ModelClient
 
-    private val createdFileNodeIds = mutableListOf<String>()
-    private val createdTextNodeIds = mutableListOf<String>()
     private val testCollection = "test_collection_vector_adaptor"
-
-    @AfterTest
-    fun tearDown() {
-        createdTextNodeIds.forEach { neo4jRepository.hardDeleteTextNodeById(it) }
-        createdFileNodeIds.forEach { neo4jRepository.hardDeleteFileNodeById(it) }
-        createdTextNodeIds.clear()
-        createdFileNodeIds.clear()
-        // Note: we might want to drop collection but milvusRepository might not have it easily exposed or it's shared
-    }
 
     @Test
     fun `recallTextNode should return mapped text nodes`() {
-        // 1. Prepare data in Neo4j
-        val sample = insertSampleTree()
-        val textNodeId = sample.textNodeIds.first()
-        val text = "first text node"
-
-        // 2. Prepare data in Milvus
-        // Get embedding for the text to ensure it can be recalled
-        val vector = modelClient.embedding(text)
+        // 1. Prepare mock data
+        val textNodeId = "text-1"
+        val fileNodeId = "file-1"
+        val query = "test query"
         
-        val datum = EmbeddingDatum(
-            neo4jNodeId = textNodeId,
-            vector = vector
-        )
-        milvusRepository.insert(testCollection, datum)
-        
-        // Wait for Milvus consistency
-        Thread.sleep(1000)
-
-        // 3. Call method
-        val result = adaptor.recallTextNode(text, testCollection)
-
-        // 4. Verify
-        // Should find at least one node (the one we just inserted)
-        assertTrue(result.isNotEmpty(), "Should recall at least one node")
-        val recalledNode = result.first { it.id == textNodeId }
-        assertEquals(textNodeId, recalledNode.id)
-        assertEquals(sample.fileNodeId, recalledNode.fileNodeId)
-        assertEquals(text, recalledNode.text)
-    }
-
-    private fun insertSampleTree(): SampleTree {
-        val fileNode = FileNodeDTO(id = "file-node-vector-1", fileId = "file-vector-001")
-        val root = TextNodeDTO(
-            id = "root-vector",
-            text = "",
-            seq = -1,
-            level = 0,
-            type = TextType.NULL
-        ).apply { this.fileNode = fileNode }
-
-        val first = TextNodeDTO(
-            id = "intro-vector",
-            text = "first text node",
+        val neo4jTextNode = Neo4jTextNode(
+            id = textNodeId,
+            text = "content",
             seq = 0,
             level = 1,
-            type = TextType.COMMON_TEXT
-        ).apply {
-            this.parentNode = root
-            this.fileNode = fileNode
-        }
-
-        val second = TextNodeDTO(
-            id = "details-vector",
-            text = "second text node",
-            seq = 1,
-            level = 1,
-            type = TextType.COMMON_TEXT
-        ).apply {
-            this.parentNode = root
-            this.fileNode = fileNode
-            this.preNode = first
-        }
-        first.nextNode = second
-
-        root.addChild(first)
-        root.addChild(second)
-
-        neo4jRepository.insertTree(root)
-
-        createdFileNodeIds.add(fileNode.id)
-        createdTextNodeIds.add(first.id)
-        createdTextNodeIds.add(second.id)
-
-        return SampleTree(
-            fileNodeId = fileNode.id,
-            fileId = fileNode.fileId,
-            textNodeIds = listOf(first.id, second.id)
+            type = TextType.COMMON_TEXT,
+            vector = null
         )
+        
+        val neo4jFileNode = Neo4jFileNode(
+            id = fileNodeId,
+            fileId = "doc-1",
+            isEmbedded = false
+        )
+
+        `when`(recallService.recallNode(anyString(), anyString(), anyOrNull())).thenReturn(listOf(neo4jTextNode))
+        `when`(neo4jRepository.searchNeo4jFileNodeByTextNode(anyString())).thenReturn(neo4jFileNode)
+
+        // 2. Call method
+        val result = adaptor.recallTextNode(query, testCollection)
+
+        // 3. Verify
+        assertEquals(1, result.size)
+        assertEquals(textNodeId, result[0].id)
+        assertEquals(fileNodeId, result[0].fileNodeId)
     }
 
-    private data class SampleTree(
-        val fileNodeId: String,
-        val fileId: String,
-        val textNodeIds: List<String>
-    )
+    @Test
+    fun `saveTextNodeToVectorDatabase should load nodes from Neo4j and save to Milvus`() {
+        // 1. Prepare mock data
+        val fileNodeId = "file-1"
+        val fileId = "doc-1"
+        val textNodeId = "text-1"
+        val vector = listOf(0.1f, 0.2f)
+
+        val neo4jFileNode = Neo4jFileNode(id = fileNodeId, fileId = fileId, isEmbedded = true)
+        val neo4jTextNode = Neo4jTextNode(
+            id = textNodeId,
+            text = "content",
+            seq = 0,
+            level = 1,
+            type = TextType.COMMON_TEXT,
+            vector = vector
+        )
+
+        `when`(neo4jRepository.searchNeo4jFileNodeByNodeId(anyString())).thenReturn(neo4jFileNode)
+        `when`(neo4jRepository.searchNeo4jTextNodeByFileId(anyString())).thenReturn(mutableListOf(neo4jTextNode))
+
+        // 2. Call method
+        val result = adaptor.saveTextNodeToVectorDatabase(fileNodeId, testCollection)
+
+        // 3. Verify
+        assert(result.isSuccess)
+        verify(milvusRepository).batchInsert(anyString(), anyList())
+    }
+
+    @Test
+    fun `saveTextNodeToVectorDatabase should throw when fileNodeId not exists`() {
+        `when`(neo4jRepository.searchNeo4jFileNodeByNodeId(anyString())).thenReturn(null)
+        
+        // In the adaptor, we use requireNotNull which throws IllegalArgumentException
+        // runCatching catches it and toCommonResult converts it to a failure Result
+        val result = adaptor.saveTextNodeToVectorDatabase("non-existent", testCollection)
+        assert(result.isFailure)
+        assert(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
+    fun `deleteTextNodeFromVectorDatabases should call repository with fileNodeId list`() {
+        val fileNodeId = "file-1"
+        val result = adaptor.deleteTextNodeFromVectorDatabases(listOf(fileNodeId), testCollection)
+        assert(result.isSuccess)
+        verify(milvusRepository).batchDeleteByFileNodeIds(anyString(), anyList())
+    }
+
+    // Helper for Mockito to avoid NPE with nullable parameters in Kotlin
+    private fun <T> anyOrNull(): T {
+        org.mockito.ArgumentMatchers.any<T>()
+        return null as T
+    }
 }

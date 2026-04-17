@@ -25,9 +25,6 @@ class RagToolsAdaptorTest {
     @MockitoBean
     private lateinit var neo4jRepository: Neo4jRepositoryImpl
 
-    @MockitoBean
-    private lateinit var dataProcessingService: DataProcessingService
-
     @Autowired
     private lateinit var ragConfig: RAGConfig
 
@@ -147,51 +144,5 @@ class RagToolsAdaptorTest {
             node = node.nextNode
         }
         assertNull(node)
-    }
-
-
-    @Test
-    fun `saveTextNodeToVectorDatabase should throw when node not embedded`() {
-        val notEmbedded = TextNode(
-            id = "1",
-            fileNodeId = "file-1",
-            text = "text",
-            seq = 0,
-            level = 1,
-            type = TextType.COMMON_TEXT,
-            isEmbedded = false,
-            vector = null
-        )
-
-        assertFailsWith<IllegalArgumentException> {
-            textNodeVectorRepository.saveTextNodeToVectorDatabase(listOf(notEmbedded), testCollection)
-        }
-    }
-
-    @Test
-    fun `saveTextNodeToVectorDatabase should forward embedded data to repository`() {
-        val embedded1 = TextNode(
-            id = "1",
-            fileNodeId = "file-1",
-            text = "text",
-            seq = 0,
-            level = 1,
-            type = TextType.COMMON_TEXT,
-            isEmbedded = true,
-            vector = List(1024) { it.toFloat() }
-        )
-
-        val embedded2 = TextNode(
-            id = "2",
-            fileNodeId = "file-1",
-            text = "text",
-            seq = 0,
-            level = 1,
-            type = TextType.COMMON_TEXT,
-            isEmbedded = true,
-            vector = List(1024) { it.toFloat() }
-        )
-
-        textNodeVectorRepository.saveTextNodeToVectorDatabase(listOf(embedded1, embedded2), testCollection)
     }
 }

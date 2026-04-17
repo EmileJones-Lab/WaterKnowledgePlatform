@@ -35,6 +35,9 @@ class Result<T> private constructor(
         fun <T> success(value: T): Result<T> = Result(value, null, true)
 
         @JvmStatic
+        fun successVoid(): Result<Void> = Result(null, null, true)
+
+        @JvmStatic
         fun <T> failure(throwable: Throwable): Result<T> = Result(null, throwable, false)
     }
 }

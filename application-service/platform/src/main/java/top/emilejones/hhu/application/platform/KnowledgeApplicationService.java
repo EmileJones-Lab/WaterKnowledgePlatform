@@ -111,7 +111,7 @@ public class KnowledgeApplicationService {
         // 3.新增知识库
         knowledgeCatalogRepository.save(knowledgeCatalog);
         knowledgeCatalog.pushEvents().forEach(publisher::publishEvent);
-        textNodeVectorRepository.createTextNodeCollection(milvusCollectionName);
+        textNodeVectorRepository.createCollection(milvusCollectionName).getOrThrow();
 
         // 4.将KnowledgeCatalog信息封装为KnowledgeDirectoryDTO
         KnowledgeDirectoryDTO knowledgeDirectoryDTO = DtoConverter.toKnowledgeDirectoryDTO(knowledgeCatalog);
@@ -158,17 +158,14 @@ public class KnowledgeApplicationService {
         // 从数据库中查找相关内容
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(id);
         List<KnowledgeDocumentWithBindTime> documents = knowledgeDocumentRepository.findDocumentsWithBindInfoByCatalogId(id, Integer.MAX_VALUE, 0, null);
-        List<String> textNodeIdList = documents.stream().map(KnowledgeDocumentWithBindTime::getKnowledgeDocument).map(KnowledgeDocument::getId).map(knowledgeDocumentRepository::find).map(KnowledgeDocument::getEmbeddingMissionId).map(embeddingMissionRepository::find).peek(m -> {
-            if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
-        }).map(EmbeddingMission::getSuccessResult).map(EmbeddingMissionResult.Success::getFileNodeId).map(nodeRepository::findFileNodeByFileNodeId).peek(o -> {
-            if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
-        }).map(Optional::get).map(FileNode::getId).map(nodeRepository::findTextNodeListByFileNodeId).flatMap(List::stream).map(TextNode::getId).toList();
         List<String> knowledgeDocumentIdList = documents.stream().map(KnowledgeDocumentWithBindTime::getKnowledgeDocument).map(KnowledgeDocument::getId).toList();
+
+        List<String> fileNodeIds = findFileNodeIdsByDocumentIds(knowledgeDocumentIdList);
 
         // 解绑所有的知识文件
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(Objects.requireNonNull(knowledgeCatalog.getId()), knowledgeDocumentIdList);
         // 删除知识库中的milvus数据
-        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(fileNodeIds, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName())).getOrThrow();
         // 删除知识库
         knowledgeCatalogRepository.delete(id);
     }
@@ -295,10 +292,7 @@ public class KnowledgeApplicationService {
         try {
             String fileNodeId = embeddingMission.getFileNodeId();
             if (fileNodeId != null) {
-                List<TextNode> textNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
-                if (!textNodes.isEmpty()) {
-                    textNodeVectorRepository.saveTextNodeToVectorDatabase(textNodes, knowledgeCatalog.getMilvusCollectionName());
-                }
+                textNodeVectorRepository.saveTextNodeToVectorDatabase(fileNodeId, knowledgeCatalog.getMilvusCollectionName()).getOrThrow();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -344,13 +338,9 @@ public class KnowledgeApplicationService {
      */
     public void deleteKnowledgeFileByDirId(String dirId, List<String> documentIds) {
         KnowledgeCatalog knowledgeCatalog = knowledgeCatalogRepository.find(dirId);
-        List<String> textNodeIdList = documentIds.stream().map(knowledgeDocumentRepository::find).map(KnowledgeDocument::getEmbeddingMissionId).map(embeddingMissionRepository::find).peek(m -> {
-            if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
-        }).map(EmbeddingMission::getSuccessResult).map(EmbeddingMissionResult.Success::getFileNodeId).map(nodeRepository::findFileNodeByFileNodeId).peek(o -> {
-            if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
-        }).map(Optional::get).map(FileNode::getId).map(nodeRepository::findTextNodeListByFileNodeId).flatMap(List::stream).map(TextNode::getId).toList();
+        List<String> fileNodeIds = findFileNodeIdsByDocumentIds(documentIds);
 
-        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIdList, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(fileNodeIds, Objects.requireNonNull(knowledgeCatalog.getMilvusCollectionName())).getOrThrow();
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(dirId, documentIds);
     }
 
@@ -420,5 +410,22 @@ public class KnowledgeApplicationService {
         List<CandidateKnowledgeFileDTO> partOfCandidateKnowledgeFileDTO = candidateKnowledgeFileDTOList.subList(pageNum * limit, (pageNum + 1) * limit);
         // 11.封装成LazyPageDTO<CandidateKnowledgeFileDTO>并返回
         return new LazyPageDTO<CandidateKnowledgeFileDTO>(false, partOfCandidateKnowledgeFileDTO);
+    }
+
+    private List<String> findFileNodeIdsByDocumentIds(List<String> documentIds) {
+        if (documentIds == null || documentIds.isEmpty()) return new ArrayList<>();
+        return documentIds.stream()
+                .map(knowledgeDocumentRepository::find)
+                .filter(Objects::nonNull)
+                .map(it -> embeddingMissionRepository.find(it.getEmbeddingMissionId()))
+                .filter(Objects::nonNull)
+                .map(it -> {
+                    if (it.getSuccessResult() != null) {
+                        return it.getSuccessResult().getFileNodeId();
+                    }
+                    return it.getFileNodeId();
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

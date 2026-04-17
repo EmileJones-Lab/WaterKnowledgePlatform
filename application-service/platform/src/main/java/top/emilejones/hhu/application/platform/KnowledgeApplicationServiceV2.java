@@ -113,7 +113,7 @@ public class KnowledgeApplicationServiceV2 {
 
         knowledgeCatalogRepository.save(knowledgeCatalog);
         knowledgeCatalog.pushEvents().forEach(publisher::publishEvent);
-        textNodeVectorRepository.createTextNodeCollection(milvusCollectionName);
+        textNodeVectorRepository.createCollection(milvusCollectionName).getOrThrow();
 
         return DtoConverter.toKnowledgeDirectoryDTO(knowledgeCatalog);
     }
@@ -147,11 +147,11 @@ public class KnowledgeApplicationServiceV2 {
                 .map(it -> it.getKnowledgeDocument().getId())
                 .toList();
 
-        List<String> textNodeIds = findTextNodeIdsByDocumentIds(docIds);
+        List<String> fileNodeIds = findFileNodeIdsByDocumentIds(docIds);
 
         // 执行删除与解绑逻辑
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(Objects.requireNonNull(catalog.getId()), docIds);
-        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(fileNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName())).getOrThrow();
         knowledgeCatalogRepository.delete(id);
     }
 
@@ -218,10 +218,7 @@ public class KnowledgeApplicationServiceV2 {
         if (fileNodeId == null)
             throw new NullPointerException("不存在的fileNode: " + fileNodeId);
 
-        List<TextNode> textNodes = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
-        if (!textNodes.isEmpty()) {
-            textNodeVectorRepository.saveTextNodeToVectorDatabase(textNodes, catalog.getMilvusCollectionName());
-        }
+        textNodeVectorRepository.saveTextNodeToVectorDatabase(fileNodeId, catalog.getMilvusCollectionName()).getOrThrow();
 
 
         // 4. 获取任务背景信息并封装 DTO
@@ -242,9 +239,9 @@ public class KnowledgeApplicationServiceV2 {
      */
     public void deleteKnowledgeFileByDirId(String dirId, List<String> documentIds) {
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);
-        List<String> textNodeIds = findTextNodeIdsByDocumentIds(documentIds);
+        List<String> fileNodeIds = findFileNodeIdsByDocumentIds(documentIds);
 
-        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName()));
+        textNodeVectorRepository.deleteTextNodeFromVectorDatabases(fileNodeIds, Objects.requireNonNull(catalog.getMilvusCollectionName())).getOrThrow();
         knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(dirId, documentIds);
     }
 
@@ -394,5 +391,22 @@ public class KnowledgeApplicationServiceV2 {
             List<DocumentSplittingMissionDTO> splitMissions,
             List<EmbeddingMissionDTO> embeddingMissions
     ) {
+    }
+
+    private List<String> findFileNodeIdsByDocumentIds(List<String> documentIds) {
+        if (documentIds == null || documentIds.isEmpty()) return new ArrayList<>();
+        return documentIds.stream()
+                .map(knowledgeDocumentRepository::find)
+                .filter(Objects::nonNull)
+                .map(it -> embeddingMissionRepository.find(it.getEmbeddingMissionId()))
+                .filter(Objects::nonNull)
+                .map(it -> {
+                    if (it.getSuccessResult() != null) {
+                        return it.getSuccessResult().getFileNodeId();
+                    }
+                    return it.getFileNodeId();
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

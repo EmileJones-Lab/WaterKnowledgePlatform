@@ -49,7 +49,7 @@ public class EmbeddingApplicationService {
     public void init() {
         try {
             logger.info("正在初始化向量数据库集合: {}", COLLECTION_NAME);
-            textNodeVectorRepository.createTextNodeCollection(COLLECTION_NAME);
+            textNodeVectorRepository.createCollection(COLLECTION_NAME).getOrThrow();
             logger.info("向量数据库集合初始化完成。");
         } catch (Exception e) {
             logger.error("初始化向量数据库集合失败: {}", e.getMessage(), e);
@@ -125,7 +125,7 @@ public class EmbeddingApplicationService {
             }
 
             // 6. 保存到向量数据库
-            textNodeVectorRepository.saveTextNodeToVectorDatabase(nodesToEmbed, COLLECTION_NAME);
+            textNodeVectorRepository.saveTextNodeToVectorDatabase(fileNodeId, COLLECTION_NAME).getOrThrow();
 
             // 7. 更新本地记录的向量化状态
             processRecordService.updateEmbeddingStatus(sourceDocumentId, true);

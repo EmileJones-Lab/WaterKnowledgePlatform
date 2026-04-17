@@ -108,7 +108,7 @@ public class PipeLineApplicationService {
                 // 将每个知识文件和知识库解绑
                 knowledgeCatalogList.forEach(knowledgeCatalog -> {
                     knowledgeCatalogRepository.deleteKnowledgeDocumentFromKnowledgeCatalog(knowledgeCatalog.getId(), List.of(knowledgeDocument.getId()));
-                    textNodeVectorRepository.deleteTextNodeFromVectorDatabases(textNodeIdList, knowledgeCatalog.getMilvusCollectionName());
+                    textNodeVectorRepository.deleteTextNodeFromVectorDatabases(List.of(fileNodeId), knowledgeCatalog.getMilvusCollectionName()).getOrThrow();
                 });
                 // 删除知识文件
                 knowledgeDocumentRepository.delete(knowledgeDocument.getId());
