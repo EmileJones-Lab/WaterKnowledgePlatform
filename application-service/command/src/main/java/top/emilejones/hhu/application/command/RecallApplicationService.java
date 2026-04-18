@@ -99,8 +99,7 @@ public class RecallApplicationService {
     public List<FileNodeDTO> recallFileNodes(String query) {
         return fileNodeVectorRepository.recallFileNode(
                         query,
-                        EmbeddingApplicationService.FILE_COLLECTION_NAME,
-                        null
+                        EmbeddingApplicationService.FILE_COLLECTION_NAME
                 ).stream()
                 .map(node -> FileNodeDTO.builder()
                         .id(node.getId())

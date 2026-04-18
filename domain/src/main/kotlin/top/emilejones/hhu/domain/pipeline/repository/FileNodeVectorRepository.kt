@@ -43,8 +43,7 @@ interface FileNodeVectorRepository {
      *
      * @param query 用户问题
      * @param collectionName 目标知识库/向量集合
-     * @param fileNodeIdList 可选：指定召回的文件范围。若为空则全库检索。
      * @return 和问题相关的文件节点列表
      */
-    fun recallFileNode(query: String, collectionName: String, fileNodeIdList: List<String>? = null): List<FileNode>
+    fun recallFileNode(query: String, collectionName: String): List<FileNode>
 }
