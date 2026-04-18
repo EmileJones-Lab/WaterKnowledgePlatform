@@ -48,21 +48,14 @@ class FileNodeVectorRepositoryAdaptor(
         Unit
     }.toCommonVoidResult()
 
-    override fun recallFileNode(query: String, collectionName: String, fileNodeIdList: List<String>?): List<FileNode> = runCatching {
+    override fun recallFileNode(query: String, collectionName: String): List<FileNode> = runCatching {
         val queryVector = modelClient.embedding(query)
-
-        val filter = if (fileNodeIdList.isNullOrEmpty()) {
-            null
-        } else {
-            val ids = fileNodeIdList.joinToString("\", \"", "\"", "\"")
-            "fileNodeId in [$ids]"
-        }
 
         val searchResults = fileNodeMilvusRepository.searchByVector(
             collectionName = collectionName,
             queryVector = queryVector,
-            topK = 10,
-            filter = filter
+            topK = 5,
+            filter = null
         )
 
         searchResults.mapNotNull { datum ->
