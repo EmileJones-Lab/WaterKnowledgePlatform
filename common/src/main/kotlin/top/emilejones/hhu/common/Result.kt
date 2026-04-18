@@ -53,3 +53,14 @@ fun <T> kotlin.Result<T>.toCommonResult(): Result<T> {
     }
 }
 
+/**
+ * 将 Kotlin 标准库的 Result<Unit> 转换为自定义的 Result<Void>。
+ */
+fun<T> kotlin.Result<T>.toCommonVoidResult(): Result<Void> {
+    return if (this.isSuccess) {
+        Result.successVoid()
+    } else {
+        Result.failure(this.exceptionOrNull()!!)
+    }
+}
+
