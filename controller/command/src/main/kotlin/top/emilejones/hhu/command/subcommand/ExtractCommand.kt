@@ -3,6 +3,7 @@ package top.emilejones.hhu.command.subcommand
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
+import kotlinx.coroutines.*
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.application.command.StructureExtractApplicationService
 import java.io.File
@@ -39,8 +40,12 @@ class ExtractCommand(
             }
 
             echo("Found ${mdFiles.size} Markdown files. Starting batch extraction...")
-            mdFiles.forEach { mdFile ->
-                processFile(mdFile.absolutePath)
+            runBlocking {
+                mdFiles.map { mdFile ->
+                    launch(Dispatchers.IO) {
+                        processFile(mdFile.absolutePath)
+                    }
+                }.joinAll()
             }
         } else {
             if (file.extension.equals("md", ignoreCase = true)) {

@@ -57,32 +57,32 @@ public class StructureExtractApplicationService {
             // 1. 计算文件内容的 MD5 作为 sourceDocumentId
             String sourceDocumentId = MD5Utils.calculateMD5(path);
 
-            // 2. 幂等性检查：判断是否已提取过
-            if (processRecordService.isAlreadyProcessed(sourceDocumentId)) {
-                logger.info("文件 [{}] (MD5: {}) 已被提取过，跳过处理。", fileName, sourceDocumentId);
-                return;
-            }
-
             logger.info("开始处理 Markdown 文件: {}", fileName);
 
-            // 3. 调用结构提取网关
-            try (InputStream inputStream = Files.newInputStream(path)) {
-                logger.info("正在调用结构提取网关进行解析与存储...");
-                String fileNodeId = structureExtractionGateway.extract(inputStream, sourceDocumentId).getOrThrow();
-                logger.info("结构提取成功完成，生成的根节点 ID 为: {}", fileNodeId);
+            // 2. 结构提取逻辑：若未提取过结构，则进行解析与存储
+            if (!processRecordService.isAlreadyProcessed(sourceDocumentId)) {
+                try (InputStream inputStream = Files.newInputStream(path)) {
+                    logger.info("文件 [{}] 尚未提取结构，正在调用结构提取网关...", fileName);
+                    String fileNodeId = structureExtractionGateway.extract(inputStream, sourceDocumentId).getOrThrow();
+                    logger.info("结构提取成功，生成的根节点 ID 为: {}", fileNodeId);
 
-                // 4. 记录提取结果到本地 CSV
-                processRecordService.recordExtraction(sourceDocumentId, fileName, fileNodeId);
-                logger.info("任务成功信息已记录到本地。");
+                    // 记录提取结果到本地 CSV
+                    processRecordService.recordExtraction(sourceDocumentId, fileName, fileNodeId);
+                }
+            } else {
+                logger.info("文件 [{}] 结构已提取，跳过结构提取步骤。", fileName);
+            }
 
-                // 5. 调用摘要提取网关生成各级节点的摘要
-                logger.info("正在调用摘要提取网关进行各级节点摘要生成...");
+            // 3. 摘要提取逻辑：检查摘要状态，若未提取过则进行生成
+            if (!processRecordService.isSummaryProcessed(sourceDocumentId)) {
+                logger.info("文件 [{}] 尚未提取摘要，正在调用摘要提取网关...", fileName);
                 structureExtractionGateway.summary(sourceDocumentId).getOrThrow();
-                logger.info("摘要提取成功完成。");
 
-                // 6. 更新摘要提取状态到本地记录
+                // 更新摘要提取状态
                 processRecordService.updateSummaryStatus(sourceDocumentId, true);
-                logger.info("摘要提取状态已记录到本地。");
+                logger.info("摘要提取成功完成并已更新本地记录。");
+            } else {
+                logger.info("文件 [{}] 摘要已提取过，跳过摘要生成步骤。", fileName);
             }
 
         } catch (Exception e) {

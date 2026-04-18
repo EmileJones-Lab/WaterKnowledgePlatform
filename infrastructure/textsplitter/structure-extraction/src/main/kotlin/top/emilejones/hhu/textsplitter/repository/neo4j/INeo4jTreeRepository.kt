@@ -63,7 +63,7 @@ interface INeo4jTreeRepository {
      * 根据 fileNodeId 查询出结构化的树状结构
      *
      * @param fileNodeId 文件节点唯一标识
-     * @return 树状结构的根节点（NULL 类型的 TextNodeDTO）
+     * @return 树状结构的根节点（NULL 类型的 TextNodeDTO），根节点也包含FileNode
      */
     fun findTreeByFileNodeId(fileNodeId: String): TextNodeDTO
 }
