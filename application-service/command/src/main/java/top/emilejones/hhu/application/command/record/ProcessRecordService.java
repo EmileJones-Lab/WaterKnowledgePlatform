@@ -15,6 +15,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 处理记录服务。
@@ -29,6 +31,7 @@ public class ProcessRecordService {
 
     // 使用 LinkedHashMap 保持记录的插入顺序，key 为 sourceDocumentId
     private final Map<String, ProcessRecord> records = new LinkedHashMap<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     @PostConstruct
     public void init() {
@@ -50,26 +53,31 @@ public class ProcessRecordService {
     /**
      * 从 CSV 文件加载所有记录到内存 Map。
      */
-    private synchronized void loadRecords() {
-        Path csvPath = Paths.get(CSV_FILE_NAME);
-        if (!Files.exists(csvPath)) {
-            return;
-        }
-
-        try (BufferedReader reader = Files.newBufferedReader(csvPath)) {
-            String line = reader.readLine(); // 跳过表头
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
-                String[] parts = line.split(",");
-                if (parts.length >= 5) {
-                    records.put(parts[0], new ProcessRecord(parts[0], parts[1], parts[2], Boolean.parseBoolean(parts[3]), Boolean.parseBoolean(parts[4])));
-                }
+    private void loadRecords() {
+        lock.writeLock().lock();
+        try {
+            Path csvPath = Paths.get(CSV_FILE_NAME);
+            if (!Files.exists(csvPath)) {
+                return;
             }
-            logger.info("已从文件加载 {} 条处理记录", records.size());
-        } catch (IOException e) {
-            logger.error("加载记录文件失败: {}", e.getMessage());
+
+            try (BufferedReader reader = Files.newBufferedReader(csvPath)) {
+                String line = reader.readLine(); // 跳过表头
+                while ((line = reader.readLine()) != null) {
+                    if (line.trim().isEmpty()) {
+                        continue;
+                    }
+                    String[] parts = line.split(",");
+                    if (parts.length >= 5) {
+                        records.put(parts[0], new ProcessRecord(parts[0], parts[1], parts[2], Boolean.parseBoolean(parts[3]), Boolean.parseBoolean(parts[4])));
+                    }
+                }
+                logger.info("已从文件加载 {} 条处理记录", records.size());
+            } catch (IOException e) {
+                logger.error("加载记录文件失败: {}", e.getMessage());
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -79,8 +87,29 @@ public class ProcessRecordService {
      * @param sourceDocumentId 文档唯一标识
      * @return 如果记录已存在则返回 true
      */
-    public synchronized boolean isAlreadyProcessed(String sourceDocumentId) {
-        return records.containsKey(sourceDocumentId);
+    public boolean isAlreadyProcessed(String sourceDocumentId) {
+        lock.readLock().lock();
+        try {
+            return records.containsKey(sourceDocumentId);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * 检查指定的 sourceDocumentId 是否已经完成摘要提取。
+     *
+     * @param sourceDocumentId 文档唯一标识
+     * @return 如果摘要已提取则返回 true
+     */
+    public boolean isSummaryProcessed(String sourceDocumentId) {
+        lock.readLock().lock();
+        try {
+            ProcessRecord record = records.get(sourceDocumentId);
+            return record != null && record.isSummary();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -90,22 +119,27 @@ public class ProcessRecordService {
      * @param fileName         文件名
      * @param fileNodeId       图数据库中的文件节点 ID
      */
-    public synchronized void recordExtraction(String sourceDocumentId, String fileName, String fileNodeId) {
-        if (records.containsKey(sourceDocumentId)) {
-            return;
-        }
+    public void recordExtraction(String sourceDocumentId, String fileName, String fileNodeId) {
+        lock.writeLock().lock();
+        try {
+            if (records.containsKey(sourceDocumentId)) {
+                return;
+            }
 
-        ProcessRecord record = new ProcessRecord(sourceDocumentId, fileName, fileNodeId, false, false);
-        // 先添加到内存
-        records.put(sourceDocumentId, record);
+            ProcessRecord record = new ProcessRecord(sourceDocumentId, fileName, fileNodeId, false, false);
+            // 先添加到内存
+            records.put(sourceDocumentId, record);
 
-        // 再追加到文件
-        Path csvPath = Paths.get(CSV_FILE_NAME);
-        try (BufferedWriter writer = Files.newBufferedWriter(csvPath, StandardOpenOption.APPEND)) {
-            writer.write(record.toCsvLine());
-            writer.newLine();
-        } catch (IOException e) {
-            logger.error("追加记录提取结果失败: {}", e.getMessage());
+            // 再追加到文件
+            Path csvPath = Paths.get(CSV_FILE_NAME);
+            try (BufferedWriter writer = Files.newBufferedWriter(csvPath, StandardOpenOption.APPEND)) {
+                writer.write(record.toCsvLine());
+                writer.newLine();
+            } catch (IOException e) {
+                logger.error("追加记录提取结果失败: {}", e.getMessage());
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -115,13 +149,18 @@ public class ProcessRecordService {
      * @param sourceDocumentId 文档唯一标识
      * @param isEmbedding      向量化状态
      */
-    public synchronized void updateEmbeddingStatus(String sourceDocumentId, boolean isEmbedding) {
-        ProcessRecord record = records.get(sourceDocumentId);
-        if (record != null) {
-            // 更新内存记录
-            records.put(sourceDocumentId, new ProcessRecord(record.sourceDocumentId(), record.fileName(), record.fileNodeId(), isEmbedding, record.isSummary()));
-            // 同步回文件
-            syncToFile();
+    public void updateEmbeddingStatus(String sourceDocumentId, boolean isEmbedding) {
+        lock.writeLock().lock();
+        try {
+            ProcessRecord record = records.get(sourceDocumentId);
+            if (record != null) {
+                // 更新内存记录
+                records.put(sourceDocumentId, new ProcessRecord(record.sourceDocumentId(), record.fileName(), record.fileNodeId(), isEmbedding, record.isSummary()));
+                // 同步回文件
+                syncToFileInternal();
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -131,20 +170,26 @@ public class ProcessRecordService {
      * @param sourceDocumentId 文档唯一标识
      * @param isSummary        摘要生成状态
      */
-    public synchronized void updateSummaryStatus(String sourceDocumentId, boolean isSummary) {
-        ProcessRecord record = records.get(sourceDocumentId);
-        if (record != null) {
-            // 更新内存记录
-            records.put(sourceDocumentId, new ProcessRecord(record.sourceDocumentId(), record.fileName(), record.fileNodeId(), record.isEmbedding(), isSummary));
-            // 同步回文件
-            syncToFile();
+    public void updateSummaryStatus(String sourceDocumentId, boolean isSummary) {
+        lock.writeLock().lock();
+        try {
+            ProcessRecord record = records.get(sourceDocumentId);
+            if (record != null) {
+                // 更新内存记录
+                records.put(sourceDocumentId, new ProcessRecord(record.sourceDocumentId(), record.fileName(), record.fileNodeId(), record.isEmbedding(), isSummary));
+                // 同步回文件
+                syncToFileInternal();
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
     /**
      * 将内存中的所有记录全量同步回 CSV 文件。
+     * 调用此方法前必须持有写锁。
      */
-    private synchronized void syncToFile() {
+    private void syncToFileInternal() {
         Path csvPath = Paths.get(CSV_FILE_NAME);
         try (BufferedWriter writer = Files.newBufferedWriter(csvPath, StandardOpenOption.TRUNCATE_EXISTING)) {
             writer.write(HEADER);
@@ -164,9 +209,14 @@ public class ProcessRecordService {
      * @param sourceDocumentId 文档唯一标识
      * @return fileNodeId 的 Optional 封装
      */
-    public synchronized Optional<String> getFileNodeId(String sourceDocumentId) {
-        ProcessRecord record = records.get(sourceDocumentId);
-        return record != null ? Optional.of(record.fileNodeId()) : Optional.empty();
+    public Optional<String> getFileNodeId(String sourceDocumentId) {
+        lock.readLock().lock();
+        try {
+            ProcessRecord record = records.get(sourceDocumentId);
+            return record != null ? Optional.of(record.fileNodeId()) : Optional.empty();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -175,12 +225,17 @@ public class ProcessRecordService {
      * @param fileNodeId 文件节点 ID
      * @return 文件名字符串，未找到则返回 "未知"
      */
-    public synchronized String getFileNameByFileNodeId(String fileNodeId) {
-        return records.values().stream()
-                .filter(record -> fileNodeId.equals(record.fileNodeId()))
-                .map(ProcessRecord::fileName)
-                .findFirst()
-                .orElse("未知");
+    public String getFileNameByFileNodeId(String fileNodeId) {
+        lock.readLock().lock();
+        try {
+            return records.values().stream()
+                    .filter(record -> fileNodeId.equals(record.fileNodeId()))
+                    .map(ProcessRecord::fileName)
+                    .findFirst()
+                    .orElse("未知");
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**

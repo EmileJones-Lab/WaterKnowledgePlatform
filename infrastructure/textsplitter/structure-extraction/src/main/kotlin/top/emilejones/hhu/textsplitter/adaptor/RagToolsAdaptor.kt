@@ -45,7 +45,7 @@ class RagToolsAdaptor(
     override fun extract(inputStream: InputStream, sourceDocumentId: String): Result<String> = runCatching {
         val result = MarkdownStructureParser(inputStream).get()
         requireNotNull(result.fileNode).fileId = sourceDocumentId
-        SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
+//        SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
         TextNodeLeafLevelProcessor(result).run()
         neo4jRepository.insertTree(result)
         requireNotNull(result.fileNode).id
