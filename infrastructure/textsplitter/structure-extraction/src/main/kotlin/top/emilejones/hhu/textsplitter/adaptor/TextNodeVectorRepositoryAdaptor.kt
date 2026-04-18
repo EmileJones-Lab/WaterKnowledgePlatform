@@ -2,6 +2,7 @@ package top.emilejones.hhu.textsplitter.adaptor
 
 import org.springframework.stereotype.Service
 import top.emilejones.hhu.common.Result
+import top.emilejones.hhu.common.toCommonVoidResult
 import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository
 import top.emilejones.hhu.domain.result.TextNode
 import top.emilejones.hhu.textsplitter.domain.po.milvus.TextNodeEmbeddingDatum
@@ -20,50 +21,37 @@ class TextNodeVectorRepositoryAdaptor(
     private val neo4jRepository: INeo4jRepository
 ) : TextNodeVectorRepository {
 
-    override fun saveTextNodeToVectorDatabase(fileNodeIds: List<String>, collectionName: String): Result<Void> {
-        return try {
-            val allNodesToInsert = mutableListOf<TextNodeEmbeddingDatum>()
-            
-            for (fileNodeId in fileNodeIds) {
-                val fileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(fileNodeId)
-                if (fileNode == null) {
-                    continue
-                }
-                val neo4jTextNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileNode.fileId)
-                val textNodeList = neo4jTextNodeList.map { it.asTextNode(fileNode) }
-                
-                val nodesToInsert = textNodeList.filter { it.isEmbedded }
-                    .map { convertTextNodeToEmbeddingDatum(it) }
-                
-                allNodesToInsert.addAll(nodesToInsert)
+    override fun saveTextNodeToVectorDatabase(fileNodeIds: List<String>, collectionName: String): Result<Void> = runCatching {
+        val allNodesToInsert = mutableListOf<TextNodeEmbeddingDatum>()
+
+        for (fileNodeId in fileNodeIds) {
+            val fileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(fileNodeId) ?: continue
+            val neo4jTextNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(fileNode.fileId)
+            val textNodeList = neo4jTextNodeList.map { it.asTextNode(fileNode) }
+
+            // 校验：所有关联的文本节点都必须包含向量
+            if (textNodeList.any { it.vector == null }) {
+                throw IllegalStateException("文件节点[$fileNodeId]下存在未向量化的文本节点，无法同步。")
             }
 
-            if (allNodesToInsert.isNotEmpty()) {
-                textNodeMilvusRepository.batchInsert(collectionName, allNodesToInsert)
-            }
-            Result.successVoid()
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+            val nodesToInsert = textNodeList.map { convertTextNodeToEmbeddingDatum(it) }
 
-    override fun deleteTextNodeFromVectorDatabases(fileNodeIds: List<String>, collectionName: String): Result<Void> {
-        return try {
-            textNodeMilvusRepository.batchDeleteByFileNodeIds(collectionName, fileNodeIds)
-            Result.successVoid()
-        } catch (e: Exception) {
-            Result.failure(e)
+            allNodesToInsert.addAll(nodesToInsert)
         }
-    }
 
-    override fun createCollection(collectionName: String): Result<Void> {
-        return try {
-            textNodeMilvusRepository.createCollection(collectionName)
-            Result.successVoid()
-        } catch (e: Exception) {
-            Result.failure(e)
+        if (allNodesToInsert.isNotEmpty()) {
+            textNodeMilvusRepository.batchInsert(collectionName, allNodesToInsert)
         }
-    }
+    }.toCommonVoidResult()
+
+    override fun deleteTextNodeFromVectorDatabases(fileNodeIds: List<String>, collectionName: String): Result<Void> = runCatching {
+        textNodeMilvusRepository.batchDeleteByFileNodeIds(collectionName, fileNodeIds)
+        Unit
+    }.toCommonVoidResult()
+
+    override fun createCollection(collectionName: String): Result<Void> = runCatching {
+        textNodeMilvusRepository.createCollection(collectionName)
+    }.toCommonVoidResult()
 
     override fun recallTextNode(query: String, collectionName: String, fileNodeIdList: List<String>?): List<TextNode> {
         val filter = if (fileNodeIdList.isNullOrEmpty()) {

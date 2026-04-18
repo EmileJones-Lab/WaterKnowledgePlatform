@@ -11,7 +11,8 @@ interface FileNodeVectorRepository {
      * 将指定的文件节点向量信息存入向量数据库。
      *
      * 约定：
-     * - 调用方需保证传入的 FileNode 已包含向量信息。
+     * - 调用方需保证传入的所有 FileNode 均已包含向量信息。
+     * - 如果列表中存在任何一个节点缺失向量信息，则整个保存操作失败。
      * - 采用批量保存模式。
      *
      * @param fileNodes 需要存入的文件节点列表

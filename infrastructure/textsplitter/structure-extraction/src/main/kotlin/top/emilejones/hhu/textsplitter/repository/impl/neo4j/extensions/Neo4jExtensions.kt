@@ -37,7 +37,8 @@ fun Node.asNeo4jFileNode(): Neo4jFileNode {
         isEmbedded = this["isEmbedded"].asBoolean(),
         id = this["id"].asString(),
         isDelete = if (this.keys().contains("isDelete")) this["isDelete"].asBoolean() else false,
-        fileAbstract = this["fileAbstract"].takeUnless { it.isNull }?.asString()
+        fileAbstract = this["fileAbstract"].takeUnless { it.isNull }?.asString(),
+        vector = this["vector"].takeUnless { it.isNull }?.asList { it.asFloat() }
     )
 }
 
@@ -103,7 +104,8 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
                 fileId: ${'$'}fileId,
                 isEmbedded: ${'$'}isEmbedded,
                 isDelete: ${'$'}isDelete,
-                fileAbstract: ${'$'}fileAbstract
+                fileAbstract: ${'$'}fileAbstract,
+                vector: ${'$'}vector
             })
             RETURN n
         """,
@@ -113,7 +115,8 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
             "isEmbedded", neo4jFileNode.isEmbedded,
             "id", neo4jFileNode.id,
             "isDelete", neo4jFileNode.isDelete,
-            "fileAbstract", neo4jFileNode.fileAbstract
+            "fileAbstract", neo4jFileNode.fileAbstract,
+            "vector", neo4jFileNode.vector
         )
     ).single()
     return insertFileNodeResult["n"].asNode().asNeo4jFileNode()

@@ -10,29 +10,25 @@ import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 import top.emilejones.hhu.domain.pipeline.repository.NodeRepository
 import top.emilejones.hhu.domain.result.TextType
-import top.emilejones.hhu.infrastructure.configuration.env.pojo.RAGConfig
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.ocr.MinerUClient
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
-import top.emilejones.hhu.textsplitter.preprocessor.SplitTextNodeTool
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeSummaryProcessor
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.ISummarizationService
 import java.io.InputStream
-import java.util.Objects
+import java.util.*
 
 @Service
 class RagToolsAdaptor(
     private val minerUClient: MinerUClient,
     private val markdownStructureExtractor: MarkdownStructureExtractor,
-    private val ragConfig: RAGConfig,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
-    private val summarizationService: ISummarizationService,
-    private val nodeRepository: NodeRepository
+    private val summarizationService: ISummarizationService
 ) : OcrGateway, StructureExtractionGateway, EmbeddingGateway {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -45,7 +41,6 @@ class RagToolsAdaptor(
     override fun extract(inputStream: InputStream, sourceDocumentId: String): Result<String> = runCatching {
         val result = MarkdownStructureParser(inputStream).get()
         requireNotNull(result.fileNode).fileId = sourceDocumentId
-//        SplitTextNodeTool(result, ragConfig.maxTableLength, ragConfig.maxSentenceLength).run()
         TextNodeLeafLevelProcessor(result).run()
         neo4jRepository.insertTree(result)
         requireNotNull(result.fileNode).id
@@ -77,42 +72,45 @@ class RagToolsAdaptor(
 
     override fun embed(fileNodeId: String): Result<String> = runCatching {
         val finalFileNodeId = Objects.requireNonNull(fileNodeId)
-        val fileNodeOptional = nodeRepository.findFileNodeByFileNodeId(finalFileNodeId)
-        if (fileNodeOptional.isEmpty) {
-            throw IllegalAccessException("结构提取任务存在，但是切割后的FileNode不存在")
-        }
-
-        val fileNode = fileNodeOptional.get()
-        // 找到所有的TextNode
-        val textNodeList = nodeRepository.findTextNodeListByFileNodeId(finalFileNodeId)
-
-        // 收集待向量化的文本：FileNode 的 fileAbstract 和 TextNode 的 summary
-        // 校验：所有节点必须具备摘要
-        val textsToEmbed = mutableListOf<String>()
         
-        val fileAbstract = fileNode.fileAbstract ?: throw IllegalStateException("FileNode $finalFileNodeId 没有执行摘要生成任务。")
+        // 1. 查询基础设施层的 POJO
+        val neo4jFileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(finalFileNodeId)
+            ?: throw IllegalAccessException("结构提取任务存在，但是切割后的FileNode不存在")
+
+        // 2. 找到所有的 Neo4jTextNode (使用 POJO 列表)
+        val neo4jTextNodeList = neo4jRepository.searchNeo4jTextNodeByFileId(neo4jFileNode.fileId)
+
+        // 3. 收集待向量化的文本：FileNode 的 fileAbstract 和 TextNode 的 summary
+        val textsToEmbed = mutableListOf<String>()
+
+        val fileAbstract = neo4jFileNode.fileAbstract 
+            ?: throw IllegalStateException("FileNode $finalFileNodeId 没有执行摘要生成任务。")
         textsToEmbed.add(fileAbstract)
 
-        textNodeList.forEach { node ->
+        neo4jTextNodeList.forEach { node ->
             val summary = node.summary ?: throw IllegalStateException("FileNode $finalFileNodeId 没有执行摘要生成任务。")
             textsToEmbed.add(summary)
         }
 
-        // 批量向量化
+        // 4. 批量向量化
         val vectors = embed(textsToEmbed)
 
+        // 5. 更新 POJO 并保存回 Neo4j
         var vectorIndex = 0
-        // 为 FileNode 添加 vector 属性
-        fileNode.saveVector(vectors[vectorIndex++])
+        
+        // 更新 FileNode 向量
+        neo4jRepository.updateNodeById(neo4jFileNode.id, mapOf(
+            "vector" to vectors[vectorIndex++],
+            "isEmbedded" to true
+        ))
 
-        // 为所有的 TextNode 添加 vector 属性
-        for (i in textNodeList.indices) {
-            textNodeList[i].saveVector(vectors[vectorIndex++])
+        // 批量更新 TextNode 向量
+        neo4jTextNodeList.forEach { node ->
+            neo4jRepository.updateNodeById(node.id, mapOf(
+                "vector" to vectors[vectorIndex++],
+                "isEmbedded" to true
+            ))
         }
-
-        // 保存到Neo4j (通过nodeRepository接口)
-        textNodeList.forEach { nodeRepository.saveTextNode(it) }
-        nodeRepository.saveFileNode(fileNode)
 
         finalFileNodeId
     }.toCommonResult()
