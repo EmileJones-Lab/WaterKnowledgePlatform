@@ -31,6 +31,26 @@ class SummarizationServiceImpl(
             摘要内容：
         """
 
+        private const val TABLE_SUMMARIZE_PROMPT = """
+            请为以下 HTML 格式的表格生成一段准确的摘要（不超过 150 字）。
+            
+            上下文参考：
+            - 上一个片段：[%s]
+            - 下一个片段：[%s]
+            
+            待处理表格内容：
+            ---
+            %s
+            ---
+            
+            要求：
+            1. 概括表格的主题、核心数据维度或关键对比关系。
+            2. 结合上下文，说明表格在文档中的作用或其反映的核心事实。
+            3. 摘要应当通顺、精炼。
+            
+            表格摘要：
+        """
+
         private const val AGGREGATE_SUMMARIZE_PROMPT = """
             当前章节标题为：[%s]
             
@@ -56,12 +76,7 @@ class SummarizationServiceImpl(
         if (text.length < 50) return text.trim()
 
         val userPrompt = LEAF_SUMMARIZE_PROMPT.format(text)
-        return try {
-            modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()
-        } catch (e: Exception) {
-            // 记录日志并回退，这里简单返回原文本的前 100 个字符
-            text.take(100).trim()
-        }
+        return modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()
     }
 
     override fun summarizeWithChildren(title: String, childrenSummaries: List<String>): String {
@@ -70,11 +85,18 @@ class SummarizationServiceImpl(
         val childrenContext = childrenSummaries.joinToString("\n") { "- $it" }
         val userPrompt = AGGREGATE_SUMMARIZE_PROMPT.format(title.ifBlank { "未命名章节" }, childrenContext)
         
-        return try {
-            modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()
-        } catch (e: Exception) {
-            // 失败时，尝试简单合并子摘要
-            childrenSummaries.take(3).joinToString("; ").take(200)
-        }
+        return modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()
+    }
+
+    override fun summarizeTable(tableHtml: String, prevSegment: String?, nextSegment: String?): String {
+        if (tableHtml.isBlank()) return ""
+
+        val userPrompt = TABLE_SUMMARIZE_PROMPT.format(
+            prevSegment ?: "无",
+            nextSegment ?: "无",
+            tableHtml
+        )
+
+        return modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()
     }
 }
