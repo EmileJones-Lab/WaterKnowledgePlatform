@@ -3,6 +3,10 @@ package top.emilejones.hhu.command.subcommand
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.application.command.EmbeddingApplicationService
 import java.io.File
@@ -39,8 +43,12 @@ class EmbedCommand(
             }
 
             echo("Found ${mdFiles.size} Markdown files. Starting batch vectorization...")
-            mdFiles.forEach { mdFile ->
-                processFile(mdFile.absolutePath)
+            runBlocking {
+                mdFiles.map { mdFile ->
+                    launch(Dispatchers.IO) {
+                        processFile(mdFile.absolutePath)
+                    }
+                }.joinAll()
             }
         } else {
             if (file.extension.equals("md", ignoreCase = true)) {
