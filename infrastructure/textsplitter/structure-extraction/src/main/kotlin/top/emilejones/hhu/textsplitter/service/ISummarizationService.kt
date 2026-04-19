@@ -22,4 +22,14 @@ interface ISummarizationService {
      * @return 合并并精炼后的摘要
      */
     fun summarizeWithChildren(title: String, childrenSummaries: List<String>): String
+
+    /**
+     * 为 HTML 格式的表格生成摘要
+     *
+     * @param tableHtml HTML 格式的表格内容
+     * @param prevSegment 上一个片段（可选上下文）
+     * @param nextSegment 下一个片段（可选上下文）
+     * @return 表格摘要
+     */
+    fun summarizeTable(tableHtml: String, prevSegment: String? = null, nextSegment: String? = null): String
 }

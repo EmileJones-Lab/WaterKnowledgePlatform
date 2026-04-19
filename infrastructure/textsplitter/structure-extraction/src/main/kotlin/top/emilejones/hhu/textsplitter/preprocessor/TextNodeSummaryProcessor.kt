@@ -1,6 +1,7 @@
 package top.emilejones.hhu.textsplitter.preprocessor
 
 import org.slf4j.LoggerFactory
+import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.textsplitter.domain.dto.FileNodeDTO
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.service.ISummarizationService
@@ -53,33 +54,68 @@ class TextNodeSummaryProcessor(
         }
 
         // 2. 处理当前节点摘要
-        try {
-            if (childCount == 0) {
-                // 叶子节点：直接对文本生成摘要
-                if (nowNode.text.isNotBlank()) {
-                    nowNode.summary = summarizationService.summarize(nowNode.text)
-                    logger.debug("Generated summary for leaf node seq: [{}]", nowNode.seq)
-                }
-            } else {
-                // 中间节点：收集子节点的摘要或原文
-                val childrenContexts = mutableListOf<String>()
-                for (i in 0 until childCount) {
-                    val child = nowNode.getChild(i)
-                    // 优先使用子节点的摘要，如果没有则使用原文
-                    val context = child.summary ?: child.text
-                    if (context.isNotBlank()) {
-                        childrenContexts.add(context)
-                    }
-                }
+        processNodeSummary(nowNode)
+    }
 
-                if (childrenContexts.isNotEmpty()) {
-                    nowNode.summary = summarizationService.summarizeWithChildren(nowNode.text, childrenContexts)
-                    logger.debug("Generated aggregate summary for intermediate node seq: [{}]", nowNode.seq)
-                }
+    /**
+     * 根据节点类型和子节点情况，分发执行具体的摘要生成逻辑
+     */
+    private fun processNodeSummary(nowNode: TextNodeDTO) {
+        try {
+            when {
+                nowNode.type == TextType.TABLE -> summarizeTableNode(nowNode)
+                nowNode.childNum() == 0 -> summarizeLeafNode(nowNode)
+                else -> summarizeIntermediateNode(nowNode)
             }
         } catch (e: Exception) {
             logger.error("Failed to generate summary for node seq: [{}], error: {}", nowNode.seq, e.message)
             // 摘要生成失败不应中断整个流程，保留为 null 即可
+        }
+    }
+
+    /**
+     * 处理表格节点的专用摘要逻辑
+     */
+    private fun summarizeTableNode(node: TextNodeDTO) {
+        if (node.text.isNotBlank()) {
+            node.summary = summarizationService.summarizeTable(
+                node.text,
+                node.preNode?.text,
+                node.nextNode?.text
+            )
+            logger.debug("Generated table summary for node seq: [{}]", node.seq)
+        }
+    }
+
+    /**
+     * 处理叶子节点的摘要逻辑
+     */
+    private fun summarizeLeafNode(node: TextNodeDTO) {
+        if (node.text.isNotBlank()) {
+            node.summary = summarizationService.summarize(node.text)
+            logger.debug("Generated summary for leaf node seq: [{}]", node.seq)
+        }
+    }
+
+    /**
+     * 处理中间节点的聚合摘要逻辑
+     */
+    private fun summarizeIntermediateNode(node: TextNodeDTO) {
+        val childCount = node.childNum()
+        val childrenContexts = mutableListOf<String>()
+
+        for (i in 0 until childCount) {
+            val child = node.getChild(i)
+            // 优先使用子节点的摘要，如果没有则使用原文
+            val context = child.summary ?: child.text
+            if (context.isNotBlank()) {
+                childrenContexts.add(context)
+            }
+        }
+
+        if (childrenContexts.isNotEmpty()) {
+            node.summary = summarizationService.summarizeWithChildren(node.text, childrenContexts)
+            logger.debug("Generated aggregate summary for intermediate node seq: [{}]", node.seq)
         }
     }
 }
