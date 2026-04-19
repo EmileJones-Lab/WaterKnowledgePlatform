@@ -59,17 +59,6 @@ class RagToolsAdaptor(
         neo4jFileNode.id
     }.toCommonResult()
 
-    override fun embed(textList: List<String>): List<List<Float>> = runBlocking(scope.coroutineContext) {
-        val embeddingData = coroutineScope {
-            textList.map {
-                async {
-                    modelClient.embedding(it)
-                }
-            }.awaitAll()
-        }
-        embeddingData
-    }
-
     override fun embed(fileNodeId: String): Result<String> = runCatching {
         val finalFileNodeId = Objects.requireNonNull(fileNodeId)
         
@@ -143,5 +132,16 @@ class RagToolsAdaptor(
         for (i in 0 until node.childNum()) {
             deepUpdateSummary(node.getChild(i))
         }
+    }
+
+    private fun embed(textList: List<String>): List<List<Float>> = runBlocking(scope.coroutineContext) {
+        val embeddingData = coroutineScope {
+            textList.map {
+                async {
+                    modelClient.embedding(it)
+                }
+            }.awaitAll()
+        }
+        embeddingData
     }
 }
