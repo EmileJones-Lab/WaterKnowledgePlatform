@@ -34,7 +34,7 @@ class RetrieveCommand(
             } else {
                 echo("[文件] 共召回 ${files.size} 个相关文件：")
                 files.forEachIndexed { index, file ->
-                    echo("  ${index + 1}. ID: ${file.id} | 源文档ID: ${file.sourceDocumentId}")
+                    echo("  ${index + 1}. 文件名: ${file.fileName} | ID: ${file.id} | 源文档ID: ${file.sourceDocumentId}")
                     file.fileAbstract?.let { echo("     摘要: $it") }
                 }
                 echo("")
