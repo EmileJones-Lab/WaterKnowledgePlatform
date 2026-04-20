@@ -9,5 +9,6 @@ enum class TextType(val comment: String) {
     TABLE("表格文本"),
     IMAGE("图片文本"),
     TITLE("标题文本"),
+    LATEX("Latex文本"),
     NULL("无效节点")
 }

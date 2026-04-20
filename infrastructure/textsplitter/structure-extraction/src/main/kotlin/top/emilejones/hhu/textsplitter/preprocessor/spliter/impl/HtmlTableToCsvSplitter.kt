@@ -1,9 +1,9 @@
-package top.emilejones.hhu.textsplitter.spliter.impl
+package top.emilejones.hhu.textsplitter.preprocessor.spliter.impl
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import top.emilejones.hhu.textsplitter.spliter.StringSplitter
-import top.emilejones.hhu.textsplitter.spliter.exception.SplitException
+import top.emilejones.hhu.textsplitter.preprocessor.spliter.StringSplitter
+import top.emilejones.hhu.textsplitter.preprocessor.spliter.exception.SplitException
 
 /**
  * 将Html table转换成Csv的实现类

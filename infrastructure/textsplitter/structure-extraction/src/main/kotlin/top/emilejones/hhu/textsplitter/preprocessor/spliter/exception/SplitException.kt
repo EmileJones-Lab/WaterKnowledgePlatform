@@ -1,4 +1,4 @@
-package top.emilejones.hhu.textsplitter.spliter.exception
+package top.emilejones.hhu.textsplitter.preprocessor.spliter.exception
 
 class SplitException : Exception {
 

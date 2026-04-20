@@ -13,7 +13,6 @@ import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
 import top.emilejones.hhu.textsplitter.repository.impl.milvus.TextNodeMilvusRepository
 import top.emilejones.hhu.textsplitter.repository.impl.neo4j.Neo4jRepositoryImpl
-import top.emilejones.hhu.textsplitter.service.impl.DataProcessingService
 import java.io.ByteArrayInputStream
 import kotlin.test.*
 
