@@ -1,4 +1,4 @@
-package top.emilejones.hhu.textsplitter.spliter
+package top.emilejones.hhu.textsplitter.preprocessor.spliter
 
 /**
  * 切割文本的策略

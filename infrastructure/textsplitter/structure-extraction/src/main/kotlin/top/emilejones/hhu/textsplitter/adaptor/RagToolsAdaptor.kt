@@ -15,6 +15,7 @@ import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.ocr.MinerUClient
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
+import top.emilejones.hhu.textsplitter.preprocessor.LatexBlockMergeTool
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeSummaryProcessor
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
@@ -42,6 +43,7 @@ class RagToolsAdaptor(
         val result = MarkdownStructureParser(inputStream).get()
         requireNotNull(result.fileNode).fileId = sourceDocumentId
         TextNodeLeafLevelProcessor(result).run()
+        LatexBlockMergeTool(result).run()
         neo4jRepository.insertTree(result)
         requireNotNull(result.fileNode).id
     }.toCommonResult()

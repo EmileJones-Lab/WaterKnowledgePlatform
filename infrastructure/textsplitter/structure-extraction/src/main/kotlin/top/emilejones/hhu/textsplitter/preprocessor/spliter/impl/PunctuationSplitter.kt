@@ -1,6 +1,6 @@
-package top.emilejones.hhu.textsplitter.spliter.impl
+package top.emilejones.hhu.textsplitter.preprocessor.spliter.impl
 
-import top.emilejones.hhu.textsplitter.spliter.StringSplitter
+import top.emilejones.hhu.textsplitter.preprocessor.spliter.StringSplitter
 
 /**
  * 将句子按照标点符号切割的实现类

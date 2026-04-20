@@ -1,8 +1,8 @@
-package top.emilejones.hhu.textsplitter.spliter.impl
+package top.emilejones.hhu.textsplitter.preprocessor.spliter.impl
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import top.emilejones.hhu.textsplitter.spliter.StringSplitter
+import top.emilejones.hhu.textsplitter.preprocessor.spliter.StringSplitter
 
 /**
  * 根据文本长度拆分Html table文本为多个片段的实现类

@@ -59,7 +59,7 @@ public class DtoConverter {
         dto.setStatus(mapMissionStatus(mission.getStatus()));
         if (mission.getStatus() == top.emilejones.hhu.domain.result.MissionStatus.ERROR) {
             try {
-                 dto.setRemark(mission.getFailureResult().getErrorMessage());
+                dto.setRemark(mission.getFailureResult().getErrorMessage());
             } catch (Exception e) {
                 dto.setRemark("Unknown Error");
             }
@@ -171,7 +171,7 @@ public class DtoConverter {
             case STRUCTURE_KNOWLEDGE_DIR -> KnowledgeDirectoryType.STRUCTURE_KNOWLEDGE_DIR;
         };
     }
-    
+
     public static KnowledgeCatalogType mapKnowledgeDirectoryDTOType(KnowledgeDirectoryType type) {
         return switch (type) {
             case CHAR_NUMBER_SPLIT_DIR -> KnowledgeCatalogType.CHAR_NUMBER_SPLIT_DIR;
@@ -189,12 +189,13 @@ public class DtoConverter {
     }
 
     private static TextType mapTextType(top.emilejones.hhu.domain.result.TextType type) {
-         return switch (type) {
+        return switch (type) {
             case COMMON_TEXT -> TextType.COMMON_TEXT;
             case TABLE -> TextType.TABLE;
             case IMAGE -> TextType.IMAGE;
             case TITLE -> TextType.TITLE;
-            case NULL -> TextType.COMMON_TEXT; // Mapping NULL to COMMON_TEXT or handle as needed
+            case LATEX -> TextType.LATEX;
+            case NULL -> throw new IllegalArgumentException("不应该有 NULL 类型的节点");
         };
     }
 }

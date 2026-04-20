@@ -1,7 +1,7 @@
-package top.emilejones.hhu.textsplitter.splitter
+package top.emilejones.hhu.splitter.splitter
 
 import org.junit.jupiter.api.Test
-import top.emilejones.hhu.textsplitter.spliter.impl.PunctuationSplitter
+import top.emilejones.hhu.textsplitter.preprocessor.spliter.impl.PunctuationSplitter
 
 class PunctuationSplitterTest {
 

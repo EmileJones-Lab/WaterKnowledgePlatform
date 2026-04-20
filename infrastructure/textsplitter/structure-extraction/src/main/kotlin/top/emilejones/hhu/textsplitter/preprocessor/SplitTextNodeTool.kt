@@ -3,8 +3,8 @@ package top.emilejones.hhu.textsplitter.preprocessor
 import org.slf4j.LoggerFactory
 import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
-import top.emilejones.hhu.textsplitter.spliter.impl.HtmlTableToCsvSplitter
-import top.emilejones.hhu.textsplitter.spliter.impl.PunctuationSplitter
+import top.emilejones.hhu.textsplitter.preprocessor.spliter.impl.HtmlTableToCsvSplitter
+import top.emilejones.hhu.textsplitter.preprocessor.spliter.impl.PunctuationSplitter
 import java.util.*
 
 /**
