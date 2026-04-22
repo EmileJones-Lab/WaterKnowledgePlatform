@@ -35,8 +35,8 @@ app:
     password: <neo4j_password>
     database: <neo4j_database_name>
   model:
-    host: <model_service_host_ip>
-    port: <model_service_port>
+    embeddingUrl: <embedding_url>          # Embedding 模型 API 地址 (e.g. http://localhost:12345/v1)
+    rerankUrl: <rerank_url>               # Rerank 模型 API 地址 (e.g. http://localhost:12468)
     token: <your_api_token>                # OpenAI 格式服务的 API Key (可选)
     embeddingModel: <embedding_model_name> # Embedding 模型名称 (OpenAI 格式)
     rerankModel: <rerank_model_name>       # Rerank 模型名称

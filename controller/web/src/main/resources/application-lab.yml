@@ -22,8 +22,8 @@ app:
     password: 12345678
     database: neo4j
   model:
-    host: localhost
-    port: 10007
+    embeddingUrl: http://localhost:10007/v1
+    rerankUrl: http://localhost:10007/v1
     embeddingModel: bge-m3
     rerankModel: bge-reranker-v2-m3
     dimension: 1024
