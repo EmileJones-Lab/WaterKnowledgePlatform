@@ -25,40 +25,59 @@
 ```yaml
 app:
   milvus:
-    database: <your_milvus_database_name>
-    host: <milvus_host_ip_or_domain>
-    port: <milvus_port>
+    database: <database_name>           # [必填] Milvus 数据库名
+    host: <host>                        # [必填] Milvus 地址
+    port: <port>                        # [必填] Milvus 端口
   neo4j:
-    host: <neo4j_host_ip_or_domain>
-    port: <neo4j_port>
-    user: <neo4j_username>
-    password: <neo4j_password>
-    database: <neo4j_database_name>
+    host: <host>                        # [必填] Neo4j 地址
+    port: <port>                        # [必填] Neo4j 端口
+    user: <username>                    # [必填] Neo4j 用户名
+    password: <password>                # [必填] Neo4j 密码
+    database: <database_name>           # [必填] Neo4j 数据库名
   model:
-    host: <model_service_host_ip>
-    port: <model_service_port>
-    token: <your_api_token>                # OpenAI 格式服务的 API Key (可选)
-    embeddingModel: <embedding_model_name> # Embedding 模型名称 (OpenAI 格式)
-    rerankModel: <rerank_model_name>       # Rerank 模型名称
-    dimension: <vector_dimension>          # Embedding 模型生成的向量维度 (需与 Milvus 集合维度一致)
+    embeddingUrl: <url>                 # [必填] Embedding API 地址 (会自动补齐 /embeddings)
+    rerankUrl: <url>                    # [必填] Rerank API 地址 (会自动补齐 /rerank)
+    token: null                         # [选填] 全局 API Key，默认 null
+    embeddingToken: null                # [选填] Embedding 专用 Key，默认继承全局 token
+    rerankToken: null                   # [选填] Rerank 专用 Key，默认继承全局 token
+    embeddingModel: <name>              # [必填] Embedding 模型名称
+    rerankModel: <name>                 # [必填] Rerank 模型名称
+    dimension: <int>                    # [必填] 向量维度
   rag:
-    maxSentenceLength: <max_sentence_length> # 文本 chunk 的最大长度
-    maxTableLength: <max_table_length>       # 表格 chunk 的最大长度
-    recallNumber: <recall_top_k_number>      # 召回前几条数据（Top K）
+    maxSentenceLength: <int>            # [必填] 文本 chunk 最大长度
+    maxTableLength: <int>               # [必填] 表格 chunk 最大长度
+    recallNumber: <int>                 # [必填] 召回数量 (Top K)
   mysql:
-    host: <mysql_host_ip_or_domain>
-    port: <mysql_port>
-    user: <mysql_username>
-    password: <mysql_password>
-    database: <mysql_database_name>
+    host: <host>                        # [必填] MySQL 地址
+    port: <port>                        # [必填] MySQL 端口
+    user: <username>                    # [必填] MySQL 用户名
+    password: <password>                # [必填] MySQL 密码
+    database: <database_name>           # [必填] MySQL 数据库名
   minerU:
-    host: <mineru_host_ip_or_domain>
-    port: <mineru_port>
+    host: <host>                        # [必填] MinerU 地址
+    port: <port>                        # [必填] MinerU 端口
+    connectTimeout: 60                  # [选填] 连接超时 (秒)，默认 60
+    writeTimeout: 120                   # [选填] 写入超时 (秒)，默认 120
+    readTimeout: 0                      # [选填] 读取超时 (秒)，0 为无限，默认 0
+    outputDir: "./output"               # [选填] 结果暂存路径，默认 "./output"
+    langList: ["ch"]                    # [选填] 语言列表，默认 ["ch"]
+    backend: "pipeline"                 # [选填] 后端引擎，默认 "pipeline"
+    parseMethod: "auto"                 # [选填] 解析模式，默认 "auto"
+    formulaEnable: true                 # [选填] 解析公式，默认 true
+    tableEnable: true                   # [选填] 解析表格，默认 true
+    returnMd: true                      # [选填] 返回 Markdown，默认 true
+    returnMiddleJson: false             # [选填] 返回中间过程 JSON，默认 false
+    returnModelOutput: false            # [选填] 返回原始输出，默认 false
+    returnContentList: true             # [选填] 返回内容列表，默认 true
+    returnImages: true                  # [选填] 提取图片，默认 true
+    responseFormatZip: false            # [选填] 响应压缩为 ZIP，默认 false
+    startPageId: 0                      # [选填] 起始页码，默认 0
+    endPageId: 99999                    # [选填] 结束页码，默认 99999
   minio:
-    host: <minio_host_ip_or_domain>
-    port: <minio_port>
-    user: <minio_username>
-    password: <minio_password>
+    host: <host>                        # [必填] MinIO 地址
+    port: <port>                        # [必填] MinIO 端口
+    user: <username>                    # [必填] MinIO 用户名
+    password: <password>                # [必填] MinIO 密码
 ```
 
 ## 📦 模块职责说明

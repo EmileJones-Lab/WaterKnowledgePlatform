@@ -26,9 +26,9 @@ class MinerUClient(
 ) {
     private val logger = LoggerFactory.getLogger(MinerUClient::class.java)
     private val client: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(0, TimeUnit.SECONDS)
+        .connectTimeout(minerUConfig.connectTimeout, TimeUnit.SECONDS)
+        .writeTimeout(minerUConfig.writeTimeout, TimeUnit.SECONDS)
+        .readTimeout(minerUConfig.readTimeout, TimeUnit.SECONDS)
         .build()
 
     /**
@@ -45,19 +45,30 @@ class MinerUClient(
             }
         }
 
-        val requestBody = MultipartBody.Builder()
+        val requestBodyBuilder = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("files", "upload", fileBody)
-            .addFormDataPart("return_md", "true")
-            .addFormDataPart("response_format_zip", "false")
-            .addFormDataPart("formula_enable", "true")
-            .addFormDataPart("table_enable", "true")
-            .addFormDataPart("return_images", "true")
-            .build()
+            .addFormDataPart("output_dir", minerUConfig.outputDir)
+            .addFormDataPart("backend", minerUConfig.backend)
+            .addFormDataPart("parse_method", minerUConfig.parseMethod)
+            .addFormDataPart("formula_enable", minerUConfig.formulaEnable.toString())
+            .addFormDataPart("table_enable", minerUConfig.tableEnable.toString())
+            .addFormDataPart("return_md", minerUConfig.returnMd.toString())
+            .addFormDataPart("return_middle_json", minerUConfig.returnMiddleJson.toString())
+            .addFormDataPart("return_model_output", minerUConfig.returnModelOutput.toString())
+            .addFormDataPart("return_content_list", minerUConfig.returnContentList.toString())
+            .addFormDataPart("return_images", minerUConfig.returnImages.toString())
+            .addFormDataPart("response_format_zip", minerUConfig.responseFormatZip.toString())
+            .addFormDataPart("start_page_id", minerUConfig.startPageId.toString())
+            .addFormDataPart("end_page_id", minerUConfig.endPageId.toString())
+
+        minerUConfig.langList.forEach { lang ->
+            requestBodyBuilder.addFormDataPart("lang_list", lang)
+        }
 
         val request = Request.Builder()
             .url(url)
-            .post(requestBody)
+            .post(requestBodyBuilder.build())
             .build()
 
         return client.newCall(request).execute().use { response ->

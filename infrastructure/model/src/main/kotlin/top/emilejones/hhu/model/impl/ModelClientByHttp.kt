@@ -23,7 +23,7 @@ class ModelClientByHttp(
     private val gson = Gson()
 
     override fun embedding(text: String): List<Float> {
-        val url = "http://${modelClientConfig.host}:${modelClientConfig.port}/v1/embeddings"
+        val url = modelClientConfig.embeddingUrl.removeSuffix("/") + "/embeddings"
         val payload = mapOf(
             "model" to modelClientConfig.embeddingModel,
             "input" to text
@@ -35,8 +35,8 @@ class ModelClientByHttp(
             .post(body)
             .addHeader("accept", "application/json")
             .addHeader("Content-Type", "application/json")
-        if (modelClientConfig.token != null)
-            requestBuilder.addHeader("Authorization", "Bearer ${modelClientConfig.token}")
+        if (modelClientConfig.embeddingToken != null)
+            requestBuilder.addHeader("Authorization", "Bearer ${modelClientConfig.embeddingToken}")
         val request = requestBuilder.build()
 
         val responseBody = client.newCall(request).execute().use { response ->
@@ -79,7 +79,7 @@ class ModelClientByHttp(
     }
 
     private fun getRerankResult(query: String, textList: List<String>): List<RerankResult> {
-        val url = "http://${modelClientConfig.host}:${modelClientConfig.port}/v1/rerank"
+        val url = modelClientConfig.rerankUrl.removeSuffix("/") + "/rerank"
         val payload = mapOf(
             "model" to modelClientConfig.rerankModel,
             "query" to query,
@@ -93,8 +93,8 @@ class ModelClientByHttp(
             .addHeader("accept", "application/json")
             .addHeader("Content-Type", "application/json")
 
-        if (modelClientConfig.token != null)
-            requestBuilder.addHeader("Authorization", "Bearer ${modelClientConfig.token}")
+        if (modelClientConfig.rerankToken != null)
+            requestBuilder.addHeader("Authorization", "Bearer ${modelClientConfig.rerankToken}")
 
         val request = requestBuilder.build()
 

@@ -10,6 +10,7 @@ import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 
 import java.util.List;
+import java.util.Optional;
 
 import top.emilejones.hhu.application.platform.dto.mission.MissionsDTO;
 import top.emilejones.hhu.domain.document.SourceDocument;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 
 public class ListDtoConverter {
     public static List<MissionsDTO> toMissionsDTOList(
-            List<SourceDocument> sourceDocuments,
+            List<Optional<SourceDocument>> sourceDocuments,
             List<List<OcrMission>> ocrMissions,
             List<List<StructureExtractionMission>> splitterMissions,
             List<List<EmbeddingMission>> embeddingMissions
@@ -34,9 +35,10 @@ public class ListDtoConverter {
         // Assuming trusted input order matching from service layer logic.
         
         for (int i = 0; i < size; i++) {
-            SourceDocument doc = sourceDocuments.get(i);
-            // Handle case where doc might be null (though unlikely from repository usually)
-            if (doc == null) continue;
+            Optional<SourceDocument> docOptional = sourceDocuments.get(i);
+            // Handle case where doc might be null or empty
+            if (docOptional.isEmpty()) continue;
+            SourceDocument doc = docOptional.get();
 
             List<OcrMission> ocr = (i < ocrMissions.size()) ? ocrMissions.get(i) : new ArrayList<>();
             List<StructureExtractionMission> split = (i < splitterMissions.size()) ? splitterMissions.get(i) : new ArrayList<>();
@@ -60,8 +62,7 @@ public class ListDtoConverter {
             return null;
         }
 
-        List<EmbeddingMissionDTO> embeddingMissionDTOList = mission.stream().map(DtoConverter::toEmbeddingMissionDTO).toList();
-        return embeddingMissionDTOList;
+        return mission.stream().map(DtoConverter::toEmbeddingMissionDTO).toList();
     }
 
     public static List<OcrMissionDTO> toOcrMissionDTOList(List<OcrMission> mission) {
@@ -69,8 +70,7 @@ public class ListDtoConverter {
             return null;
         }
 
-        List<OcrMissionDTO> ocrMissionDTOList = mission.stream().map(DtoConverter::toOcrMissionDTO).toList();
-        return ocrMissionDTOList;
+        return mission.stream().map(DtoConverter::toOcrMissionDTO).toList();
     }
 
     public static List<DocumentSplittingMissionDTO> toDocumentSplittingMissionDTOList(List<StructureExtractionMission> mission) {
@@ -78,7 +78,6 @@ public class ListDtoConverter {
             return null;
         }
 
-        List<DocumentSplittingMissionDTO> documentSplittingMissionDTO = mission.stream().map(DtoConverter::toDocumentSplittingMissionDTO).toList();
-        return documentSplittingMissionDTO;
+        return mission.stream().map(DtoConverter::toDocumentSplittingMissionDTO).toList();
     }
 }

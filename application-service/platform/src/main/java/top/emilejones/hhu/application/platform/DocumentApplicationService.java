@@ -76,9 +76,8 @@ public class DocumentApplicationService {
             hasNextPage = true;
             fileIdList.remove(limit.intValue());
         }
-        List<SourceDocument> sourceDocuments = fileIdList.stream()
+        List<Optional<SourceDocument>> sourceDocuments = fileIdList.stream()
                 .map(sourceDocumentRepository::findSourceDocumentById)
-                .map(Optional::get)
                 .toList();
 
         List<List<OcrMission>> ocrMissions = ocrMissionRepository.findBatchBySourceDocumentId(fileIdList);
