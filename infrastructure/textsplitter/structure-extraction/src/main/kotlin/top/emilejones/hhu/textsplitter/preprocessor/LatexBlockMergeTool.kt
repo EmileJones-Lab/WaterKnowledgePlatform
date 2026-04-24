@@ -126,29 +126,34 @@ class LatexBlockMergeTool(
 
     /**
      * 更新父节点的子节点列表 (childList)。
+     *
+     * 注意：findLatexBlock 沿 nextNode 链收集的节点可能分属不同父节点，
+     * 因此只删除确实存在于第一个父节点中的节点，避免越界。
      */
     private fun updateParentStructure(oldNodes: List<TextNodeDTO>, newNode: TextNodeDTO) {
         val parentNode = oldNodes.first().parentNode ?: return
-        val firstNode = oldNodes.first()
 
-        // 1. 找到起始节点在父节点中的索引
-        var indexInParent = -1
+        // 1. 找出所有确实属于该父节点的旧节点索引
+        val indicesToRemove = mutableListOf<Int>()
         for (i in 0 until parentNode.childNum()) {
-            if (parentNode.getChild(i) === firstNode) {
-                indexInParent = i
-                break
+            val child = parentNode.getChild(i)
+            if (oldNodes.any { it === child }) {
+                indicesToRemove.add(i)
             }
         }
 
-        if (indexInParent == -1) {
-            throw IllegalStateException("未在父节点的子节点列表中找到起始节点 [${firstNode.id}]")
+        if (indicesToRemove.isEmpty()) {
+            throw IllegalStateException("未在父节点的子节点列表中找到任何待合并节点")
         }
 
-        // 2. 从父节点中删除所有旧节点，并插入新节点
-        repeat(oldNodes.size) {
-            parentNode.deleteChild(indexInParent)
-        }
-        parentNode.setChild(newNode, indexInParent)
+        val insertIndex = indicesToRemove.min()
+
+        // 2. 从大到小删除，避免索引漂移
+        indicesToRemove.sortedDescending().forEach { parentNode.deleteChild(it) }
+
+        // 3. 在最小原索引处插入新节点
+        parentNode.setChild(newNode, insertIndex)
+        newNode.parentNode = parentNode
     }
 
     /**

@@ -8,6 +8,8 @@ import top.emilejones.hhu.preprocessing.structure.tree.Node;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -20,18 +22,19 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
 
     private final AbstractTitleTreeExtractor delegate;
     private final ModelClient modelClient;
+    private final ExecutorService llmExecutor;
     private final Gson gson = new Gson();
 
-    public TitleTreeExtractorWithAI(AbstractTitleTreeExtractor delegate, ModelClient modelClient) {
+    public TitleTreeExtractorWithAI(AbstractTitleTreeExtractor delegate, ModelClient modelClient, ExecutorService llmExecutor) {
         this.delegate = delegate;
         this.modelClient = modelClient;
+        this.llmExecutor = llmExecutor;
     }
 
     @Override
     protected String initOriginText(String originText) {
         String processedText = delegate.initOriginText(originText);
         String[] lines = processedText.split("\\R");
-        List<String> resultLines = new ArrayList<>();
 
         String systemPrompt = "Role: 你是一个严谨的OCR文本修复与数据清洗专家。\n" +
                 "Task: 修复OCR提取的文本。\n" +
@@ -53,25 +56,38 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
                 "Input: (1)以蚌埠站同时水位为参数的预报方案；(2)计算区间前期影响雨量，选用合适单位线进行汇流计算；（3）采用马斯京根法进行河道流量演算。\n" +
                 "Output: {\"rewrite\": true, \"chunks\": [\"(1) 以蚌埠站同时水位为参数的预报方案；\", \"(2) 计算区间前期影响雨量，选用合适单位线进行汇流计算；\", \"（3） 采用马斯京根法进行河道流量演算。\"]}";
 
-        for (String line : lines) {
+        List<CompletableFuture<IndexedLines>> futures = new ArrayList<>();
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            final int index = i;
             if (isTitle(line)) {
-                String userPrompt = "Input: " + line + "\nOutput:";
-                try {
-                    String llmResponse = modelClient.llm(systemPrompt, userPrompt);
-                    String jsonPart = extractJson(llmResponse);
-                    LlmCorrection correction = gson.fromJson(jsonPart, LlmCorrection.class);
-                    if (correction != null && correction.rewrite && correction.chunks != null && !correction.chunks.isEmpty()) {
-                        resultLines.addAll(correction.chunks);
-                    } else {
-                        resultLines.add(line);
+                futures.add(CompletableFuture.supplyAsync(() -> {
+                    String userPrompt = "Input: " + line + "\nOutput:";
+                    try {
+                        String llmResponse = modelClient.llm(systemPrompt, userPrompt);
+                        String jsonPart = extractJson(llmResponse);
+                        LlmCorrection correction = gson.fromJson(jsonPart, LlmCorrection.class);
+                        if (correction != null && correction.rewrite && correction.chunks != null && !correction.chunks.isEmpty()) {
+                            return new IndexedLines(index, correction.chunks);
+                        } else {
+                            return new IndexedLines(index, Collections.singletonList(line));
+                        }
+                    } catch (Exception e) {
+                        return new IndexedLines(index, Collections.singletonList(line));
                     }
-                } catch (Exception e) {
-                    resultLines.add(line);
-                }
+                }, llmExecutor));
             } else {
-                resultLines.add(line);
+                futures.add(CompletableFuture.completedFuture(new IndexedLines(index, Collections.singletonList(line))));
             }
         }
+
+        List<String> resultLines = futures.stream()
+                .map(CompletableFuture::join)
+                .sorted(Comparator.comparingInt(il -> il.index))
+                .flatMap(il -> il.lines.stream())
+                .collect(Collectors.toList());
+
         return String.join("\n", resultLines);
     }
 
@@ -236,6 +252,16 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
         }
 
         return newRoot;
+    }
+
+    private static class IndexedLines {
+        final int index;
+        final List<String> lines;
+
+        IndexedLines(int index, List<String> lines) {
+            this.index = index;
+            this.lines = lines;
+        }
     }
 
     private static class LlmCorrection {

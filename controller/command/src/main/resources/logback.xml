@@ -7,11 +7,8 @@
         </encoder>
     </appender>
 
-    <!-- Neo4j 驱动日志级别控制 -->
-    <logger name="org.neo4j.driver" level="ERROR"/>
-
     <!-- 应用日志级别 -->
-    <logger name="top.emilejones.hhu" level="INFO"/>
+    <logger name="top.emilejones.hhu.web" level="DEBUG"/>
 
     <!-- 根日志设置 -->
     <root level="INFO">

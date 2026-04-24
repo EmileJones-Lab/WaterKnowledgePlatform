@@ -9,6 +9,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.application.command.EmbeddingApplicationService
+import top.emilejones.hhu.command.util.progress.BatchProgressManager
+import top.emilejones.hhu.command.util.progress.Spinner
 import java.io.File
 
 /**
@@ -31,44 +33,62 @@ class EmbedCommand(
             return
         }
 
-        if (file.isDirectory) {
-            echo("Scanning directory: $source")
-            val mdFiles = file.walkTopDown()
-                .filter { it.isFile && it.extension.equals("md", ignoreCase = true) }
-                .toList()
-
-            if (mdFiles.isEmpty()) {
-                echo("No Markdown files found in directory: $source")
-                return
-            }
-
-            echo("Found ${mdFiles.size} Markdown files. Starting batch vectorization...")
-            runBlocking {
-                mdFiles.map { mdFile ->
-                    launch(Dispatchers.IO) {
-                        processFile(mdFile.absolutePath)
-                    }
-                }.joinAll()
-            }
-        } else {
-            if (file.extension.equals("md", ignoreCase = true)) {
-                processFile(file.absolutePath)
-            } else {
-                echo("Provided file is not a Markdown file: $source", err = true)
-            }
+        when {
+            file.isDirectory -> processDirectory(file)
+            file.isFile && file.extension.equals("md", ignoreCase = true) -> processSingleFile(file)
+            else -> echo("Provided path is not a Markdown file or directory: $source", err = true)
         }
     }
 
     /**
-     * 调用应用服务处理单个文件。
+     * 处理单个 Markdown 文件，使用 Spinner 指示处理状态。
      */
-    private fun processFile(filePath: String) {
-        echo("Starting vectorization for: $filePath")
+    private fun processSingleFile(file: File) {
+        val spinner = Spinner("Vectorizing ${file.name}...")
+        spinner.start()
+
         try {
-            embeddingApplicationService.embed(filePath)
-            echo("Successfully vectorized: $filePath")
+            embeddingApplicationService.embed(file.absolutePath)
+            echo("Successfully vectorized: ${file.absolutePath}")
         } catch (e: Exception) {
-            echo("Error during vectorization for $filePath: ${e.message}", err = true)
+            echo("Error during vectorization for ${file.absolutePath}: ${e.message}", err = true)
+        } finally {
+            spinner.stop()
+        }
+    }
+
+    /**
+     * 批量处理目录下的所有 Markdown 文件，使用基于完成计数的真实进度条。
+     */
+    private fun processDirectory(directory: File) {
+        val mdFiles = directory.walkTopDown()
+            .filter { it.isFile && it.extension.equals("md", ignoreCase = true) }
+            .toList()
+
+        if (mdFiles.isEmpty()) {
+            echo("No Markdown files found in directory: ${directory.absolutePath}")
+            return
+        }
+
+        echo("Found ${mdFiles.size} Markdown files. Starting batch vectorization...")
+
+        val batchManager = BatchProgressManager(mdFiles.size)
+        batchManager.start()
+
+        runBlocking {
+            mdFiles.map { mdFile ->
+                launch(Dispatchers.IO) {
+                    batchManager.addTask(mdFile.name)
+
+                    try {
+                        embeddingApplicationService.embed(mdFile.absolutePath)
+                    } catch (e: Exception) {
+                        echo("Error during vectorization for ${mdFile.absolutePath}: ${e.message}", err = true)
+                    } finally {
+                        batchManager.completeTask(mdFile.name)
+                    }
+                }
+            }.joinAll()
         }
     }
 }

@@ -4,9 +4,15 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.application.command.OcrApplicationService
 import top.emilejones.hhu.application.command.dto.MinerUMarkdownResponse
+import top.emilejones.hhu.command.util.progress.BatchProgressManager
+import top.emilejones.hhu.command.util.progress.Spinner
 import java.io.File
 
 /**
@@ -26,51 +32,80 @@ class ConvertCommand(
     override fun run() {
         val file = File(source)
         if (file.exists() && file.isDirectory) {
-            echo("Scanning directory: $source")
-            val pdfFiles = file.walkTopDown()
-                .filter { it.isFile && it.extension.equals("pdf", ignoreCase = true) }
-                .toList()
-
-            if (pdfFiles.isEmpty()) {
-                echo("No PDF files found in directory: $source")
-                return
-            }
-
-            echo("Found ${pdfFiles.size} PDF files. Starting batch conversion...")
-            pdfFiles.forEach { pdfFile ->
-                processSource(pdfFile.absolutePath)
-            }
+            processDirectory(file)
         } else {
-            processSource(source)
+            processSingleSource(source)
         }
     }
 
     /**
-     * 执行单个源的转换逻辑。
+     * 处理单个 PDF 源（本地文件或 URL），使用 Spinner 指示处理状态。
      */
-    private fun processSource(src: String) {
-        echo("Starting conversion for: $src")
+    private fun processSingleSource(src: String) {
+        val label = File(src).let { if (it.exists() && it.isFile) it.name else src.substringAfterLast('/') }
+        val spinner = Spinner("Converting $label...")
+        spinner.start()
 
         try {
-            // 1. 调用应用服务执行转换
             val response = ocrApplicationService.extractStructure(src)
-            echo("Conversion successful: $src")
-
-            // 2. 如果指定了输出目录，则保存文件
-            outputDir?.let { dirPath ->
-                val fileName = if (src.contains("://")) {
-                    src.substringAfterLast('/')
-                } else {
-                    File(src).name
-                }
-                saveResults(fileName, response, dirPath)
-                echo("Results for $fileName saved to: ${File(dirPath).normalize().absolutePath}")
-            } ?: run {
-                echo("No output directory specified for $src. Process finished without saving.")
-            }
-
+            handleConversionResult(src, response)
         } catch (e: Exception) {
             echo("Error during conversion for $src: ${e.message}", err = true)
+        } finally {
+            spinner.stop()
+        }
+    }
+
+    /**
+     * 批量处理目录下的所有 PDF 文件，使用基于完成计数的真实进度条。
+     */
+    private fun processDirectory(directory: File) {
+        val pdfFiles = directory.walkTopDown()
+            .filter { it.isFile && it.extension.equals("pdf", ignoreCase = true) }
+            .toList()
+
+        if (pdfFiles.isEmpty()) {
+            echo("No PDF files found in directory: ${directory.absolutePath}")
+            return
+        }
+
+        echo("Found ${pdfFiles.size} PDF files. Starting batch conversion...")
+
+        val batchManager = BatchProgressManager(pdfFiles.size)
+        batchManager.start()
+
+        runBlocking {
+            pdfFiles.map { pdfFile ->
+                launch(Dispatchers.IO) {
+                    batchManager.addTask(pdfFile.name)
+
+                    try {
+                        val response = ocrApplicationService.extractStructure(pdfFile.absolutePath)
+                        handleConversionResult(pdfFile.absolutePath, response)
+                    } catch (e: Exception) {
+                        echo("Error during conversion for ${pdfFile.absolutePath}: ${e.message}", err = true)
+                    } finally {
+                        batchManager.completeTask(pdfFile.name)
+                    }
+                }
+            }.joinAll()
+        }
+    }
+
+    /**
+     * 处理转换结果：保存文件或提示未指定输出目录。
+     */
+    private fun handleConversionResult(src: String, response: MinerUMarkdownResponse) {
+        outputDir?.let { dirPath ->
+            val fileName = if (src.contains("://")) {
+                src.substringAfterLast('/')
+            } else {
+                File(src).name
+            }
+            saveResults(fileName, response, dirPath)
+            echo("Results for $fileName saved to: ${File(dirPath).normalize().absolutePath}")
+        } ?: run {
+            echo("No output directory specified for $src. Process finished without saving.")
         }
     }
 
@@ -88,6 +123,7 @@ class ConvertCommand(
         mdFile.writeText(response.markdownContent)
         echo(fileName)
         echo(mdFile.absolutePath)
+
         // 2. 保存图片文件
         response.images.forEach { image ->
             // image.relativePath 格式通常为 "images/xxx.png"

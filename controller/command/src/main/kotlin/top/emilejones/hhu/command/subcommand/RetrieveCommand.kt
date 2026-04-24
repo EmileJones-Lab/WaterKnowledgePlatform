@@ -7,6 +7,9 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.application.command.RecallApplicationService
+import top.emilejones.hhu.application.command.dto.FileNodeDTO
+import top.emilejones.hhu.application.command.dto.TextNodeDTO
+import top.emilejones.hhu.command.util.progress.Spinner
 
 /**
  * 召回命令。
@@ -24,57 +27,84 @@ class RetrieveCommand(
     override fun help(context: Context): String = "根据问题召回相关的知识片段"
 
     override fun run() {
-        echo("正在检索与 \"$query\" 相关的内容...")
+        val spinner = Spinner("正在检索与 \"$query\" 相关的内容...")
+        spinner.start()
 
-        // 1. 如果开启了 -f 参数，展示召回的文件信息
-        if (showFile) {
-            val files = recallApplicationService.recallFileNodes(query)
-            if (files.isEmpty()) {
-                echo("[文件] 未找到相关文件。")
-            } else {
-                echo("[文件] 共召回 ${files.size} 个相关文件：")
-                files.forEachIndexed { index, file ->
-                    echo("  ${index + 1}. 文件名: ${file.fileName} | ID: ${file.id} | 源文档ID: ${file.sourceDocumentId}")
-                    file.fileAbstract?.let { echo("     摘要: $it") }
-                }
-                echo("")
-            }
+        try {
+            // 1. 文件召回
+            val files = if (showFile) {
+                recallApplicationService.recallFileNodes(query)
+            } else null
+
+            // 2. 文本召回（verbose 模式）
+            val nodes = if (verbose) {
+                recallApplicationService.recallTextNodes(query)
+            } else null
+
+            // 3. 文本召回（普通模式）
+            val results = if (!verbose) {
+                recallApplicationService.recallText(query)
+            } else null
+
+            spinner.stop()
+
+            // 4. 展示文件召回结果
+            files?.let { displayFileResults(it) }
+
+            // 5. 展示文本召回结果
+            nodes?.let { displayNodeResults(it) }
+            results?.let { displayTextResults(it) }
+
+        } catch (e: Exception) {
+            spinner.stop("检索失败")
+            throw e
         }
+    }
 
-        // 2. 正常展示文本召回结果
-        if (verbose) {
-            val nodes = recallApplicationService.recallTextNodes(query)
-            if (nodes.isEmpty()) {
-                echo("未找到相关内容。")
-            } else {
-                echo("共找到 ${nodes.size} 条文本片段：")
-                nodes.forEachIndexed { index, node ->
-                    echo("--- 结果 ${index + 1} ---")
-                    echo("ID      : ${node.id}")
-                    echo("文件名  : ${node.fileName}")
-                    echo("文件节点: ${node.fileNodeId}")
-                    echo("序列号  : ${node.seq}")
-                    echo("层级    : ${node.level}")
-                    echo("类型    : ${node.type}")
-                    echo("摘要    : ${node.summary ?: "无"}")
-                    echo("文本    :")
-                    echo(node.text)
-                    echo("")
-                }
-            }
-        } else {
-            val results = recallApplicationService.recallText(query)
+    private fun displayFileResults(files: List<FileNodeDTO>) {
+        if (files.isEmpty()) {
+            echo("[文件] 未找到相关文件。")
+            return
+        }
+        echo("[文件] 共召回 ${files.size} 个相关文件：")
+        files.forEachIndexed { index, file ->
+            echo("  ${index + 1}. 文件名: ${file.fileName} | ID: ${file.id} | 源文档ID: ${file.sourceDocumentId}")
+            file.fileAbstract?.let { echo("     摘要: $it") }
+        }
+        echo("")
+    }
 
-            if (results.isEmpty()) {
-                echo("未找到相关内容。")
-            } else {
-                echo("共找到 ${results.size} 条文本片段：")
-                results.forEachIndexed { index, text ->
-                    echo("--- 结果 ${index + 1} ---")
-                    echo(text)
-                    echo("")
-                }
-            }
+    private fun displayNodeResults(nodes: List<TextNodeDTO>) {
+        if (nodes.isEmpty()) {
+            echo("未找到相关内容。")
+            return
+        }
+        echo("共找到 ${nodes.size} 条文本片段：")
+        nodes.forEachIndexed { index, node ->
+            echo("--- 结果 ${index + 1} ---")
+            echo("ID      : ${node.id}")
+            echo("文件名  : ${node.fileName}")
+            echo("文件节点: ${node.fileNodeId}")
+            echo("序列号  : ${node.seq}")
+            echo("层级    : ${node.level}")
+            echo("类型    : ${node.type}")
+            echo("摘要    : ${node.summary ?: "无"}")
+            echo("文本    :")
+            echo(node.text)
+            echo("")
+        }
+    }
+
+    private fun displayTextResults(results: List<String>) {
+        if (results.isEmpty()) {
+            echo("未找到相关内容。")
+            return
+        }
+        echo("共找到 ${results.size} 条文本片段：")
+        results.forEachIndexed { index, text ->
+            echo("--- 结果 ${index + 1} ---")
+            echo(text)
+            echo("")
         }
     }
 }
