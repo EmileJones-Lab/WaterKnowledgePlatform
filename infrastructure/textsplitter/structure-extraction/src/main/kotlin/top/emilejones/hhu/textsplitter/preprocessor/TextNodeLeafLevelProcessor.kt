@@ -10,8 +10,8 @@ import top.emilejones.hhu.domain.result.TextType
  * ## 作用
  * 深度遍历树结构，如果某个节点的所有子节点（即该节点的所有孩子）都是叶子节点，
  * 则统一处理这些子节点：
- * 1. 将 level 设置为 Int.MAX_VALUE（若原先不是）。
- * 2. 如果 type 为 COMMON_TEXT，则将其改为 TITLE。
+ * 1. 将 level 设置为 Int.MAX_VALUE。
+ * 2. 如果 type 为 TITLE，则将其改为 COMMON_TEXT（TABLE 类型保持不变）。
  * 3. 移除文本开头的 Markdown 标题符号 "#"。
  *
  * @author EmileJones
@@ -65,25 +65,21 @@ class TextNodeLeafLevelProcessor(
             for (i in 0 until childCount) {
                 val child = nowNode.getChild(i)
 
-                // 只有在 level 不是 Int.MAX_VALUE 时才处理
-                if (child.level != Int.MAX_VALUE) {
-                    child.level = Int.MAX_VALUE
+                // 统一将叶子节点的 level 设为 Int.MAX_VALUE
+                child.level = Int.MAX_VALUE
 
-                    // 修改类型：从 COMMON_TEXT 变为 TITLE
-                    if (child.type == TextType.COMMON_TEXT) {
-                        child.type = TextType.TITLE
-                    }
+                // 修改类型：从 TITLE 变为 COMMON_TEXT（TABLE 保持不变）
+                if (child.type == TextType.TITLE) {
+                    child.type = TextType.COMMON_TEXT
+                }
 
-                    // 处理文本：移除开头的所有 "#" 和空格
-                    val originalText = child.text
-                    if (!originalText.isNullOrEmpty()) {
-                        // 使用正则表达式匹配开头的所有空格和 # 符号，并将其替换为空
-                        // 然后再 trim 一次确保末尾也没有多余空格
-                        val processedText = originalText.replace("^\\s*#+\\s*".toRegex(), "").trim()
-                        if (processedText != originalText) {
-                            child.text = processedText
-                            logger.debug("Processed node seq: [{}], set type to TITLE and removed leading # and spaces", child.seq)
-                        }
+                // 处理文本：移除开头的所有 "#" 和空格
+                val originalText = child.text
+                if (!originalText.isNullOrEmpty()) {
+                    val processedText = originalText.replace("^\\s*#+\\s*".toRegex(), "").trim()
+                    if (processedText != originalText) {
+                        child.text = processedText
+                        logger.debug("Processed node seq: [{}], set type to COMMON_TEXT and removed leading # and spaces", child.seq)
                     }
                 }
             }
