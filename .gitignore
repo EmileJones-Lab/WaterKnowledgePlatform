@@ -41,14 +41,18 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-
+### resource
 qa/qa.csv
+
 
 ### Congfig ###
 **/application-emilejones.yml
 config.yml
 
-### qa
 
 ### Claude ###
 CLAUDE.md
+.claude/
+
+### logs
+logs/
