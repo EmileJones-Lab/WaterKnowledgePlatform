@@ -8,7 +8,6 @@ import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway
 import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
-import top.emilejones.hhu.domain.pipeline.repository.NodeRepository
 import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.model.ModelClient
 import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
@@ -63,7 +62,7 @@ class RagToolsAdaptor(
 
     override fun embed(fileNodeId: String): Result<String> = runCatching {
         val finalFileNodeId = Objects.requireNonNull(fileNodeId)
-        
+
         // 1. 查询基础设施层的 POJO
         val neo4jFileNode = neo4jRepository.searchNeo4jFileNodeByNodeId(finalFileNodeId)
             ?: throw IllegalAccessException("结构提取任务存在，但是切割后的FileNode不存在")
@@ -74,7 +73,7 @@ class RagToolsAdaptor(
         // 3. 收集待向量化的文本：FileNode 的 fileAbstract 和 TextNode 的 summary
         val textsToEmbed = mutableListOf<String>()
 
-        val fileAbstract = neo4jFileNode.fileAbstract 
+        val fileAbstract = neo4jFileNode.fileAbstract
             ?: throw IllegalStateException("FileNode $finalFileNodeId 没有执行摘要生成任务。")
         textsToEmbed.add(fileAbstract)
 
@@ -88,19 +87,23 @@ class RagToolsAdaptor(
 
         // 5. 更新 POJO 并保存回 Neo4j
         var vectorIndex = 0
-        
+
         // 更新 FileNode 向量
-        neo4jRepository.updateNodeById(neo4jFileNode.id, mapOf(
-            "vector" to vectors[vectorIndex++],
-            "isEmbedded" to true
-        ))
+        neo4jRepository.updateNodeById(
+            neo4jFileNode.id, mapOf(
+                "vector" to vectors[vectorIndex++],
+                "isEmbedded" to true
+            )
+        )
 
         // 批量更新 TextNode 向量
         neo4jTextNodeList.forEach { node ->
-            neo4jRepository.updateNodeById(node.id, mapOf(
-                "vector" to vectors[vectorIndex++],
-                "isEmbedded" to true
-            ))
+            neo4jRepository.updateNodeById(
+                node.id, mapOf(
+                    "vector" to vectors[vectorIndex++],
+                    "isEmbedded" to true
+                )
+            )
         }
 
         finalFileNodeId

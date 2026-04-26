@@ -9,7 +9,7 @@ import top.emilejones.hhu.preprocessing.structure.tree.Node;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -22,13 +22,13 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
 
     private final AbstractTitleTreeExtractor delegate;
     private final ModelClient modelClient;
-    private final ExecutorService llmExecutor;
+    private final Executor executor;
     private final Gson gson = new Gson();
 
-    public TitleTreeExtractorWithAI(AbstractTitleTreeExtractor delegate, ModelClient modelClient, ExecutorService llmExecutor) {
+    public TitleTreeExtractorWithAI(AbstractTitleTreeExtractor delegate, ModelClient modelClient, Executor executor) {
         this.delegate = delegate;
         this.modelClient = modelClient;
-        this.llmExecutor = llmExecutor;
+        this.executor = executor;
     }
 
     @Override
@@ -56,39 +56,35 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
                 "Input: (1)以蚌埠站同时水位为参数的预报方案；(2)计算区间前期影响雨量，选用合适单位线进行汇流计算；（3）采用马斯京根法进行河道流量演算。\n" +
                 "Output: {\"rewrite\": true, \"chunks\": [\"(1) 以蚌埠站同时水位为参数的预报方案；\", \"(2) 计算区间前期影响雨量，选用合适单位线进行汇流计算；\", \"（3） 采用马斯京根法进行河道流量演算。\"]}";
 
-        List<CompletableFuture<IndexedLines>> futures = new ArrayList<>();
-
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            final int index = i;
-            if (isTitle(line)) {
-                futures.add(CompletableFuture.supplyAsync(() -> {
-                    String userPrompt = "Input: " + line + "\nOutput:";
-                    try {
-                        String llmResponse = modelClient.llm(systemPrompt, userPrompt);
-                        String jsonPart = extractJson(llmResponse);
-                        LlmCorrection correction = gson.fromJson(jsonPart, LlmCorrection.class);
-                        if (correction != null && correction.rewrite && correction.chunks != null && !correction.chunks.isEmpty()) {
-                            return new IndexedLines(index, correction.chunks);
-                        } else {
-                            return new IndexedLines(index, Collections.singletonList(line));
-                        }
-                    } catch (Exception e) {
-                        return new IndexedLines(index, Collections.singletonList(line));
+        // 并行开启 AI 任务，使用外部传入的线程池
+        List<CompletableFuture<List<String>>> futures = Arrays.stream(lines)
+                .map(line -> {
+                    if (isTitle(line)) {
+                        return CompletableFuture.supplyAsync(() -> {
+                            String userPrompt = "Input: " + line + "\nOutput:";
+                            try {
+                                String llmResponse = modelClient.llm(systemPrompt, userPrompt);
+                                String jsonPart = extractJson(llmResponse);
+                                LlmCorrection correction = gson.fromJson(jsonPart, LlmCorrection.class);
+                                if (correction != null && correction.rewrite && correction.chunks != null && !correction.chunks.isEmpty()) {
+                                    return correction.chunks;
+                                }
+                            } catch (Exception e) {
+                                // 忽略异常，保留原始行
+                            }
+                            return Collections.singletonList(line);
+                        }, executor);
+                    } else {
+                        return CompletableFuture.completedFuture(Collections.singletonList(line));
                     }
-                }, llmExecutor));
-            } else {
-                futures.add(CompletableFuture.completedFuture(new IndexedLines(index, Collections.singletonList(line))));
-            }
-        }
-
-        List<String> resultLines = futures.stream()
-                .map(CompletableFuture::join)
-                .sorted(Comparator.comparingInt(il -> il.index))
-                .flatMap(il -> il.lines.stream())
+                })
                 .collect(Collectors.toList());
 
-        return String.join("\n", resultLines);
+        // 等待所有任务完成并按原顺序合并结果
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .flatMap(Collection::stream)
+                .collect(Collectors.joining("\n"));
     }
 
     @Override
@@ -110,7 +106,7 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
     protected Node extractStructureTree(String processedText) {
         // 1. 调用被装饰者的 extractStructureTree 获取初步构建的树
         Node initialRoot = delegate.extractStructureTree(processedText);
-        
+
         // 获取处理后的文本行，用于提取标题文本供 AI 参考
         String[] lines = processedText.split("\\R");
 
@@ -221,7 +217,7 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
 
         Node newRoot = new Node(-1, TitleType.NilType);
         newRoot.setLevel(0);
-        
+
         List<Node> sortedNodes = allNodes.stream()
                 .sorted(Comparator.comparingInt(Node::getIndex))
                 .collect(Collectors.toList());
@@ -232,7 +228,7 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
             if (correctedLevel == null) {
                 correctedLevel = node.getLevel();
             }
-            
+
             Node newNode = new Node(node.getIndex(), node.getTitleType());
             newNode.setLevel(correctedLevel);
 
@@ -252,16 +248,6 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
         }
 
         return newRoot;
-    }
-
-    private static class IndexedLines {
-        final int index;
-        final List<String> lines;
-
-        IndexedLines(int index, List<String> lines) {
-            this.index = index;
-            this.lines = lines;
-        }
     }
 
     private static class LlmCorrection {

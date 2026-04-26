@@ -50,7 +50,8 @@ class ConvertCommand(
             val response = ocrApplicationService.extractStructure(src)
             handleConversionResult(src, response)
         } catch (e: Exception) {
-            echo("Error during conversion for $src: ${e.message}", err = true)
+            val errorMsg = e.cause?.let { "${e.message} (Cause: ${it.message})" } ?: e.message
+            echo("Error during conversion for $src: $errorMsg", err = true)
         } finally {
             spinner.stop()
         }
@@ -83,7 +84,8 @@ class ConvertCommand(
                         val response = ocrApplicationService.extractStructure(pdfFile.absolutePath)
                         handleConversionResult(pdfFile.absolutePath, response)
                     } catch (e: Exception) {
-                        echo("Error during conversion for ${pdfFile.absolutePath}: ${e.message}", err = true)
+                        val errorMsg = e.cause?.let { "${e.message} (Cause: ${it.message})" } ?: e.message
+                        echo("Error during conversion for ${pdfFile.absolutePath}: $errorMsg", err = true)
                     } finally {
                         batchManager.completeTask(pdfFile.name)
                     }
@@ -93,20 +95,17 @@ class ConvertCommand(
     }
 
     /**
-     * 处理转换结果：保存文件或提示未指定输出目录。
+     * 处理转换结果：保存文件。
      */
     private fun handleConversionResult(src: String, response: MinerUMarkdownResponse) {
-        outputDir?.let { dirPath ->
-            val fileName = if (src.contains("://")) {
-                src.substringAfterLast('/')
-            } else {
-                File(src).name
-            }
-            saveResults(fileName, response, dirPath)
-            echo("Results for $fileName saved to: ${File(dirPath).normalize().absolutePath}")
-        } ?: run {
-            echo("No output directory specified for $src. Process finished without saving.")
+        // 如果未指定输出目录，默认为当前目录下的 output 文件夹
+        val dirPath = outputDir ?: "output"
+        val fileName = if (src.contains("://")) {
+            src.substringAfterLast('/')
+        } else {
+            File(src).name
         }
+        saveResults(fileName, response, dirPath)
     }
 
     /**
@@ -121,8 +120,6 @@ class ConvertCommand(
         // 1. 保存 Markdown 文件
         val mdFile = File(baseDir, "${fileName.substringBeforeLast('.')}.md")
         mdFile.writeText(response.markdownContent)
-        echo(fileName)
-        echo(mdFile.absolutePath)
 
         // 2. 保存图片文件
         response.images.forEach { image ->
