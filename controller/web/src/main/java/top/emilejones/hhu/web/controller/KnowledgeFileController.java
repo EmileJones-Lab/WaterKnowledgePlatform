@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import top.emilejones.hhu.application.platform.KnowledgeApplicationServiceV2;
 import top.emilejones.hhu.application.platform.dto.LazyPageDTO;
@@ -69,7 +70,7 @@ public class KnowledgeFileController {
     })
     public KnowledgeFileVO addKnowledgeFileByDirId(
             @PathVariable("dirId") @Schema(name = "dirId", description = "知识库唯一Id") String dirId,
-            @RequestBody AddKnowledgeFileRequest request
+            @Valid @RequestBody AddKnowledgeFileRequest request
     ) {
         KnowledgeFileDTO knowledgeFileDTO = knowledgeApplicationService.addKnowledgeFileByDirId(dirId, request.getKnowledgeFileId());
         return VoConverter.toKnowledgeFileVO(knowledgeFileDTO);

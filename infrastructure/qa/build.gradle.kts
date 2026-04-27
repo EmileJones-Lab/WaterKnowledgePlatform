@@ -9,8 +9,8 @@ plugins {
 dependencies {
     implementation(libs.bundles.kotlinxEcosystem)
     implementation(libs.neo4jDriver)
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.okhttp)
+    implementation(libs.gson)
     implementation(project(":infrastructure:model"))
 }
 

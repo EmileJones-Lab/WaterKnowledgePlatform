@@ -11,8 +11,8 @@ plugins {
 
 dependencies {
     // 版本管理
-    implementation(platform("org.springframework.ai:spring-ai-bom:1.1.2"))
-    implementation(platform("org.springframework.boot:spring-boot-starter-parent:3.5.5"))
+    implementation(platform(libs.spring.ai.bom))
+    implementation(platform(libs.spring.boot.bom))
 
 
     // spring-boot基础依赖
