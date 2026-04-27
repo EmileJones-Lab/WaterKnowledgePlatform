@@ -53,6 +53,13 @@ public class KnowledgeFileController {
                     description = "成功将知识文件加入到知识库中后，返回此知识文件的元信息。"
             ),
             @ApiResponse(
+                    responseCode = "404",
+                    description = "知识库或知识文件不存在",
+                    content = @Content(
+                            schema = @Schema(implementation = FailureVO.class)
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "409",
                     description = "添加失败，操作不合法，此文件无法加入到此文件夹中",
                     content = @Content(
@@ -73,6 +80,13 @@ public class KnowledgeFileController {
             description = "将知识文件从此知识库中删除")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "删除成功，什么都不返回"),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "知识库、知识文件或 embeddingMission 不存在",
+                    content = @Content(
+                            schema = @Schema(implementation = FailureVO.class)
+                    )
+            ),
             @ApiResponse(
                     responseCode = "500",
                     description = "删除失败",

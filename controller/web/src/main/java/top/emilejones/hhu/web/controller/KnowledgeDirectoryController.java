@@ -67,6 +67,13 @@ public class KnowledgeDirectoryController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "删除成功，什么都不返回"),
             @ApiResponse(
+                    responseCode = "404",
+                    description = "知识库不存在",
+                    content = @Content(
+                            schema = @Schema(implementation = FailureVO.class)
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "500",
                     description = "删除失败",
                     content = @Content(
