@@ -83,7 +83,7 @@ class ModelClientByHttp(
         val payload = mapOf(
             "model" to modelClientConfig.rerankModel,
             "query" to query,
-            "documents" to textList
+            "texts" to textList
         )
         val json = gson.toJson(payload)
         val body = json.toRequestBody("application/json".toMediaType())
@@ -103,15 +103,12 @@ class ModelClientByHttp(
             response.body?.string() ?: ""
         }
 
-        val type = object : TypeToken<Map<String, Any>>() {}.type
-        val map: Map<String, Any> = gson.fromJson(responseBody, type)
-
-        // 解析 results 并取出 index 列表
-        val results = map["results"] as? List<Map<String, Any>> ?: emptyList()
+        val type = object : TypeToken<List<Map<String, Any>>>() {}.type
+        val results: List<Map<String, Any>> = gson.fromJson(responseBody, type)
 
         val selected = results.map {
             val idx = (it["index"] as? Number)!!.toInt()
-            val score = (it["relevance_score"] as? Number)!!.toFloat()
+            val score = (it["score"] as? Number)!!.toFloat()
             RerankResult(
                 index = idx,
                 text = textList[idx],
