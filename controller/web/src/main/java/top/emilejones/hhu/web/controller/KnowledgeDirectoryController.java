@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import top.emilejones.hhu.application.platform.KnowledgeApplicationServiceV2;
 import top.emilejones.hhu.application.platform.dto.knowledge.KnowledgeDirectoryDTO;
@@ -42,7 +43,7 @@ public class KnowledgeDirectoryController {
             description = "此接口会新增一个知识库，并且自动生成一个milvusCollection")
     @ApiResponse(responseCode = "200", description = "新增的知识库元数据")
     public KnowledgeDirectoryVO addKnowledgeDirectory(
-            @RequestBody AddKnowledgeDirectoryRequest request
+            @Valid @RequestBody AddKnowledgeDirectoryRequest request
     ) {
         KnowledgeDirectoryDTO knowledgeDirectoryDTO = knowledgeApplicationService.addKnowledgeDirectory(VoConverter.toAddKnowledgeDirectoryDTO(request));
         return VoConverter.toKnowledgeDirectoryVO(knowledgeDirectoryDTO);
@@ -53,7 +54,7 @@ public class KnowledgeDirectoryController {
             description = "此接口目前只支持修改文件夹名称，当修改成功后，会返回修改后的文件夹元信息")
     @ApiResponse(responseCode = "200", description = "成功修改文件夹属性，返回修改后的文件夹元信息")
     public KnowledgeDirectoryVO updateKnowledgeDirectory(
-            @RequestBody UpdateKnowledgeDirectoryRequest request,
+            @Valid @RequestBody UpdateKnowledgeDirectoryRequest request,
             @PathVariable("dirId") @Schema(description = "知识库唯一Id") String id
     ) {
         KnowledgeDirectoryDTO knowledgeDirectoryDTO = knowledgeApplicationService.updateKnowledgeDirectory(id, request.getDirName());

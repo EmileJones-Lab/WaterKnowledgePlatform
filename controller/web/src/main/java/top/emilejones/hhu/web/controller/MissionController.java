@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import top.emilejones.hhu.application.platform.PipeLineApplicationService;
 import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMissionDTO;
@@ -34,7 +35,7 @@ public class MissionController {
     @Operation(summary = "批量开启结构提取任务",
             description = "通过文件唯一Id开启一个文本结构提取任务。如果之前没有开启过OCR任务，则自动开启一个OCR任务。")
     @ApiResponse(responseCode = "200", description = "返回这批结构提取任务的详细信息")
-    public List<DocumentSplittingMissionVO> startExtractStructureMission(@RequestBody StartExtractStructureMissionRequest request) {
+    public List<DocumentSplittingMissionVO> startExtractStructureMission(@Valid @RequestBody StartExtractStructureMissionRequest request) {
         List<DocumentSplittingMissionDTO> missionDTOS = pipeLineApplicationService.startStructureExtractionMission(request.getFileIdList());
         return VoConverter.toDocumentSplittingMissionVOList(missionDTOS);
     }
@@ -63,7 +64,7 @@ public class MissionController {
     @Operation(summary = "批量开启层次结构向量化任务",
             description = "通过文件唯一Id批量开启向量化任务。如果此文件没有开启过OCR任务和结构提取任务，此接口会自动按顺序开启上述任务。")
     @ApiResponse(responseCode = "200", description = "返回这批向量化任务的详细信息")
-    public List<EmbeddingMissionVO> startEmbeddingMission(@RequestBody StartEmbeddingMissionRequest request) {
+    public List<EmbeddingMissionVO> startEmbeddingMission(@Valid @RequestBody StartEmbeddingMissionRequest request) {
         List<EmbeddingMissionDTO> missionDTOS = pipeLineApplicationService.startEmbeddingMission(request.getFileIdList());
         return VoConverter.toEmbeddingMissionVOList(missionDTOS);
     }
