@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import top.emilejones.hhu.application.platform.dto.mission.DocumentSplittingMissionDTO;
+import top.emilejones.hhu.common.exception.ConflictException;
+import top.emilejones.hhu.common.exception.NotFoundException;
 import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.statemachine.PipelineContext;
 import top.emilejones.hhu.application.platform.statemachine.PipelineEvent;
@@ -69,7 +71,7 @@ public class PipeLineApplicationService {
         List<OcrMission> allOcrMission = ocrMissionRepository.findBySourceDocumentId(fileId);
 
         if (allOcrMission.isEmpty())
-            throw new IllegalStateException("文件 [" + fileId + "] 不存在任务，不能执行删除操作");
+            throw new ConflictException("文件 [" + fileId + "] 不存在任务，不能执行删除操作");
 
         // 找到结构提取任务
         List<StructureExtractionMission> allSplitterMission = structureExtractionMissionRepository.findBySourceDocumentId(fileId);
@@ -141,7 +143,7 @@ public class PipeLineApplicationService {
             String ids = notExistFileIds.stream()
                     .map(id -> "\"" + id + "\"")
                     .collect(Collectors.joining(",", "[", "]"));
-            throw new IllegalStateException("不存在的文件，文件ID：" + ids);
+            throw new ConflictException("不存在的文件，文件ID：" + ids);
         }
 
         return sourceDocumentIdList.stream()
@@ -204,7 +206,7 @@ public class PipeLineApplicationService {
             String ids = notExistFileIds.stream()
                     .map(id -> "\"" + id + "\"")
                     .collect(Collectors.joining(",", "[", "]"));
-            throw new IllegalStateException("不存在的文件，文件ID：" + ids);
+            throw new ConflictException("不存在的文件，文件ID：" + ids);
         }
 
         return sourceDocumentIdList.stream()

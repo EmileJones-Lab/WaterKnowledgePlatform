@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.application.command.record.ProcessRecordService;
-import top.emilejones.hhu.common.Result;
+import top.emilejones.hhu.common.exception.AppException;
+import top.emilejones.hhu.common.exception.InternalAppException;
+import top.emilejones.hhu.common.exception.NotFoundException;
 import top.emilejones.hhu.common.util.MD5Utils;
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway;
 
@@ -59,9 +61,11 @@ public class StructureExtractApplicationService {
 
                 processRecordService.recordExtraction(sourceDocumentId, fileName, fileNodeId);
             }
+        } catch (AppException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("处理 Markdown 文件时发生错误: {}", e.getMessage(), e);
-            throw new RuntimeException("结构提取任务执行失败", e);
+            throw new InternalAppException("结构提取任务执行失败");
         }
     }
 
@@ -92,9 +96,11 @@ public class StructureExtractApplicationService {
 
             processRecordService.updateSummaryStatus(sourceDocumentId, true);
             logger.info("摘要提取成功完成并已更新本地记录。");
+        } catch (AppException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("处理 Markdown 文件时发生错误: {}", e.getMessage(), e);
-            throw new RuntimeException("摘要提取任务执行失败", e);
+            throw new InternalAppException("摘要提取任务执行失败");
         }
     }
 
@@ -102,7 +108,7 @@ public class StructureExtractApplicationService {
         Path path = Paths.get(filePath);
         if (!Files.exists(path)) {
             logger.error("文件不存在: {}", filePath);
-            throw new IllegalArgumentException("文件不存在: " + filePath);
+            throw new NotFoundException("文件不存在: " + filePath);
         }
         return path;
     }

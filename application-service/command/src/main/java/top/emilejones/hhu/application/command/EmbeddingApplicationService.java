@@ -5,6 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.application.command.record.ProcessRecordService;
+import top.emilejones.hhu.common.exception.AppException;
+import top.emilejones.hhu.common.exception.ConflictException;
+import top.emilejones.hhu.common.exception.DomainInvariantBrokenException;
+import top.emilejones.hhu.common.exception.InternalAppException;
+import top.emilejones.hhu.common.exception.NotFoundException;
 import top.emilejones.hhu.common.util.MD5Utils;
 import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.repository.FileNodeVectorRepository;
@@ -16,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * 向量化应用服务。
@@ -77,7 +81,7 @@ public class EmbeddingApplicationService {
         Path path = Paths.get(filePath);
         if (!Files.exists(path)) {
             logger.error("文件不存在: {}", filePath);
-            throw new IllegalArgumentException("文件不存在: " + filePath);
+            throw new NotFoundException("文件不存在: " + filePath);
         }
 
         try {
@@ -87,14 +91,14 @@ public class EmbeddingApplicationService {
 
             // 2. 从本地记录中获取 fileNodeId
             String fileNodeId = processRecordService.getFileNodeId(sourceDocumentId)
-                    .orElseThrow(() -> new IllegalStateException("未找到文件 [" + filePath + "] 的提取记录，请先执行结构提取。"));
+                    .orElseThrow(() -> new ConflictException("未找到文件 [" + filePath + "] 的提取记录，请先执行结构提取。"));
 
             // 3. 调用新的 embed 方法进行完整向量化（内部会处理 TextNode 和 FileNode 的向量化并更新 Neo4j）
             embeddingGateway.embed(fileNodeId).getOrThrow();
 
             // 4. 从仓储中获取更新后的 FileNode
             FileNode fileNode = nodeRepository.findFileNodeByFileNodeId(fileNodeId)
-                    .orElseThrow(() -> new NoSuchElementException("未找到 fileNodeId 为 [" + fileNodeId + "] 的文件节点"));
+                    .orElseThrow(() -> new DomainInvariantBrokenException("未找到 fileNodeId 为 [" + fileNodeId + "] 的文件节点"));
 
             // 5. 将文本节点数据同步到向量数据库
             textNodeVectorRepository.saveTextNodeToVectorDatabase(List.of(fileNodeId), COLLECTION_NAME).getOrThrow();
@@ -107,9 +111,11 @@ public class EmbeddingApplicationService {
 
             logger.info("文件 [{}] (ID: {}) 向量化及双库同步任务成功完成。", filePath, sourceDocumentId);
 
+        } catch (AppException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("文件向量化处理失败: {}", e.getMessage(), e);
-            throw new RuntimeException("向量化任务执行失败", e);
+            throw new InternalAppException("向量化任务执行失败");
         }
     }
 }

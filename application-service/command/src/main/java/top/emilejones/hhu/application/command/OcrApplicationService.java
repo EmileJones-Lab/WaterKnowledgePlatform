@@ -1,8 +1,9 @@
 package top.emilejones.hhu.application.command;
 
 import org.springframework.stereotype.Service;
-import top.emilejones.hhu.common.Result;
 import top.emilejones.hhu.application.command.dto.MinerUImageResponse;
+import top.emilejones.hhu.common.exception.BadRequestException;
+import top.emilejones.hhu.common.exception.InternalAppException;
 import top.emilejones.hhu.application.command.dto.MinerUMarkdownResponse;
 import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway;
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile;
@@ -49,7 +50,7 @@ public class OcrApplicationService {
             // 映射到 Application 层 DTO
             return mapToResponse(minerUMarkdownFile);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to fetch or process data from: " + source, e);
+            throw new InternalAppException("Failed to fetch or process data from: " + source);
         }
     }
 

@@ -12,6 +12,7 @@ import top.emilejones.hhu.application.platform.dto.mission.enums.DocumentSplitti
 import top.emilejones.hhu.application.platform.dto.mission.enums.MissionStatus;
 import top.emilejones.hhu.application.platform.dto.retrieval.TextNodeDTO;
 import top.emilejones.hhu.application.platform.dto.retrieval.TextType;
+import top.emilejones.hhu.common.exception.DomainInvariantBrokenException;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
@@ -195,7 +196,7 @@ public class DtoConverter {
             case IMAGE -> TextType.IMAGE;
             case TITLE -> TextType.TITLE;
             case LATEX -> TextType.LATEX;
-            case NULL -> throw new IllegalArgumentException("不应该有 NULL 类型的节点");
+            case NULL -> throw new DomainInvariantBrokenException("不应该有 NULL 类型的节点");
         };
     }
 }

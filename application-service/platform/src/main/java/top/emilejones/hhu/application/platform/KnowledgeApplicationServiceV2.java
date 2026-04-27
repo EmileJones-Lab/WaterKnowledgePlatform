@@ -13,7 +13,11 @@ import top.emilejones.hhu.application.platform.dto.mission.EmbeddingMissionDTO;
 import top.emilejones.hhu.application.platform.dto.mission.OcrMissionDTO;
 import top.emilejones.hhu.application.platform.utils.DtoConverter;
 import top.emilejones.hhu.application.platform.utils.ListDtoConverter;
-import top.emilejones.hhu.domain.document.repository.SourceDocumentRepository;
+import top.emilejones.hhu.common.exception.ConflictException;
+import top.emilejones.hhu.common.exception.DomainInvariantBrokenException;
+import top.emilejones.hhu.common.exception.InternalAppException;
+import top.emilejones.hhu.common.exception.NotFoundException;
+import top.emilejones.hhu.common.exception.NotImplementedBusinessException;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalog;
 import top.emilejones.hhu.domain.knowledge.KnowledgeCatalogType;
 import top.emilejones.hhu.domain.knowledge.KnowledgeDocument;
@@ -23,13 +27,8 @@ import top.emilejones.hhu.domain.knowledge.repository.dto.KnowledgeDocumentWithB
 import top.emilejones.hhu.domain.knowledge.service.KnowledgeDomainService;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMission;
 import top.emilejones.hhu.domain.pipeline.embedding.EmbeddingMissionResult;
-import top.emilejones.hhu.domain.pipeline.gateway.EmbeddingGateway;
 import top.emilejones.hhu.domain.pipeline.ocr.OcrMission;
-import top.emilejones.hhu.domain.pipeline.repository.EmbeddingMissionRepository;
-import top.emilejones.hhu.domain.pipeline.repository.NodeRepository;
-import top.emilejones.hhu.domain.pipeline.repository.OcrMissionRepository;
-import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionRepository;
-import top.emilejones.hhu.domain.pipeline.repository.TextNodeVectorRepository;
+import top.emilejones.hhu.domain.pipeline.repository.*;
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.result.FileNode;
 import top.emilejones.hhu.domain.result.TextNode;
@@ -49,10 +48,8 @@ public class KnowledgeApplicationServiceV2 {
     private final EmbeddingMissionRepository embeddingMissionRepository;
     private final OcrMissionRepository ocrMissionRepository;
     private final StructureExtractionMissionRepository structureExtractionMissionRepository;
-    private final SourceDocumentRepository sourceDocumentRepository;
     private final KnowledgeDomainService knowledgeDomainService;
     private final NodeRepository nodeRepository;
-    private final EmbeddingGateway embeddingGateway;
     private final TextNodeVectorRepository textNodeVectorRepository;
 
     public KnowledgeApplicationServiceV2(ApplicationEventPublisher publisher,
@@ -61,10 +58,8 @@ public class KnowledgeApplicationServiceV2 {
                                          EmbeddingMissionRepository embeddingMissionRepository,
                                          OcrMissionRepository ocrMissionRepository,
                                          StructureExtractionMissionRepository structureExtractionMissionRepository,
-                                         SourceDocumentRepository sourceDocumentRepository,
                                          KnowledgeDomainService knowledgeDomainService,
                                          NodeRepository nodeRepository,
-                                         EmbeddingGateway embeddingGateway,
                                          TextNodeVectorRepository textNodeVectorRepository) {
         this.publisher = publisher;
         this.knowledgeCatalogRepository = knowledgeCatalogRepository;
@@ -72,10 +67,8 @@ public class KnowledgeApplicationServiceV2 {
         this.embeddingMissionRepository = embeddingMissionRepository;
         this.ocrMissionRepository = ocrMissionRepository;
         this.structureExtractionMissionRepository = structureExtractionMissionRepository;
-        this.sourceDocumentRepository = sourceDocumentRepository;
         this.knowledgeDomainService = knowledgeDomainService;
         this.nodeRepository = nodeRepository;
-        this.embeddingGateway = embeddingGateway;
         this.textNodeVectorRepository = textNodeVectorRepository;
     }
 
@@ -209,7 +202,7 @@ public class KnowledgeApplicationServiceV2 {
      */
     @Transactional(rollbackFor = Exception.class)
     public KnowledgeFileDTO addKnowledgeFileByDirId(String dirId, String documentId) {
-        KnowledgeDocument doc = knowledgeDocumentRepository.find(documentId);
+        KnowledgeDocument doc = checkAndGetKnowledgeDocument(documentId);
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);
 
         // 1. 领域服务执行绑定校验并获取绑定时间
@@ -217,12 +210,16 @@ public class KnowledgeApplicationServiceV2 {
         knowledgeCatalogRepository.bind(doc, catalog, bindTime);
 
         // 2. 获取向量化任务信息
-        EmbeddingMission embeddingMission = checkAndGetEmbeddingMission(doc.getEmbeddingMissionId());
+        EmbeddingMission embeddingMission = embeddingMissionRepository.find(doc.getEmbeddingMissionId());
+        if (embeddingMission == null) {
+            throw new ConflictException(String.format("此知识文件 [%s] 不存在对应的 EmbeddingMission。", doc.getId()));
+        }
 
         // 3. 将向量化数据存入向量数据库
-        String fileNodeId = embeddingMission.getFileNodeId();
-        if (fileNodeId == null)
-            throw new NullPointerException("不存在的fileNode: " + fileNodeId);
+        if (!embeddingMission.isSuccess())
+            throw new DomainInvariantBrokenException(String.format("此知识文件 [%s] 不存在成功的 EmbeddingMission。", doc.getId()));
+        String fileNodeId = embeddingMission.getSuccessResult().getFileNodeId();
+
 
         textNodeVectorRepository.saveTextNodeToVectorDatabase(List.of(fileNodeId), catalog.getMilvusCollectionName()).getOrThrow();
 
@@ -296,23 +293,23 @@ public class KnowledgeApplicationServiceV2 {
     private KnowledgeCatalog checkAndGetCatalog(String id) {
         KnowledgeCatalog catalog = knowledgeCatalogRepository.find(id);
         if (catalog == null) {
-            throw new NullPointerException("当前知识库不存在！");
+            throw new NotFoundException("当前知识库不存在！");
         }
         return catalog;
     }
 
-    private void validateStructuredCatalog(KnowledgeCatalog catalog) {
-        if (catalog.getType() != KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR) {
-            throw new UnsupportedOperationException("目前只支持查询结构化数据库的数据");
+    private KnowledgeDocument checkAndGetKnowledgeDocument(String id) {
+        KnowledgeDocument knowledgeDocument = knowledgeDocumentRepository.find(id);
+        if (knowledgeDocument == null) {
+            throw new NotFoundException("当前知识文件不存在！");
         }
+        return knowledgeDocument;
     }
 
-    private EmbeddingMission checkAndGetEmbeddingMission(String id) {
-        EmbeddingMission mission = embeddingMissionRepository.find(id);
-        if (mission == null) {
-            throw new NullPointerException("当前embeddingMission不存在！");
+    private void validateStructuredCatalog(KnowledgeCatalog catalog) {
+        if (catalog.getType() != KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR) {
+            throw new NotImplementedBusinessException("目前只支持查询结构化数据库的数据");
         }
-        return mission;
     }
 
     /**
@@ -332,7 +329,7 @@ public class KnowledgeApplicationServiceV2 {
         }
 
         if (!missingIds.isEmpty()) {
-            throw new NullPointerException("找不到下列的 EmbeddingMission：" + String.join(",", missingIds));
+            throw new ConflictException("找不到下列的 EmbeddingMission：" + String.join(",", missingIds));
         }
 
         return missions;
@@ -363,13 +360,15 @@ public class KnowledgeApplicationServiceV2 {
                 .map(KnowledgeDocument::getEmbeddingMissionId)
                 .map(embeddingMissionRepository::find)
                 .peek(m -> {
-                    if (m == null) throw new IllegalStateException("一个知识文件不应该不存在对应的成功的向量化任务");
+                    if (m == null)
+                        throw new DomainInvariantBrokenException("一个知识文件不应该不存在对应的成功的向量化任务");
                 })
                 .map(EmbeddingMission::getSuccessResult)
                 .map(EmbeddingMissionResult.Success::getFileNodeId)
                 .map(nodeRepository::findFileNodeByFileNodeId)
                 .peek(o -> {
-                    if (o.isEmpty()) throw new IllegalStateException("一个知识文件不应该不存在对应的文件结构图");
+                    if (o.isEmpty())
+                        throw new DomainInvariantBrokenException("一个知识文件不应该不存在对应的文件结构图");
                 })
                 .map(Optional::get)
                 .map(FileNode::getId)
@@ -401,20 +400,37 @@ public class KnowledgeApplicationServiceV2 {
     ) {
     }
 
+    /**
+     * 根据知识文件 ID 列表解析出对应的 fileNodeId 列表。
+     * <p>
+     * 该方法只用于删除知识库、解绑知识文件等需要清理向量数据的场景。
+     * 既然调用方已经走到“删除对应向量数据”这一步，说明每个知识文件都应该已经存在成功的向量化任务。
+     * 如果这里查到的向量化任务不存在、未成功，或成功结果中缺少 fileNodeId，说明数据库状态或业务链路已经不一致，
+     * 应当按内部错误处理，而不是静默跳过或按普通业务冲突处理。
+     */
     private List<String> findFileNodeIdsByDocumentIds(List<String> documentIds) {
-        if (documentIds == null || documentIds.isEmpty()) return new ArrayList<>();
-        return documentIds.stream()
-                .map(knowledgeDocumentRepository::find)
-                .filter(Objects::nonNull)
-                .map(it -> embeddingMissionRepository.find(it.getEmbeddingMissionId()))
-                .filter(Objects::nonNull)
-                .map(it -> {
-                    if (it.getSuccessResult() != null) {
-                        return it.getSuccessResult().getFileNodeId();
-                    }
-                    return it.getFileNodeId();
-                })
-                .filter(Objects::nonNull)
-                .toList();
+        if (documentIds == null || documentIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> fileNodeIds = new ArrayList<>(documentIds.size());
+        for (String documentId : documentIds) {
+            KnowledgeDocument knowledgeDocument = checkAndGetKnowledgeDocument(documentId);
+
+            EmbeddingMission embeddingMission = embeddingMissionRepository.find(knowledgeDocument.getEmbeddingMissionId());
+            if (embeddingMission == null) {
+                throw new NotFoundException("当前embeddingMission不存在！");
+            }
+
+            if (!embeddingMission.isSuccess()) {
+                throw new DomainInvariantBrokenException("当前知识文件对应的向量化任务尚未成功，无法获取 fileNodeId");
+            }
+
+            String fileNodeId = embeddingMission.getSuccessResult().getFileNodeId();
+
+            fileNodeIds.add(fileNodeId);
+        }
+
+        return fileNodeIds;
     }
 }

@@ -3,6 +3,8 @@ package top.emilejones.hhu.application.platform;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.emilejones.hhu.application.platform.dto.LazyPageDTO;
+import top.emilejones.hhu.common.exception.ConflictException;
+import top.emilejones.hhu.common.exception.NotImplementedBusinessException;
 import top.emilejones.hhu.application.platform.dto.mission.MissionsDTO;
 import top.emilejones.hhu.application.platform.dto.retrieval.TextNodeDTO;
 import top.emilejones.hhu.application.platform.utils.ListDtoConverter;
@@ -51,7 +53,7 @@ public class DocumentApplicationService {
                 .findFirst();
 
         if (successStructureExtractionMissionOptional.isEmpty())
-            throw new IllegalStateException("还没有提取出结构化文本");
+            throw new ConflictException("还没有提取出结构化文本");
 
         String fileNodeId = successStructureExtractionMissionOptional.get().getSuccessResult().getFileNodeId();
         List<TextNode> textNodeList = nodeRepository.findTextNodeListByFileNodeId(fileNodeId);
@@ -70,7 +72,7 @@ public class DocumentApplicationService {
     @Transactional(readOnly = true)
     public LazyPageDTO<MissionsDTO> getMissionsList(Integer limit, Integer pageNum, String keyword, Boolean hasMission) {
         if (!hasMission)
-            throw new UnsupportedOperationException("目前只支持查询开启任务的文件信息列表");
+            throw new NotImplementedBusinessException("目前只支持查询开启任务的文件信息列表");
         List<String> fileIdList = ocrMissionRepository.findStartOcrMissionSourceDocumentIdByCreateTimeDesc(limit + 1, pageNum * limit, keyword);
         boolean hasNextPage = false;
         if (fileIdList.size() > limit) {

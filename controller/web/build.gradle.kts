@@ -11,6 +11,7 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
     implementation(project(":application-service:platform"))
+    implementation(project(":common"))
     runtimeOnly(project(":infrastructure:textsplitter"))
     runtimeOnly(project(":infrastructure:document"))
     runtimeOnly(project(":infrastructure:knowledge"))
