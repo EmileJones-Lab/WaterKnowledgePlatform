@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class DocumentApplicationService {
     private final SourceDocumentRepository sourceDocumentRepository;
     private final NodeRepository nodeRepository;
@@ -44,6 +43,7 @@ public class DocumentApplicationService {
      * @param fileId 文件的唯一Id
      * @return 文件结构化数据
      */
+    @Transactional(readOnly = true)
     public List<TextNodeDTO> getFileStructureByFileId(String fileId) {
         Optional<StructureExtractionMission> successStructureExtractionMissionOptional = structureExtractionMissionRepository.findBySourceDocumentId(fileId)
                 .stream()
@@ -67,6 +67,7 @@ public class DocumentApplicationService {
      * @param hasMission 是否只返回有任务开启的文件列表
      * @return 任务列表
      */
+    @Transactional(readOnly = true)
     public LazyPageDTO<MissionsDTO> getMissionsList(Integer limit, Integer pageNum, String keyword, Boolean hasMission) {
         if (!hasMission)
             throw new UnsupportedOperationException("目前只支持查询开启任务的文件信息列表");

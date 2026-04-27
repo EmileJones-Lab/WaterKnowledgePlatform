@@ -42,7 +42,6 @@ import java.util.*;
  * 保持原有业务逻辑（包括 N+1 查询与伪分页逻辑），主要通过方法提取提升代码清晰度。
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class KnowledgeApplicationServiceV2 {
     private final ApplicationEventPublisher publisher;
     private final KnowledgeCatalogRepository knowledgeCatalogRepository;
@@ -83,6 +82,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 获取知识库列表
      */
+    @Transactional(readOnly = true)
     public List<KnowledgeDirectoryDTO> getAllKnowledgeDirectories() {
         return knowledgeCatalogRepository.findAll().stream()
                 .map(DtoConverter::toKnowledgeDirectoryDTO)
@@ -92,6 +92,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 获取结构化的知识库
      */
+    @Transactional(readOnly = true)
     public List<KnowledgeDirectoryDTO> getStructuredKnowledgeDirectories() {
         return knowledgeCatalogRepository.findAll().stream()
                 .filter(it -> KnowledgeCatalogType.STRUCTURE_KNOWLEDGE_DIR.equals(it.getType()))
@@ -102,6 +103,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 新增一个知识库
      */
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeDirectoryDTO addKnowledgeDirectory(AddKnowledgeDirectoryDTO request) {
         String milvusCollectionName = "_" + UUID.randomUUID().toString().replace("-", "_");
 
@@ -121,6 +123,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 修改一个知识库元信息
      */
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeDirectoryDTO updateKnowledgeDirectory(String id, String dirName) {
         KnowledgeCatalog knowledgeCatalog = checkAndGetCatalog(id);
 
@@ -139,6 +142,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 删除一个知识库
      */
+    @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeDirectory(String id) {
         KnowledgeCatalog catalog = checkAndGetCatalog(id);
         List<KnowledgeDocumentWithBindTime> boundDocs = knowledgeDocumentRepository.findDocumentsWithBindInfoByCatalogId(id, Integer.MAX_VALUE, 0, null);
@@ -158,6 +162,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 获取知识库中的知识文件详细信息列表
      */
+    @Transactional(readOnly = true)
     public LazyPageDTO<KnowledgeFileDTO> getAllKnowledgeFileByDirId(String dirId, Integer limit, Integer pageNum, String keyword) {
         // 1. 校验
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);
@@ -202,6 +207,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 向知识库中添加一个知识文件
      */
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeFileDTO addKnowledgeFileByDirId(String dirId, String documentId) {
         KnowledgeDocument doc = knowledgeDocumentRepository.find(documentId);
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);
@@ -237,6 +243,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 删除知识库中的知识文件
      */
+    @Transactional(rollbackFor = Exception.class)
     public void deleteKnowledgeFileByDirId(String dirId, List<String> documentIds) {
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);
         List<String> fileNodeIds = findFileNodeIdsByDocumentIds(documentIds);
@@ -248,6 +255,7 @@ public class KnowledgeApplicationServiceV2 {
     /**
      * 获取可以加入到这个知识库中的文件列表
      */
+    @Transactional(readOnly = true)
     public LazyPageDTO<CandidateKnowledgeFileDTO> getAllCandidateFiles(String dirId, Integer limit, Integer pageNum, String keyWord) {
         // 1. 校验
         KnowledgeCatalog catalog = checkAndGetCatalog(dirId);

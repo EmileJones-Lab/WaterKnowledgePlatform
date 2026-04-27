@@ -14,7 +14,7 @@ plugins {
 dependencies {
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("ch.qos.logback:logback-classic:1.5.6")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:2.2.21")
+    implementation(kotlin("reflect"))
 
     testImplementation(platform("org.junit:junit-bom:5.10.2"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

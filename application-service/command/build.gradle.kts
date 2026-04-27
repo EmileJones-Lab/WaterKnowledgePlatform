@@ -8,9 +8,6 @@ plugins {
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
-    implementation(project(":infrastructure:textsplitter"))
-    implementation(project(":infrastructure:document"))
-    implementation(project(":infrastructure:knowledge"))
     implementation(project(":application-service:configuration"))
     implementation("org.springframework:spring-tx")
 }

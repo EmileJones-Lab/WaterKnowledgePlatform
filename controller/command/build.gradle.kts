@@ -10,6 +10,9 @@ dependencies {
     implementation(libs.bundles.kotlinxEcosystem)
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
     implementation(project(":application-service:command"))
+    runtimeOnly(project(":infrastructure:textsplitter"))
+    runtimeOnly(project(":infrastructure:document"))
+    runtimeOnly(project(":infrastructure:knowledge"))
 }
 
 application {

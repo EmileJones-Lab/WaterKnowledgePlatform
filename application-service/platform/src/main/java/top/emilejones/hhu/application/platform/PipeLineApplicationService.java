@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class PipeLineApplicationService {
     private final StructureExtractionMissionRepository structureExtractionMissionRepository;
     private final EmbeddingMissionRepository embeddingMissionRepository;
@@ -64,6 +63,7 @@ public class PipeLineApplicationService {
      *
      * @param fileId 文件唯一Id。
      */
+    @Transactional(rollbackFor = Exception.class)
     public void deleteMissions(String fileId) {
         // 找到OCR任务
         List<OcrMission> allOcrMission = ocrMissionRepository.findBySourceDocumentId(fileId);
@@ -130,6 +130,7 @@ public class PipeLineApplicationService {
      * @param sourceDocumentIdList 文件的唯一ID列表。
      * @return 这批结构提取任务的详细信息列表。
      */
+    @Transactional(rollbackFor = Exception.class)
     public List<DocumentSplittingMissionDTO> startStructureExtractionMission(List<String> sourceDocumentIdList) {
         // 判断这个sourceDocumentIdList中的文件是否都存在
         List<String> notExistFileIds = sourceDocumentIdList.stream()
@@ -192,6 +193,7 @@ public class PipeLineApplicationService {
      * @param sourceDocumentIdList 文件的唯一ID列表。
      * @return 这批向量化任务的详细信息列表。
      */
+    @Transactional(rollbackFor = Exception.class)
     public List<EmbeddingMissionDTO> startEmbeddingMission(List<String> sourceDocumentIdList) {
         // 判断这个sourceDocumentIdList中的文件是否都存在
         List<String> notExistFileIds = sourceDocumentIdList.stream()
