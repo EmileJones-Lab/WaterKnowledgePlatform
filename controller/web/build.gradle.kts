@@ -1,13 +1,21 @@
 plugins {
+    kotlin("jvm")
     application
     id("buildsrc.convention.base")
-    id("buildsrc.convention.spring-base")
-    id("org.springframework.boot")
+    alias(libs.plugins.springBootGradlePlugin)
 }
 
 dependencies {
+    libs.bundles.springBoms.get().forEach {
+        implementation(platform(it))
+    }
+    implementation(libs.springBootStarter)
+    testImplementation(libs.springBootStarterTest) {
+        exclude(group = "org.junit.platform", module = "junit-platform-launcher")
+    }
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
+
+    implementation(libs.springBootStarterWeb)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
     implementation(project(":application-service:platform"))

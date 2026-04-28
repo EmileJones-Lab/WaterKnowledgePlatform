@@ -1,10 +1,18 @@
 plugins {
+    kotlin("jvm")
     application
     id("buildsrc.convention.base")
-    id("buildsrc.convention.spring-base")
 }
 
 dependencies {
+    libs.bundles.springBoms.get().forEach {
+        implementation(platform(it))
+    }
+    implementation(libs.springBootStarter)
+    testImplementation(libs.springBootStarterTest) {
+        exclude(group = "org.junit.platform", module = "junit-platform-launcher")
+    }
+
     implementation("org.springframework.ai:spring-ai-starter-mcp-server-webflux")
 
     implementation(project(":common"))

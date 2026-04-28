@@ -1,11 +1,19 @@
 plugins {
+    kotlin("jvm")
     // Apply the Application plugin to add support for building an executable JVM application.
     application
     id("buildsrc.convention.base")
-    id("buildsrc.convention.spring-base")
 }
 
 dependencies {
+    libs.bundles.springBoms.get().forEach {
+        implementation(platform(it))
+    }
+    implementation(libs.springBootStarter)
+    testImplementation(libs.springBootStarterTest) {
+        exclude(group = "org.junit.platform", module = "junit-platform-launcher")
+    }
+
     // Project "app" depends on project "utils". (Project paths are separated with ":", so ":utils" refers to the top-level "utils" project.)
     implementation(libs.bundles.kotlinxEcosystem)
     implementation("com.github.ajalt.clikt:clikt:5.0.1")
