@@ -15,6 +15,15 @@ interface ISummarizationService {
     fun summarize(text: String): String
 
     /**
+     * 基于上下文信息为给定的文本生成摘要
+     *
+     * @param text 需要生成摘要的文本
+     * @param context 辅助理解文本的上下文信息
+     * @return 结合上下文生成的摘要
+     */
+    fun summarizeWithContext(text: String, context: String): String
+
+    /**
      * 基于子节点的摘要或文本，为父节点生成合并后的摘要
      *
      * @param title 当前节点的标题/文本

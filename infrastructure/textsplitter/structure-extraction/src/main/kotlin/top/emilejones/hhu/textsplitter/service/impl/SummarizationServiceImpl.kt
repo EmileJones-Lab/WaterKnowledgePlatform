@@ -31,6 +31,27 @@ class SummarizationServiceImpl(
             摘要内容：
         """
 
+        private const val CONTEXT_SUMMARIZE_PROMPT = """
+            请结合上下文信息，为以下文本生成一段简短的摘要（不超过 100 字）。
+
+            上下文信息：
+            ---
+            %s
+            ---
+
+            待处理文本：
+            ---
+            %s
+            ---
+
+            要求：
+            1. 结合上下文理解文本的含义和定位，生成对于待处理文本的更准确的摘要。
+            2. 保持客观，突出文本的核心信息。
+            3. 如果文本很短，请直接保留其核心含义。
+
+            摘要内容：
+        """
+
         private const val TABLE_SUMMARIZE_PROMPT = """
             请为以下 HTML 格式的表格生成一段准确的摘要（不超过 150 字）。
             
@@ -76,6 +97,14 @@ class SummarizationServiceImpl(
         if (text.length < 50) return text.trim()
 
         val userPrompt = LEAF_SUMMARIZE_PROMPT.format(text)
+        return modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()
+    }
+
+    override fun summarizeWithContext(text: String, context: String): String {
+        if (text.isBlank()) return ""
+        if (text.length < 50) return text.trim()
+
+        val userPrompt = CONTEXT_SUMMARIZE_PROMPT.format(context, text)
         return modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()
     }
 

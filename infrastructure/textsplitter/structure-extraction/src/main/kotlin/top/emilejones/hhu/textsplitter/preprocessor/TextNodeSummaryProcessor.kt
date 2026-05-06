@@ -24,6 +24,11 @@ class TextNodeSummaryProcessor(
     private val logger = LoggerFactory.getLogger(TextNodeSummaryProcessor::class.java)
     private var isProcessed = false
 
+    companion object {
+        /** 文本长度阈值：超过该值直接摘要，否则结合兄弟节点上下文生成摘要 */
+        private const val LEAF_CONTEXT_LENGTH_THRESHOLD = 300
+    }
+
     override fun run() {
         if (isProcessed) return
 
@@ -93,10 +98,50 @@ class TextNodeSummaryProcessor(
     }
 
     private fun summarizeLeafNode(node: TextNodeDTO) {
-        if (node.text.isNotBlank()) {
-            node.summary = summarizationService.summarize(node.text)
-            logger.debug("Generated summary for leaf node seq: [{}]", node.seq)
+        if (node.text.isBlank()) return
+
+        node.summary = if (node.text.length > LEAF_CONTEXT_LENGTH_THRESHOLD) {
+            summarizationService.summarize(node.text)
+        } else {
+            val context = buildSiblingContext(node)
+            summarizationService.summarizeWithContext(node.text, context)
         }
+        logger.debug("Generated summary for leaf node seq: [{}]", node.seq)
+    }
+
+    /**
+     * 为当前节点构建兄弟节点上下文，从最近兄弟开始，每次向上、向下各扩大一个节点，
+     * 直到总字数超过 1500 或没有更多兄弟节点为止。
+     */
+    private fun buildSiblingContext(node: TextNodeDTO): String {
+        val parts = mutableListOf<String>()
+        var totalLength = 0
+        val maxLength = 1500
+
+        var leftNode = node.preNode
+        var rightNode = node.nextNode
+
+        while (leftNode != null || rightNode != null) {
+            val leftText = leftNode?.text?.takeIf { it.isNotBlank() }
+            val rightText = rightNode?.text?.takeIf { it.isNotBlank() }
+            val roundLength = (leftText?.length ?: 0) + (rightText?.length ?: 0)
+
+            if (totalLength + roundLength > maxLength) break
+
+            if (leftText != null) {
+                parts.add(0, leftText) // 前置插入，保持从左到右的阅读顺序
+                totalLength += leftText.length
+            }
+            if (rightText != null) {
+                parts.add(rightText)  // 追加到末尾
+                totalLength += rightText.length
+            }
+
+            leftNode = leftNode?.preNode
+            rightNode = rightNode?.nextNode
+        }
+
+        return parts.joinToString("\n")
     }
 
     private fun summarizeIntermediateNode(node: TextNodeDTO) {
