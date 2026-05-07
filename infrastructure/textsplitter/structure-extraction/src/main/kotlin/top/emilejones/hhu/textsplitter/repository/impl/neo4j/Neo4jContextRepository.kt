@@ -26,7 +26,7 @@ class Neo4jContextRepository(
     fun nextNode(id: String): Pair<Neo4jFileNode, Neo4jTextNode>? {
         val cypher = """
                 MATCH (n:TextNode)-[r:`NEXT_SEQUENCE`]->(m:TextNode)
-                MATCH (f)-[:CONTAIN]->(m)
+                MATCH (f:FileNode)-[:CONTAIN]->(m)
                 WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false AND coalesce(f.isDelete, false) = false
                 RETURN m, f
                 """.trimIndent()
@@ -56,10 +56,10 @@ class Neo4jContextRepository(
     fun preNode(id: String): Pair<Neo4jFileNode, Neo4jTextNode>? {
         val cypher = """
                 MATCH (n:TextNode)-[r:`PRE_SEQUENCE`]->(m:TextNode)
-                MATCH (f)-[:CONTAIN]->(m)
+                MATCH (f:FileNode)-[:CONTAIN]->(m)
                 WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false AND coalesce(f.isDelete, false) = false
                 RETURN m, f
-                
+
                 """.trimIndent()
 
         val params = java.util.Map.of<String, Any>("id", id)
@@ -86,8 +86,8 @@ class Neo4jContextRepository(
      */
     fun parent(id: String): Neo4jTextNode? {
         val cypher = """
-                MATCH (n:TextNode)-[r:`PARENT`]->(m:TextNode)
-                WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
+                MATCH (f:FileNode)-[:CONTAIN]->(n:TextNode)-[r:`PARENT`]->(m:TextNode)
+                WHERE n.id = ${'$'}id AND coalesce(f.isDelete, false) = false AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
                 RETURN m
                 """.trimIndent()
 
@@ -113,17 +113,17 @@ class Neo4jContextRepository(
      */
     fun siblings(id: String): List<Neo4jTextNode> {
         val findParentCypher = """
-                MATCH (n:TextNode)-[r:`PARENT`]->(m:TextNode)
-                WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
+                MATCH (f:FileNode)-[:CONTAIN]->(n:TextNode)-[r:`PARENT`]->(m:TextNode)
+                WHERE n.id = ${'$'}id AND coalesce(f.isDelete, false) = false AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
                 RETURN m
-                
+
                 """.trimIndent()
         val findChildCypher = """
-                MATCH (n:TextNode)-[r:`CHILD`]->(m:TextNode)
-                WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
+                MATCH (f:FileNode)-[:CONTAIN]->(n:TextNode)-[r:`CHILD`]->(m:TextNode)
+                WHERE n.id = ${'$'}id AND coalesce(f.isDelete, false) = false AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
                 RETURN m
                 ORDER BY m.seq ASC;
-                
+
                 """.trimIndent()
 
 
@@ -159,8 +159,8 @@ class Neo4jContextRepository(
      */
     fun children(id: String): List<Neo4jTextNode> {
         val cypher = """
-                MATCH (n:TextNode)-[r:`CHILD`]->(m:TextNode)
-                WHERE n.id = ${'$'}id AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
+                MATCH (f:FileNode)-[:CONTAIN]->(n:TextNode)-[r:`CHILD`]->(m:TextNode)
+                WHERE n.id = ${'$'}id AND coalesce(f.isDelete, false) = false AND coalesce(n.isDelete, false) = false AND coalesce(m.isDelete, false) = false
                 RETURN m
                 ORDER BY m.seq ASC;
                 """.trimIndent()

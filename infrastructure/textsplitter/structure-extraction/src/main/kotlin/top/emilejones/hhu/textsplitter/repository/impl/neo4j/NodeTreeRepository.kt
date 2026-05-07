@@ -92,7 +92,7 @@ class NodeTreeRepository(
             return session.executeRead { tx ->
                 // 1. Fetch FileNode
                 val fileNodeResult = tx.run(
-                    "MATCH (f:FileNode {id: ${'$'}id}) RETURN f",
+                    "MATCH (f:FileNode {id: ${'$'}id}) WHERE coalesce(f.isDelete, false) = false RETURN f",
                     Values.parameters("id", fileNodeId)
                 )
                 if (!fileNodeResult.hasNext()) throw NoSuchElementException("FileNode not found: ${'$'}fileNodeId")
@@ -101,7 +101,7 @@ class NodeTreeRepository(
 
                 // 2. Fetch all TextNodes for this FileNode
                 val nodesResult = tx.run(
-                    "MATCH (f:FileNode {id: ${'$'}id})-[:CONTAIN]->(t:TextNode) RETURN t",
+                    "MATCH (f:FileNode {id: ${'$'}id})-[:CONTAIN]->(t:TextNode) WHERE coalesce(f.isDelete, false) = false AND coalesce(t.isDelete, false) = false RETURN t",
                     Values.parameters("id", fileNodeId)
                 )
                 val nodes = nodesResult.list().map { it["t"].asNode().asNeo4jTextNode() }
@@ -109,7 +109,7 @@ class NodeTreeRepository(
 
                 // 3. Fetch CHILD relationships
                 val childRelResult = tx.run(
-                    "MATCH (f:FileNode {id: ${'$'}id})-[:CONTAIN]->(p:TextNode)-[:CHILD]->(c:TextNode) RETURN p.id as parentId, c.id as childId",
+                    "MATCH (f:FileNode {id: ${'$'}id})-[:CONTAIN]->(p:TextNode)-[:CHILD]->(c:TextNode) WHERE coalesce(f.isDelete, false) = false AND coalesce(p.isDelete, false) = false AND coalesce(c.isDelete, false) = false RETURN p.id as parentId, c.id as childId",
                     Values.parameters("id", fileNodeId)
                 )
                 while (childRelResult.hasNext()) {
@@ -126,7 +126,7 @@ class NodeTreeRepository(
 
                 // 4. Fetch NEXT_SEQUENCE relationships
                 val nextRelResult = tx.run(
-                    "MATCH (f:FileNode {id: ${'$'}id})-[:CONTAIN]->(p:TextNode)-[:NEXT_SEQUENCE]->(n:TextNode) RETURN p.id as preId, n.id as nextId",
+                    "MATCH (f:FileNode {id: ${'$'}id})-[:CONTAIN]->(p:TextNode)-[:NEXT_SEQUENCE]->(n:TextNode) WHERE coalesce(f.isDelete, false) = false AND coalesce(p.isDelete, false) = false AND coalesce(n.isDelete, false) = false RETURN p.id as preId, n.id as nextId",
                     Values.parameters("id", fileNodeId)
                 )
                 while (nextRelResult.hasNext()) {

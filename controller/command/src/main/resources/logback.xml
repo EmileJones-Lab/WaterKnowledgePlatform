@@ -7,11 +7,8 @@
         </encoder>
     </appender>
 
-    <!-- 应用日志级别 -->
-    <logger name="top.emilejones.hhu.web" level="DEBUG"/>
-
     <!-- 根日志设置 -->
-    <root level="INFO">
+    <root level="OFF">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

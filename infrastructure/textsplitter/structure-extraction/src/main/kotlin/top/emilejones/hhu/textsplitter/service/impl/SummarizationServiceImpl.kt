@@ -102,7 +102,6 @@ class SummarizationServiceImpl(
 
     override fun summarizeWithContext(text: String, context: String): String {
         if (text.isBlank()) return ""
-        if (text.length < 50) return text.trim()
 
         val userPrompt = CONTEXT_SUMMARIZE_PROMPT.format(context, text)
         return modelClient.llm(SYSTEM_PROMPT, userPrompt).trim()

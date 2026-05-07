@@ -2,13 +2,12 @@ package top.emilejones.hhu.application.command;
 
 import org.springframework.stereotype.Service;
 import top.emilejones.hhu.application.command.dto.MinerUImageResponse;
-import top.emilejones.hhu.common.exception.BadRequestException;
-import top.emilejones.hhu.common.exception.InternalAppException;
 import top.emilejones.hhu.application.command.dto.MinerUMarkdownResponse;
+import top.emilejones.hhu.common.FileUtils;
+import top.emilejones.hhu.common.exception.InternalAppException;
 import top.emilejones.hhu.domain.pipeline.gateway.OcrGateway;
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -32,22 +31,14 @@ public class OcrApplicationService {
      * @return 提取后的 Markdown 内容及相关图片
      */
     public MinerUMarkdownResponse extractStructure(String source) {
-        try (InputStream inputStream = openStream(source);
-             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
+        try (InputStream inputStream = openStream(source)) {
+            byte[] pdfBytes = inputStream.readAllBytes();
 
-            // 检查 PDF 魔数 %PDF-
-            bufferedInputStream.mark(4);
-            byte[] header = new byte[4];
-            int readBytes = bufferedInputStream.read(header);
-            if (readBytes != 4 || !new String(header).startsWith("%PDF")) {
+            if (!FileUtils.INSTANCE.checkPdf(pdfBytes)) {
                 throw new IllegalArgumentException("The file at the provided source is not a valid PDF file.");
             }
-            bufferedInputStream.reset();
 
-            // 调用 OCR 网关
-            MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(bufferedInputStream).getOrThrow();
-
-            // 映射到 Application 层 DTO
+            MinerUMarkdownFile minerUMarkdownFile = ocrGateway.minerU(pdfBytes).getOrThrow();
             return mapToResponse(minerUMarkdownFile);
         } catch (IOException e) {
             throw new InternalAppException("Failed to fetch or process data from: " + source + " (" + e.getMessage() + ")");

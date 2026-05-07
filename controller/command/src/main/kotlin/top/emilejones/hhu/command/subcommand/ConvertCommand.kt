@@ -6,10 +6,9 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.application.command.OcrApplicationService
 import top.emilejones.hhu.application.command.dto.MinerUMarkdownResponse
@@ -62,6 +61,7 @@ class ConvertCommand(
 
     /**
      * 批量处理目录下的所有 PDF 文件，使用基于完成计数的真实进度条。
+     * 并发处理文件。
      */
     private fun processDirectory(directory: File) {
         val pdfFiles = directory.walkTopDown()
@@ -78,19 +78,22 @@ class ConvertCommand(
         val batchManager = BatchProgressManager(pdfFiles.size)
         batchManager.start()
 
+        val semaphore = Semaphore(8)
+
         runBlocking {
             pdfFiles.map { pdfFile ->
                 launch(Dispatchers.IO) {
-                    batchManager.addTask(pdfFile.name)
-
-                    try {
-                        val response = ocrApplicationService.extractStructure(pdfFile.absolutePath)
-                        handleConversionResult(pdfFile.absolutePath, response)
-                    } catch (e: Exception) {
-                        val errorMsg = e.cause?.let { "${e.message} (Cause: ${it.message})" } ?: e.message
-                        echo("Error during conversion for ${pdfFile.absolutePath}: $errorMsg", err = true)
-                    } finally {
-                        batchManager.completeTask(pdfFile.name)
+                    semaphore.withPermit {
+                        batchManager.addTask(pdfFile.name)
+                        try {
+                            val response = ocrApplicationService.extractStructure(pdfFile.absolutePath)
+                            handleConversionResult(pdfFile.absolutePath, response)
+                        } catch (e: Exception) {
+                            val errorMsg = e.cause?.let { "${e.message} (Cause: ${it.message})" } ?: e.message
+                            echo("Error during conversion for ${pdfFile.absolutePath}: $errorMsg", err = true)
+                        } finally {
+                            batchManager.completeTask(pdfFile.name)
+                        }
                     }
                 }
             }.joinAll()
@@ -101,16 +104,17 @@ class ConvertCommand(
      * 处理转换结果：保存文件。
      */
     private fun handleConversionResult(src: String, response: MinerUMarkdownResponse) {
-        if (dryRun) {
-            echo("Dry run completed for: $src")
-            return
-        }
-        val dirPath = outputDir
         val fileName = if (src.contains("://")) {
             src.substringAfterLast('/')
         } else {
             File(src).name
         }
+
+        if (dryRun) {
+            echo("Dry run completed for: $src")
+            return
+        }
+        val dirPath = outputDir
         saveResults(fileName, response, dirPath)
     }
 

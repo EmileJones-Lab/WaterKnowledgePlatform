@@ -6,14 +6,12 @@ import com.google.gson.JsonParser
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okio.BufferedSink
-import okio.source
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import top.emilejones.hhu.infrastructure.configuration.env.pojo.MinerUConfig
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUImage
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 import java.io.IOException
-import java.io.InputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -34,14 +32,12 @@ class MinerUClient(
     /**
      * Send the given file stream to MinerU for OCR and return the processed content as a stream.
      */
-    fun ocr(input: InputStream): MinerUMarkdownFile {
+    fun ocr(input: ByteArray): MinerUMarkdownFile {
         val url = "http://${minerUConfig.host}:${minerUConfig.port}/file_parse"
         val fileBody = object : RequestBody() {
             override fun contentType() = "application/octet-stream".toMediaType()
             override fun writeTo(sink: BufferedSink) {
-                input.use { source ->
-                    sink.writeAll(source.source())
-                }
+                sink.write(input)
             }
         }
 

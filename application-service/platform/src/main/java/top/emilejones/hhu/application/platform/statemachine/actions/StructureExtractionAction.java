@@ -17,6 +17,7 @@ import top.emilejones.hhu.domain.pipeline.repository.StructureExtractionMissionR
 import top.emilejones.hhu.domain.pipeline.splitter.StructureExtractionMission;
 import top.emilejones.hhu.domain.result.ProcessedDocument;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
@@ -109,10 +110,17 @@ public class StructureExtractionAction implements Action<PipelineState, Pipeline
             return;
         }
 
-        InputStream inputStream = processedDocumentRepository.openContent(processedDocument.getFilePath());
+        byte[] markdownBytes;
+        try (InputStream inputStream = processedDocumentRepository.openContent(processedDocument.getFilePath())) {
+            markdownBytes = inputStream.readAllBytes();
+        } catch (IOException e) {
+            structureExtractionMission.failure("读取markdown文件失败: " + e.getMessage());
+            structureExtractionMissionRepository.save(structureExtractionMission);
+            return;
+        }
 
         // 2. 提取markdown文件结构
-        Result<String> result = structureExtractionGateway.extract(inputStream, structureExtractionMission.getSourceDocumentId());
+        Result<String> result = structureExtractionGateway.extract(markdownBytes, structureExtractionMission.getSourceDocumentId());
 
         if (result.isFailure()) {
             Throwable ex = result.exceptionOrNull();

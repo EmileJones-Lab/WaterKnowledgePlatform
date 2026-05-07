@@ -10,7 +10,6 @@ import top.emilejones.hhu.common.exception.NotFoundException;
 import top.emilejones.hhu.common.util.MD5Utils;
 import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway;
 
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,13 +53,12 @@ public class StructureExtractApplicationService {
                 return;
             }
 
-            try (InputStream inputStream = Files.newInputStream(path)) {
-                logger.info("文件 [{}] 尚未提取结构，正在调用结构提取网关...", fileName);
-                String fileNodeId = structureExtractionGateway.extract(inputStream, sourceDocumentId).getOrThrow();
-                logger.info("结构提取成功，生成的根节点 ID 为: {}", fileNodeId);
+            byte[] markdownBytes = Files.readAllBytes(path);
+            logger.info("文件 [{}] 尚未提取结构，正在调用结构提取网关...", fileName);
+            String fileNodeId = structureExtractionGateway.extract(markdownBytes, sourceDocumentId).getOrThrow();
+            logger.info("结构提取成功，生成的根节点 ID 为: {}", fileNodeId);
 
-                processRecordService.recordExtraction(sourceDocumentId, fileName, fileNodeId);
-            }
+            processRecordService.recordExtraction(sourceDocumentId, fileName, fileNodeId);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {

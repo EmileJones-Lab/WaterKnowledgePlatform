@@ -10,7 +10,7 @@ import top.emilejones.hhu.domain.pipeline.gateway.StructureExtractionGateway
 import top.emilejones.hhu.domain.pipeline.gateway.dto.MinerUMarkdownFile
 import top.emilejones.hhu.domain.result.TextType
 import top.emilejones.hhu.model.ModelClient
-import top.emilejones.hhu.preprocessing.structure.MarkdownStructureExtractor
+import top.emilejones.hhu.preprocessing.structure.v2.CorrectableTitleTreeExtractor
 import top.emilejones.hhu.textsplitter.domain.dto.TextNodeDTO
 import top.emilejones.hhu.textsplitter.ocr.MinerUClient
 import top.emilejones.hhu.textsplitter.parser.MarkdownStructureParser
@@ -19,27 +19,29 @@ import top.emilejones.hhu.textsplitter.preprocessor.TextNodeLeafLevelProcessor
 import top.emilejones.hhu.textsplitter.preprocessor.TextNodeSummaryProcessor
 import top.emilejones.hhu.textsplitter.repository.INeo4jRepository
 import top.emilejones.hhu.textsplitter.service.ISummarizationService
-import java.io.InputStream
+import java.io.ByteArrayInputStream
 import java.util.*
+import java.util.concurrent.ExecutorService
 
 @Service
 class RagToolsAdaptor(
     private val minerUClient: MinerUClient,
-    private val markdownStructureExtractor: MarkdownStructureExtractor,
     private val neo4jRepository: INeo4jRepository,
     private val modelClient: ModelClient,
+    private val executorService: ExecutorService,
     private val summarizationService: ISummarizationService
 ) : OcrGateway, StructureExtractionGateway, EmbeddingGateway {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun minerU(input: InputStream): Result<MinerUMarkdownFile> = runCatching {
+    override fun minerU(input: ByteArray): Result<MinerUMarkdownFile> = runCatching {
         val markdownFile = minerUClient.ocr(input)
+        val markdownStructureExtractor = CorrectableTitleTreeExtractor(modelClient, executorService)
         val correctLevelMarkdown = markdownStructureExtractor.extract(markdownFile.markdownContent)
         markdownFile.copy(markdownContent = correctLevelMarkdown)
     }.toCommonResult()
 
-    override fun extract(inputStream: InputStream, sourceDocumentId: String): Result<String> = runCatching {
-        val result = MarkdownStructureParser(inputStream).get()
+    override fun extract(input: ByteArray, sourceDocumentId: String): Result<String> = runCatching {
+        val result = MarkdownStructureParser(ByteArrayInputStream(input)).get()
         requireNotNull(result.fileNode).fileId = sourceDocumentId
         TextNodeLeafLevelProcessor(result).run()
         LatexBlockMergeTool(result).run()

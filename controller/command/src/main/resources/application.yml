@@ -11,3 +11,11 @@ spring:
   profiles:
     active: emilejones
 
+  ai:
+    retry:
+      max-attempts: 5 # 最大重试次数
+      backoff:
+        initial-interval: 2000 # 初始等待时间 2秒
+        multiplier: 2.0 # 退避乘数
+        max-interval: 30000 # 最大等待时间 30秒
+        on-client-errors: true # 是否捕获客户端 4xx 错误（必须为 true 才能捕获 429）

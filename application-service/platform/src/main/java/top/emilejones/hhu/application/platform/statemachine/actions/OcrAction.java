@@ -20,8 +20,9 @@ import top.emilejones.hhu.domain.pipeline.repository.ProcessedDocumentRepository
 import top.emilejones.hhu.domain.result.ProcessedDocument;
 import top.emilejones.hhu.domain.result.ProcessedDocumentType;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -89,14 +90,22 @@ public class OcrAction implements Action<PipelineState, PipelineEvent> {
         }
 
         SourceDocument sourceDocument = sourceDocumentOptional.get();
-        BufferedInputStream content = FileUtils.INSTANCE.checkPdf(sourceDocumentRepository.openContent(sourceDocument.getFilePath()));
-        if (content == null) {
+        byte[] pdfBytes;
+        try (InputStream content = sourceDocumentRepository.openContent(sourceDocument.getFilePath())) {
+            pdfBytes = content.readAllBytes();
+        } catch (IOException e) {
+            ocrMission.failure("读取PDF内容失败: " + e.getMessage());
+            ocrMissionRepository.save(ocrMission);
+            return ocrMission;
+        }
+
+        if (!FileUtils.INSTANCE.checkPdf(pdfBytes)) {
             ocrMission.failure("不是一个OCR文件");
             ocrMissionRepository.save(ocrMission);
             return ocrMission;
         }
 
-        Result<MinerUMarkdownFile> result = ocrGateway.minerU(content);
+        Result<MinerUMarkdownFile> result = ocrGateway.minerU(pdfBytes);
         if (result.isFailure()) {
             Throwable ex = result.exceptionOrNull();
             String msg = (ex != null && ex.getMessage() != null) ? ex.getMessage() : "OCR识别失败";
