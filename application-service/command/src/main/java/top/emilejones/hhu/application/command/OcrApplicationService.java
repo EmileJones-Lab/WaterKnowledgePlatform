@@ -50,7 +50,7 @@ public class OcrApplicationService {
             // 映射到 Application 层 DTO
             return mapToResponse(minerUMarkdownFile);
         } catch (IOException e) {
-            throw new InternalAppException("Failed to fetch or process data from: " + source);
+            throw new InternalAppException("Failed to fetch or process data from: " + source + " (" + e.getMessage() + ")");
         }
     }
 

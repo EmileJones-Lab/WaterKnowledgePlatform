@@ -3,7 +3,9 @@ package top.emilejones.hhu.command.subcommand
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -25,7 +27,8 @@ class ConvertCommand(
 ) : CliktCommand(name = "convert") {
 
     private val source by argument(help = "The URL or local path of the PDF file")
-    private val outputDir by option("-o", "--output", help = "The directory to save the output files")
+    private val outputDir by option("-o", "--output", help = "The directory to save the output files").required()
+    private val dryRun by option("-n", "--dry-run", help = "Run without generating any output files").flag()
 
     override fun help(context: Context): String = "Convert a PDF file to Markdown with images"
 
@@ -98,8 +101,11 @@ class ConvertCommand(
      * 处理转换结果：保存文件。
      */
     private fun handleConversionResult(src: String, response: MinerUMarkdownResponse) {
-        // 如果未指定输出目录，默认为当前目录下的 output 文件夹
-        val dirPath = outputDir ?: "output"
+        if (dryRun) {
+            echo("Dry run completed for: $src")
+            return
+        }
+        val dirPath = outputDir
         val fileName = if (src.contains("://")) {
             src.substringAfterLast('/')
         } else {

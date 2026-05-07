@@ -1,4 +1,4 @@
-package top.emilejones.hhu.preprocessing.structure;
+package top.emilejones.hhu.preprocessing.structure.v1;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -112,7 +112,7 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
 
         // 2. 收集所有节点并按索引排序，准备 AI 上下文
         List<Node> allNodes = new ArrayList<>();
-        collectAllNodes(initialRoot, allNodes);
+        collectTitleNodes(initialRoot, allNodes);
         allNodes.sort(Comparator.comparingInt(Node::getIndex));
 
         if (allNodes.isEmpty()) {
@@ -182,12 +182,12 @@ public class TitleTreeExtractorWithAI extends AbstractTitleTreeExtractor {
         return rebuildTree(allNodes, correctedData);
     }
 
-    private void collectAllNodes(Node node, List<Node> list) {
+    private void collectTitleNodes(Node node, List<Node> list) {
         if (node.getTitleType() != TitleType.NilType) {
             list.add(node);
         }
         for (int i = 0; i < node.childrenNumber(); i++) {
-            collectAllNodes(node.getChild(i), list);
+            collectTitleNodes(node.getChild(i), list);
         }
     }
 

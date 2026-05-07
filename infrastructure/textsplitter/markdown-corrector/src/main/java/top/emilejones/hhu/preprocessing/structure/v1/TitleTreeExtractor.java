@@ -1,4 +1,4 @@
-package top.emilejones.hhu.preprocessing.structure;
+package top.emilejones.hhu.preprocessing.structure.v1;
 
 import top.emilejones.hhu.preprocessing.handler.MarkdownFileHandler;
 import top.emilejones.hhu.preprocessing.handler.structure.CatalogTitleLevelCorrectorPlus;

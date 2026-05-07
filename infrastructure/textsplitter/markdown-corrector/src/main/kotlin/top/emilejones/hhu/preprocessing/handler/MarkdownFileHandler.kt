@@ -5,7 +5,6 @@ package top.emilejones.hhu.preprocessing.handler
  *
  * @author EmileJones
  */
-@Deprecated("旧的设计无法实现很好的效果，已经启用")
 interface MarkdownFileHandler {
 
     fun handle(markdownText: String): String

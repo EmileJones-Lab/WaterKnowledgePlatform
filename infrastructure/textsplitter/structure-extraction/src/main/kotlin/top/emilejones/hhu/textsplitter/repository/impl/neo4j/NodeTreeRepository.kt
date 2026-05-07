@@ -50,7 +50,10 @@ class NodeTreeRepository(
                 val result = runCatching {
                     val neo4jFileNode = transaction.insertFileNode(rootNode.fileNode!!.toNeo4jFileNode())
                     for (i in 0..<rootNode.childNum()) {
-                        deepVisitAndInsertNode(neo4jFileNode, rootNode.getChild(i), transaction)
+                        deepVisitAndInsertNode(rootNode.getChild(i), transaction)
+                    }
+                    for (i in 0..<rootNode.childNum()) {
+                        deepVisitAndInsertRelationship(neo4jFileNode, rootNode.getChild(i), transaction)
                     }
                 }
                 result.fold(
@@ -163,22 +166,38 @@ class NodeTreeRepository(
     }
 
     /**
-     * 深度优先遍历树节点并插入。
-     * 
-     * @param fileNode 关联的文件节点
+     * 深度优先遍历树节点并插入节点。
+     *
      * @param nowNode 当前正在处理的节点
      * @param queryRunner 用于执行 Cypher 的驱动对象
      */
     private fun deepVisitAndInsertNode(
-        fileNode: Neo4jFileNode,
         nowNode: TextNodeDTO,
         queryRunner: QueryRunner
     ) {
         queryRunner.insertTextNode(nowNode.toNeo4jTextNode())
+
+        for (i in 0..<nowNode.childNum()) {
+            deepVisitAndInsertNode(nowNode.getChild(i), queryRunner)
+        }
+    }
+
+    /**
+     * 深度优先遍历树节点并插入关系。
+     *
+     * @param fileNode 关联的文件节点
+     * @param nowNode 当前正在处理的节点
+     * @param queryRunner 用于执行 Cypher 的驱动对象
+     */
+    private fun deepVisitAndInsertRelationship(
+        fileNode: Neo4jFileNode,
+        nowNode: TextNodeDTO,
+        queryRunner: QueryRunner
+    ) {
         insertAllRelationShip(fileNode, nowNode, queryRunner)
 
         for (i in 0..<nowNode.childNum()) {
-            deepVisitAndInsertNode(fileNode, nowNode.getChild(i), queryRunner)
+            deepVisitAndInsertRelationship(fileNode, nowNode.getChild(i), queryRunner)
         }
     }
 

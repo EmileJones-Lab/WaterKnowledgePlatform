@@ -127,18 +127,43 @@ fun QueryRunner.insertFileNode(neo4jFileNode: Neo4jFileNode): Neo4jFileNode {
  * 执行逻辑：通过 `MATCH` 查找起止节点，随后执行 `CREATE (startNode)-[r:...]->(endNode)` 建立关系。
  */
 fun QueryRunner.insertRelationship(neo4jRelationship: Neo4jRelationship): Neo4jRelationship {
-    val insertRelationshipResult = this.run(
-        """
-            MATCH (startNode)
-            WHERE startNode.id = "%s" 
-            MATCH (endNode)
-            WHERE endNode.id = "%s"
-            CREATE (startNode)-[r:`%s`]->(endNode)
+    val query = when (neo4jRelationship.type) {
+        Neo4jRelationshipType.CHILD -> """
+            MATCH (startNode {id: ${'$'}startNodeId})
+            MATCH (endNode {id: ${'$'}endNodeId})
+            CREATE (startNode)-[r:CHILD]->(endNode)
             RETURN r
-        """.trimIndent().format(
-            neo4jRelationship.startNodeId,
-            neo4jRelationship.endNodeId,
-            neo4jRelationship.type.name
+        """.trimIndent()
+        Neo4jRelationshipType.PARENT -> """
+            MATCH (startNode {id: ${'$'}startNodeId})
+            MATCH (endNode {id: ${'$'}endNodeId})
+            CREATE (startNode)-[r:PARENT]->(endNode)
+            RETURN r
+        """.trimIndent()
+        Neo4jRelationshipType.PRE_SEQUENCE -> """
+            MATCH (startNode {id: ${'$'}startNodeId})
+            MATCH (endNode {id: ${'$'}endNodeId})
+            CREATE (startNode)-[r:PRE_SEQUENCE]->(endNode)
+            RETURN r
+        """.trimIndent()
+        Neo4jRelationshipType.NEXT_SEQUENCE -> """
+            MATCH (startNode {id: ${'$'}startNodeId})
+            MATCH (endNode {id: ${'$'}endNodeId})
+            CREATE (startNode)-[r:NEXT_SEQUENCE]->(endNode)
+            RETURN r
+        """.trimIndent()
+        Neo4jRelationshipType.CONTAIN -> """
+            MATCH (startNode {id: ${'$'}startNodeId})
+            MATCH (endNode {id: ${'$'}endNodeId})
+            CREATE (startNode)-[r:CONTAIN]->(endNode)
+            RETURN r
+        """.trimIndent()
+    }
+    val insertRelationshipResult = this.run(
+        query,
+        Values.parameters(
+            "startNodeId", neo4jRelationship.startNodeId,
+            "endNodeId", neo4jRelationship.endNodeId
         )
     ).single()
     return insertRelationshipResult["r"].asRelationship().asNeo4jRelationship()
